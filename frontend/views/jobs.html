@@ -1,0 +1,71 @@
+<div class="jobs">
+  <div class="jobs__header">
+    <h2>Explore Job Opportunities</h2>
+    <p class="jobs__description">
+      Browse through the latest job openings and find your next career opportunity. Filter by keywords, technologies, location, and experience level.
+    </p>
+  </div>
+  <div class="jobs__filters">
+    <div class="jobs__filter-group input-group">
+      <div class="jobs__filter-input-wrapper">
+        <input
+          type="text"
+          class="jobs__filter-input form-control"
+          placeholder="Search by keyword..."
+          aria-label="Search by keyword"
+          aria-describedby="inputGroup-sizing-default"
+        />
+      </div>
+      <div class="jobs__filter-input-wrapper">
+        <input
+          type="text"
+          class="jobs__filter-input form-control"
+          placeholder="Technology..."
+          aria-label="Technology"
+          aria-describedby="inputGroup-sizing-default"
+        />
+      </div>
+      <div class="jobs__filter-input-wrapper">
+        <input
+          type="text"
+          class="jobs__filter-input form-control"
+          placeholder="Country / City ..."
+          aria-label="Location"
+          aria-describedby="inputGroup-sizing-default"
+        />
+      </div>
+    </div>
+    <div class="dropdown">
+      <button
+        class="btn btn-outline-primary dropdown-toggle"
+        type="button"
+        id="seniorityDropdown"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        Experience Level
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="seniorityDropdown">
+        <li>
+          <label class="dropdown-item">
+            <input type="checkbox" value="junior" /> Junior
+          </label>
+        </li>
+        <li>
+          <label class="dropdown-item">
+            <input type="checkbox" value="intermediate" /> Intermediate
+          </label>
+        </li>
+        <li>
+          <label class="dropdown-item">
+            <input type="checkbox" value="senior" /> Senior
+          </label>
+        </li>
+      </ul>
+    </div>
+    <button class="jobs__filters__submit-btn btn btn-primary">Search</button>
+  </div>
+  <div class="jobs__list">
+    <!-- Job items will be dynamically rendered here -->
+  </div>
+</div>

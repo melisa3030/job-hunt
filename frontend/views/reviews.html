@@ -1,0 +1,42 @@
+<div class="reviews">
+  <h2>Employee Reviews and Comments</h2>
+  <p class="reviews__description">
+    Search for job experiences and interview reviews. Find out what it's really
+    like to work at a company.
+  </p>
+  <div class="reviews__filters">
+    <div class="reviews__filter-group input-group">
+      <div class="reviews__filter-input-wrapper">
+        <input
+          type="text"
+          class="reviews__filter-input form-control"
+          placeholder="Job position"
+          aria-label="Job position"
+          aria-describedby="inputGroup-sizing-default"
+        />
+      </div>
+      <div class="reviews__filter-input-wrapper">
+        <input
+          type="text"
+          class="reviews__filter-input form-control"
+          placeholder="Company"
+          aria-label="Company"
+          aria-describedby="inputGroup-sizing-default"
+        />
+      </div>
+      <div class="reviews__filter-input-wrapper">
+        <select class="form-control reviews__filter-select">
+          <option value="">Show all review types</option>
+          <option value="positive">Positive</option>
+          <option value="negative">Negative</option>
+        </select>
+      </div>
+    </div>
+    <button class="reviews__filters__submit-btn btn btn-primary">Search</button>
+  </div>
+
+  <h3>Latest Company Reviews</h3>
+  <div class="reviews__list">
+    <!-- Review items will be dynamically rendered here -->
+  </div>
+</div>
