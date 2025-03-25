@@ -1,0 +1,25 @@
+<div class="companies">
+    <h2>Company Profiles</h2>
+    <p class="companies__description">
+      View employee experiences, salaries, benefits, open positions, and other important information in one place.
+    </p>
+    <div class="companies__search">
+      <input
+        type="text"
+        class="form-control companies__search-input"
+        placeholder="Search for a company"
+        aria-label="Search for a company"
+      />
+      <button class="btn btn-primary companies__search-btn">Search</button>
+    </div>
+    <div class="companies__sort">
+      <label for="sort">Sort by:</label>
+      <select id="sort" class="form-control companies__sort-select">
+        <option value="reviews">Number of Reviews</option>
+        <option value="jobs">Number of Jobs</option>
+      </select>
+    </div>
+    <div class="companies__list">
+      <!-- Company items will be dynamically rendered here -->
+    </div>
+  </div>
