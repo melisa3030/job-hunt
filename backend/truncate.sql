@@ -1,0 +1,15 @@
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE `job-hunt-app`.`applications`;
+TRUNCATE TABLE `job-hunt-app`.`bookmarked_jobs`;
+TRUNCATE TABLE `job-hunt-app`.`companies`;
+TRUNCATE TABLE `job-hunt-app`.`job_categories`;
+TRUNCATE TABLE `job-hunt-app`.`job_perks`;
+TRUNCATE TABLE `job-hunt-app`.`jobs`;
+TRUNCATE TABLE `job-hunt-app`.`job_tags`;
+TRUNCATE TABLE `job-hunt-app`.`job_titles`;
+TRUNCATE TABLE `job-hunt-app`.`perks`;
+TRUNCATE TABLE `job-hunt-app`.`reviews`;
+TRUNCATE TABLE `job-hunt-app`.`review_tags`;
+TRUNCATE TABLE `job-hunt-app`.`tags`;
+TRUNCATE TABLE `job-hunt-app`.`users`;
+SET FOREIGN_KEY_CHECKS = 1;
