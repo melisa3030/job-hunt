@@ -14,6 +14,6 @@ class JobCategoriesDao extends BaseDao
         $stmt = $this->connection->prepare("SELECT * FROM job_categories WHERE name = :name");
         $stmt->bindParam(':name', $name);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $stmt->fetch();
     }
 }
