@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/../dao/BaseDao.php';
+require_once 'BaseDao.php';
 
 class JobCategoriesDao extends BaseDao
 {
@@ -14,6 +14,6 @@ class JobCategoriesDao extends BaseDao
         $stmt = $this->connection->prepare("SELECT * FROM job_categories WHERE name = :name");
         $stmt->bindParam(':name', $name);
         $stmt->execute();
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
