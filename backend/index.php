@@ -17,8 +17,18 @@ require_once __DIR__ . '/routes/job_categories.php';
 require_once __DIR__ . '/routes/bookmarked_jobs.php';
 require_once __DIR__ . '/routes/applications.php';
 
+require_once __DIR__ . '/services/UserService.php';
+require_once __DIR__ . '/services/TagsService.php';
+require_once __DIR__ . '/services/ReviewsService.php';
+require_once __DIR__ . '/services/CompaniesService.php';
+
+Flight::register('userService', 'UserService');
+Flight::register('tagsService', 'TagsService');
+Flight::register('reviewsService', 'ReviewsService');
+Flight::register('companiesService', 'CompaniesService');
+
 Flight::route('GET /', function () {
-  echo 'Welcome to the Job Hunt API!';
+    echo 'Welcome to the Job Hunt API!';
 });
 
 // Start Flight PHP
