@@ -53,7 +53,7 @@ class UserService
     $hasRequiredField = false;
 
     foreach ($requiredFields as $field) {
-      if (isset($data[$field]) && !empty($data[$field])) {
+      if (!empty($data[$field])) {
         $hasRequiredField = true;
         break;
       }
