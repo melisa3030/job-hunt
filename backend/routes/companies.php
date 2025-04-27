@@ -3,61 +3,56 @@
 require_once __DIR__ . '/../helpers.php';
 require_once __DIR__ . '/../dao/CompaniesDao.php';
 
+// Get all companies or filter by name
 Flight::route('GET /companies', function () {
-  $companiesDao = new CompaniesDao();
-  Flight::json($companiesDao->getAll());
-});
+  $name = Flight::request()->query->name;
+
+  if ($name) {
+    try {
+      Flight::json(Flight::companiesService()->getCompanyByName($name), 200);
+    } catch (Exception $e) {
+      Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    }
+  } else {
+    Flight::json(Flight::companiesService()->getAll(), 200);
+  }
+});;
 
 Flight::route('GET /companies/@id', function ($id) {
-  $companiesDao = new CompaniesDao();
-  $company = $companiesDao->getById($id);
-  if ($company) {
-    Flight::json($company);
-  } else {
-    Flight::jsonHalt((["message" => "Company not found"]), 404);
+  try {
+    $result = Flight::companiesService()->getCompanyById($id);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
   }
 });
 
 Flight::route('POST /companies', function () {
-  $companiesDao = new CompaniesDao();
-  $data = Flight::request()->data->getData();
-
-  validateBody(['name', 'country', 'city'], $data);
-
-  if ($companiesDao->insert($data)) {
-    Flight::json(["message" => "Company created successfully"], 201);
-  } else {
-    Flight::jsonHalt((["message" => "Error creating company"]), 500);
+  try {
+    $data = Flight::request()->data->getData();
+    $result = Flight::companiesService()->createCompany($data);
+    Flight::json($result, 201);
+  } catch (Exception $e) {
+    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
   }
 });
 
 Flight::route('PUT /companies/@id', function ($id) {
-  $companiesDao = new CompaniesDao();
-  $data = Flight::request()->data->getData();
-
-  $company = $companiesDao->getById($id);
-  if (!$company) {
-    Flight::jsonHalt((["message" => "Company not found"]), 404);
-  }
-
-  if ($companiesDao->update($id, $data)) {
-    Flight::json(["message" => "Company updated successfully"], 200);
-  } else {
-    Flight::jsonHalt((["message" => "Error updating company"]), 500);
+  try {
+    $data = Flight::request()->data->getData();
+    $result = Flight::companiesService()->updateCompany($id, $data);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
   }
 });
 
 
 Flight::route('DELETE /companies/@id', function ($id) {
-  $companiesDao = new CompaniesDao();
-  $company = $companiesDao->getById($id);
-  if (!$company) {
-    Flight::jsonHalt((["message" => "Company not found"]), 404);
-  }
-
-  if ($companiesDao->delete($id)) {
-    Flight::json(["message" => "Company deleted successfully"], 200);
-  } else {
-    Flight::jsonHalt((["message" => "Error deleting company"]), 500);
+  try {
+    $result = Flight::companiesService()->deleteCompany($id);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
   }
 });
