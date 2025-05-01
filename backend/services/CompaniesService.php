@@ -49,11 +49,7 @@ class CompaniesService
 
   public function updateCompany($id, $data)
   {
-    $company = $this->getCompanyById($id);
-
-    if (!$company) {
-      throw new Exception("Company not found", 404);
-    }
+    $this->getCompanyById($id);
 
     // Check if at least one required field is present
     $requiredFields = ['name', 'country', 'city', 'description'];
