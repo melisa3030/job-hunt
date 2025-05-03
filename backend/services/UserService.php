@@ -53,7 +53,7 @@ class UserService
     $hasRequiredField = false;
 
     foreach ($requiredFields as $field) {
-      if (!empty($data[$field])) {
+      if (isset($data[$field]) && !empty($data[$field])) {
         $hasRequiredField = true;
         break;
       }
@@ -87,6 +87,7 @@ class UserService
     return ["message" => "User deleted successfully"];
   }
 
+  // excludeId is optional and used when updating a user to check for uniqueness excluding the current user
   private function validateUniqueEmail($email, $excludeId = null)
   {
     $existingUser = $this->dao->getByEmail($email);
@@ -95,6 +96,7 @@ class UserService
     }
   }
 
+  // excludeId is optional and used when updating a user to check for uniqueness excluding the current user
   private function validateUniqueUsername($username, $excludeId = null)
   {
     $existingUser = $this->dao->getByUsername($username);
