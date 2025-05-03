@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`companies` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`))
 ENGINE = InnoDB
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`job_categories` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -67,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`users` (
     REFERENCES `job-hunt-app`.`companies` (`id`)
     ON DELETE SET NULL)
 ENGINE = InnoDB
+AUTO_INCREMENT = 5
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -80,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`job_titles` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -95,8 +99,8 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`jobs` (
   `description` TEXT NOT NULL,
   `city` VARCHAR(100) NOT NULL,
   `country` VARCHAR(100) NOT NULL,
-  `work_type` ENUM('Remote', 'Hybrid', 'On-site') NOT NULL,
-  `experience_level` ENUM('junior', 'intermediate', 'senior') NOT NULL,
+  `work_type` ENUM('REMOTE', 'HYBRID', 'ON-SITE') NOT NULL,
+  `experience_level` ENUM('JUNIOR', 'INTERMEDIATE', 'SENIOR') NOT NULL,
   `salary` DECIMAL(10,2) NULL DEFAULT NULL,
   `posted_by` INT NOT NULL,
   `expires_at` TIMESTAMP NOT NULL,
@@ -123,6 +127,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`jobs` (
     REFERENCES `job-hunt-app`.`job_titles` (`id`)
     ON DELETE CASCADE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 9
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -134,7 +139,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`applications` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `job_id` INT NOT NULL,
   `applicant_id` INT NOT NULL,
-  `status` ENUM('pending', 'accepted', 'rejected') NULL DEFAULT 'pending',
+  `status` ENUM('PENDING', 'ACCEPTED', 'REJECTED') NULL DEFAULT 'PENDING',
   `applied_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `job_id` (`job_id` ASC) VISIBLE,
@@ -217,6 +222,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`tags` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -252,10 +258,10 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`reviews` (
   `rating` INT NOT NULL,
   `positive_review` TEXT NULL DEFAULT NULL,
   `negative_review` TEXT NULL DEFAULT NULL,
-  `currently_working` ENUM('yes', 'no') NULL DEFAULT NULL,
-  `recommend` ENUM('yes', 'no') NULL DEFAULT NULL,
-  `employment_type` ENUM('Full Time', 'Part Time', 'Contract', 'Internship') NULL DEFAULT NULL,
-  `employment_duration` ENUM('Less than a year', '1-2 years', '3-5 years', 'More than 5 years') NULL DEFAULT NULL,
+  `currently_working` ENUM('YES', 'NO') NULL DEFAULT NULL,
+  `recommend` ENUM('YES', 'NO') NULL DEFAULT NULL,
+  `employment_type` ENUM('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP') NULL DEFAULT NULL,
+  `employment_duration` ENUM('LESS_THAN_A_YEAR', 'ONE_TO_TWO_YEARS', 'THREE_TO_FIVE_YEARS', 'MORE_THAN_FIVE_YEARS') NULL DEFAULT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX `company_id` (`company_id` ASC) VISIBLE,
@@ -269,6 +275,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`reviews` (
     REFERENCES `job-hunt-app`.`job_titles` (`id`)
     ON DELETE CASCADE)
 ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
