@@ -7,39 +7,43 @@ require_once __DIR__ . '/../dao/JobTitlesDao.php';
 
 enum CurrentlyWorking: string
 {
-  case YES = 'yes';
-  case NO = 'no';
+  case YES = 'YES';
+  case NO = 'NO';
 }
 
 enum Recommend: string
 {
-  case YES = 'yes';
-  case NO = 'no';
+  case YES = 'YES';
+  case NO = 'NO';
 }
 
 enum EmploymentType: string
 {
-  case FULL_TIME = 'Full Time';
-  case PART_TIME = 'Part Time';
-  case CONTRACT = 'Contract';
-  case INTERNSHIP = 'Internship';
+  case FULL_TIME = 'FULL_TIME';
+  case PART_TIME = 'PART_TIME';
+  case CONTRACT = 'CONTRACT';
+  case INTERNSHIP = 'INTERNSHIP';
 }
 
 enum EmploymentDuration: string
 {
-  case LESS_THAN_A_YEAR = 'Less than a year';
-  case ONE_TO_TWO_YEARS = '1-2 years';
-  case THREE_TO_FIVE_YEARS = '3-5 years';
-  case MORE_THAN_FIVE_YEARS = 'More than 5 years';
+  case LESS_THAN_A_YEAR = 'LESS_THAN_A_YEAR';
+  case ONE_TO_TWO_YEARS = 'ONE_TO_TWO_YEARS';
+  case THREE_TO_FIVE_YEARS = 'THREE_TO_FIVE_YEARS';
+  case MORE_THAN_FIVE_YEARS = 'MORE_THAN_FIVE_YEARS';
 }
 
 class ReviewsService
 {
   private $dao;
+  private $companiesDao;
+  private $jobTitlesDao;
 
   public function __construct()
   {
     $this->dao = new ReviewsDao();
+    $this->companiesDao = new CompaniesDao();
+    $this->jobTitlesDao = new JobTitlesDao();
   }
 
   public function getAll()
@@ -62,43 +66,37 @@ class ReviewsService
     $requiredFields = ['company_id', 'job_title_id', 'rating', 'positive_review', 'negative_review', 'currently_working', 'recommend', 'employment_type', 'employment_duration'];
     validateBody($requiredFields, $data);
 
-    $companiesDAO = new CompaniesDao();
-    $jobTitlesDAO = new JobTitlesDao();
-
-    if (!$companiesDAO->getById($data['company_id'])) {
-      throw new Exception('Invalid company_id. Company does not exist.', 404);
+    if (!$this->companiesDao->getById($data['company_id'])) {
+      throw new Exception("Company not found", 404);
     }
-
-    if (!$jobTitlesDAO->getById($data['job_title_id'])) {
-      throw new Exception('Invalid job_title_id. Job title does not exist.', 404);
+    if (!$this->jobTitlesDao->getById($data['job_title_id'])) {
+      throw new Exception("Job title not found", 404);
     }
 
     // Validate enum values
     try {
       CurrentlyWorking::from(trim($data['currently_working']));
     } catch (\ValueError $e) {
-      throw new Exception('Invalid value for currently_working. Must be yes or no.', 400);
+      throw new Exception('Invalid value for currently_working. Must be YES or NO', 400);
     }
 
     try {
       Recommend::from(trim($data['recommend']));
     } catch (\ValueError $e) {
-      throw new Exception('Invalid value for recommend. Must be yes or no.', 400);
+      throw new Exception('Invalid value for recommend. Must be YES or NO', 400);
     }
 
     try {
       EmploymentType::from(trim($data['employment_type']));
     } catch (\ValueError $e) {
-      throw new Exception('Invalid value for employment_type. Must be Full Time, Part Time, Contract, or Internship.', 400);
+      throw new Exception('Invalid value for employment_type. Must be FULL_TIME, PART_TIME, CONTRACT, or INTERNSHIP.', 400);
     }
 
     try {
       EmploymentDuration::from(trim($data['employment_duration']));
     } catch (\ValueError $e) {
-      throw new Exception('Invalid value for employment_duration. Must be Less than a year, 1-2 years, 3-5 years, or More than 5 years.', 400);
+      throw new Exception('Invalid value for employment_duration. Must be LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, or MORE_THAN_FIVE_YEARS.', 400);
     }
-
-
 
     if (!$this->dao->insert($data)) {
       throw new Exception('Error creating review', 500);
@@ -135,7 +133,7 @@ class ReviewsService
       try {
         CurrentlyWorking::from(trim($data['currently_working']));
       } catch (\ValueError $e) {
-        throw new Exception('Invalid value for currently_working. Must be yes or no.', 400);
+        throw new Exception('Invalid value for currently_working. Must be YES or NO', 400);
       }
     }
 
@@ -143,7 +141,7 @@ class ReviewsService
       try {
         Recommend::from(trim($data['recommend']));
       } catch (\ValueError $e) {
-        throw new Exception('Invalid value for recommend. Must be yes or no.', 400);
+        throw new Exception('Invalid value for recommend. Must be YES or NO', 400);
       }
     }
 
@@ -151,7 +149,7 @@ class ReviewsService
       try {
         EmploymentType::from(trim($data['employment_type']));
       } catch (\ValueError $e) {
-        throw new Exception('Invalid value for employment_type. Must be Full Time, Part Time, Contract, or Internship.', 400);
+        throw new Exception('Invalid value for employment_type. Must be FULL_TIME, PART_TIME, CONTRACT, or INTERNSHIP.', 400);
       }
     }
 
@@ -159,7 +157,7 @@ class ReviewsService
       try {
         EmploymentDuration::from(trim($data['employment_duration']));
       } catch (\ValueError $e) {
-        throw new Exception('Invalid value for employment_duration. Must be Less than a year, 1-2 years, 3-5 years, or More than 5 years.', 400);
+        throw new Exception('Invalid value for employment_duration. Must be LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, or MORE_THAN_FIVE_YEARS.', 400);
       }
     }
 
