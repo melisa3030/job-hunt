@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../dao/JobTitlesDao.php';
-require_once __DIR__ . '/../helpers.php';
+require_once __DIR__ . '/../../helpers.php';
 
 class JobTitlesService
 {

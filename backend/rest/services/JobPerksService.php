@@ -4,7 +4,7 @@ require_once __DIR__ . '/../dao/JobPerksDao.php';
 require_once __DIR__ . '/../dao/PerksDao.php';
 require_once __DIR__ . '/../dao/JobsDao.php';
 
-require_once __DIR__ . '/../helpers.php';
+require_once __DIR__ . '/../../helpers.php';
 
 class JobPerksService
 {

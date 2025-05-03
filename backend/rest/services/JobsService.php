@@ -5,7 +5,7 @@ require_once __DIR__ . '/../dao/CompaniesDao.php';
 require_once __DIR__ . '/../dao/JobTitlesDao.php';
 require_once __DIR__ . '/../dao/JobCategoriesDao.php';
 require_once __DIR__ . '/../dao/UsersDao.php';
-require_once __DIR__ . '/../helpers.php';
+require_once __DIR__ . '/../../helpers.php';
 
 enum WorkType: string
 {

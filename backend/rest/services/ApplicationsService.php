@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../dao/ApplicationsDao.php';
 require_once __DIR__ . '/../dao/UsersDao.php';
 require_once __DIR__ . '/../dao/JobsDao.php';
-require_once __DIR__ . '/../helpers.php';
+require_once __DIR__ . '/../../helpers.php';
 
 enum Status: string
 {
