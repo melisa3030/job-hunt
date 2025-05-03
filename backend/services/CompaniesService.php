@@ -56,7 +56,7 @@ class CompaniesService
     $hasRequiredField = false;
 
     foreach ($requiredFields as $field) {
-      if (isset($data[$field])) {
+      if (isset($data[$field]) && !empty($data[$field])) {
         $hasRequiredField = true;
         break;
       }
