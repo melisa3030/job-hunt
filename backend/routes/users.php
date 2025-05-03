@@ -1,6 +1,5 @@
 <?php
-require_once __DIR__ . '/../dao/UsersDao.php';
-require_once __DIR__ . '/../helpers.php';
+
 
 Flight::route('GET /users', function () {
     Flight::json(Flight::userService()->getAllUsers());

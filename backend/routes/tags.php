@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../helpers.php';
-require_once __DIR__ . '/../dao/TagsDao.php';
 
 Flight::route('GET /tags', function () {
     $name = Flight::request()->query->name;

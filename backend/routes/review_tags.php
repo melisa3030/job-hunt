@@ -1,8 +1,5 @@
 <?php
-require_once __DIR__ . '/../dao/ReviewTagsDao.php';
-require_once __DIR__ . '/../dao/TagsDao.php';
-require_once __DIR__ . '/../dao/ReviewsDao.php';
-require_once __DIR__ . '/../helpers.php';
+
 
 Flight::route('GET /review_tags', function () {
   Flight::json(Flight::reviewTagsService()->getAll());

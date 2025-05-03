@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../dao/JobCategoriesDao.php';
-require_once __DIR__ . '/../helpers.php';
 
 Flight::route('GET /job_categories', function () {
     Flight::json(Flight::jobCategoriesService()->getAllJobCategories(), 200);

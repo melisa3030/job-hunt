@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../helpers.php';
-require_once __DIR__ . '/../dao/CompaniesDao.php';
 
 // Get all companies or filter by name
 Flight::route('GET /companies', function () {
