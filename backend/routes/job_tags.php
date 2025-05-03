@@ -1,61 +1,45 @@
 <?php
-require_once __DIR__ . '/../dao/JobTagsDao.php';
-require_once __DIR__ . '/../dao/TagsDao.php';
-require_once __DIR__ . '/../dao/JobsDao.php';
-require_once __DIR__ . '/../helpers.php';
 
 Flight::route('GET /job_tags', function () {
-  $jobTagsDao = new JobTagsDao();
-  Flight::json($jobTagsDao->getAll());
+  Flight::json(Flight::jobTagsService()->getAllJobTags(), 200);
 });
 
 Flight::route('GET /job_tags/job/@job_id', function ($job_id) {
-  $jobTagsDao = new JobTagsDao();
-  $jobTags = $jobTagsDao->getByJobId($job_id);
-  if ($jobTags) {
-    Flight::json($jobTags);
-  } else {
-    Flight::jsonHalt(["message" => "No job tags  found for job_id"], 404);
+  try {
+    $jobTags = Flight::jobTagsService()->getJobTagsByJobId($job_id);
+    Flight::json($jobTags, 200);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
 Flight::route('GET /job_tags/tag/@tag_id', function ($tag_id) {
-  $jobTagsDao = new JobTagsDao();
-  $jobTags = $jobTagsDao->getByTagId($tag_id);
-  if ($jobTags) {
-    Flight::json($jobTags);
-  } else {
-    Flight::jsonHalt(["message" => "No job tags found for tag_id"], 404);
+  try {
+    $jobTags = Flight::jobTagsService()->getJobTagsByTagId($tag_id);
+    Flight::json($jobTags, 200);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
 Flight::route('POST /job_tags', function () {
-  $jobTagsDao = new JobTagsDao();
-
-  $tagsDao = new TagsDao();
-  $jobsDao = new JobsDao();
-
-  $data = Flight::request()->data->getData();
-
-  validateBody(['job_id', 'tag_id'], $data);
-
-  $job_id = $data['job_id'];
-  $tag_id = $data['tag_id'];
-
-  $job = $jobsDao->getById($job_id);
-  $tag = $tagsDao->getById($tag_id);
-
-  if (!$job) {
-    Flight::jsonHalt(["message" => "Job not found"], 404);
-  }
-
-  if (!$tag) {
-    Flight::jsonHalt(["message" => "Tag not found"], 404);
-  }
-
-  if ($jobTagsDao->insert($data)) {
-    Flight::json(["message" => "job tag created successfully"], 201);
-  } else {
-    Flight::jsonHalt((["message" => "Error creating job tag"]), 500);
+  try {
+    $data = Flight::request()->data->getData();
+    $result = Flight::jobTagsService()->createJobTag($data);
+    Flight::json($result, 201);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
