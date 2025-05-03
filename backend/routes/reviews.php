@@ -9,7 +9,11 @@ Flight::route('GET /reviews/@id', function ($id) {
         $review = Flight::reviewsService()->getById($id);
         Flight::json($review, 200);
     } catch (Exception $e) {
-        Flight::jsonHalt(['error' => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
@@ -20,17 +24,25 @@ Flight::route('POST /reviews', function () {
         $result = Flight::reviewsService()->createReview($data);
         Flight::json($result, 201);
     } catch (Exception $e) {
-        Flight::jsonHalt(['error' => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
 Flight::route('PUT /reviews/@id', function ($id) {
     try {
         $data = Flight::request()->data->getData();
-        $result = Flight::reviewsService()->update($id, $data);
+        $result = Flight::reviewsService()->updateReview($id, $data);
         Flight::json($result, 200);
     } catch (Exception $e) {
-        Flight::jsonHalt(['error' => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
@@ -39,6 +51,10 @@ Flight::route('DELETE /reviews/@id', function ($id) {
         $result = Flight::reviewsService()->delete($id);
         Flight::json($result, 200);
     } catch (Exception $e) {
-        Flight::jsonHalt(['error' => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });

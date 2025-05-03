@@ -10,7 +10,11 @@ Flight::route('GET /users/@id', function ($id) {
     try {
         Flight::json(Flight::userService()->getUserById($id));
     } catch (Exception $e) {
-        Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
@@ -20,7 +24,11 @@ Flight::route('POST /users', function () {
         $result = Flight::userService()->createUser($data);
         Flight::json($result, 201);
     } catch (Exception $e) {
-        Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
@@ -30,7 +38,11 @@ Flight::route('PUT /users/@id', function ($id) {
         $result = Flight::userService()->updateUser($id, $data);
         Flight::json($result, 200);
     } catch (Exception $e) {
-        Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });
 
@@ -39,6 +51,10 @@ Flight::route('DELETE /users/@id', function ($id) {
         $result = Flight::userService()->deleteUser($id);
         Flight::json($result, 200);
     } catch (Exception $e) {
-        Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
 });

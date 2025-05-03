@@ -15,7 +15,11 @@ Flight::route('POST /review_tags', function () {
     $result = Flight::reviewTagsService()->createReviewTag($data);
     Flight::json($result, 201);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
@@ -24,7 +28,11 @@ Flight::route('GET /review_tags/review/@review_id', function ($review_id) {
     $reviewTags = Flight::reviewTagsService()->getReviewTagsByReviewId($review_id);
     Flight::json($reviewTags);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
@@ -33,6 +41,10 @@ Flight::route('GET /review_tags/tag/@tag_id', function ($tag_id) {
     $reviewTags = Flight::reviewTagsService()->getReviewTagsByTagId($tag_id);
     Flight::json($reviewTags);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });

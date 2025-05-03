@@ -11,7 +11,11 @@ Flight::route('GET /companies', function () {
     try {
       Flight::json(Flight::companiesService()->getCompanyByName($name), 200);
     } catch (Exception $e) {
-      Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+      $code = $e->getCode();
+      if ($code < 100 || $code > 599) {
+        $code = 500;
+      }
+      Flight::jsonHalt(["message" => $e->getMessage()], $code);
     }
   } else {
     Flight::json(Flight::companiesService()->getAll(), 200);
@@ -23,7 +27,11 @@ Flight::route('GET /companies/@id', function ($id) {
     $result = Flight::companiesService()->getCompanyById($id);
     Flight::json($result, 200);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
@@ -33,7 +41,11 @@ Flight::route('POST /companies', function () {
     $result = Flight::companiesService()->createCompany($data);
     Flight::json($result, 201);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
@@ -43,7 +55,11 @@ Flight::route('PUT /companies/@id', function ($id) {
     $result = Flight::companiesService()->updateCompany($id, $data);
     Flight::json($result, 200);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
 
@@ -53,6 +69,10 @@ Flight::route('DELETE /companies/@id', function ($id) {
     $result = Flight::companiesService()->deleteCompany($id);
     Flight::json($result, 200);
   } catch (Exception $e) {
-    Flight::jsonHalt(["message" => $e->getMessage()], $e->getCode());
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
