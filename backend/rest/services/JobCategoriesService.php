@@ -60,6 +60,12 @@ class JobCategoriesService
 
   public function deleteJobCategory($id)
   {
+    $jobCategory = $this->getJobCategoryById($id);
+
+    if (!$jobCategory) {
+      throw new Exception("Job category not found", 404);
+    }
+
     if (!$this->dao->delete($id)) {
       throw new Exception("Failed to delete job category", 500);
     }
