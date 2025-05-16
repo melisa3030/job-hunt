@@ -79,12 +79,12 @@ class UserService
             throw new Exception("Update requires at least one of these fields: " . implode(", ", $requiredFields), 400);
         }
 
-        if (isset($data['email'])) {
-            $this->validateUniqueEmail($data['email'], $id);
-        }
-
         if (isset($data['username'])) {
             $this->validateUniqueUsername($data['username'], $id);
+        }
+
+        if (isset($data['email'])) {
+            $this->validateUniqueEmail($data['email'], $id);
         }
 
         if (!$this->dao->update($id, $data)) {
