@@ -17,6 +17,7 @@ require_once __DIR__ . '/rest/routes/JobPerkRoutes.php';
 require_once __DIR__ . '/rest/routes/JobCategoryRoutes.php';
 require_once __DIR__ . '/rest/routes/BookmarkedJobRoutes.php';
 require_once __DIR__ . '/rest/routes/ApplicationRoutes.php';
+require_once __DIR__ . '/rest/routes/AuthRoutes.php';
 
 // Services
 require_once __DIR__ . '/rest/services/UserService.php';
@@ -32,6 +33,7 @@ require_once __DIR__ . '/rest/services/JobTagsService.php';
 require_once __DIR__ . '/rest/services/JobPerksService.php';
 require_once __DIR__ . '/rest/services/BookmarkedJobsService.php';
 require_once __DIR__ . '/rest/services/ApplicationsService.php';
+require_once __DIR__ . '/rest/services/AuthService.php';
 
 Flight::register('userService', 'UserService');
 Flight::register('tagsService', 'TagsService');
@@ -46,9 +48,7 @@ Flight::register('jobTagsService', 'JobTagsService');
 Flight::register('jobPerksService', 'JobPerksService');
 Flight::register('bookmarkedJobsService', 'BookmarkedJobsService');
 Flight::register('applicationsService', 'ApplicationsService');
-
-
-
+Flight::register('authService', 'AuthService');
 
 Flight::route('GET /', function () {
     echo 'Welcome to the Job Hunt API!';
