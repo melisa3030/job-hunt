@@ -3,20 +3,20 @@
 require_once __DIR__ . "/vendor/autoload.php";
 
 // Routes
-require_once __DIR__ . '/rest/routes/users.php';
-require_once __DIR__ . '/rest/routes/companies.php';
-require_once __DIR__ . '/rest/routes/perks.php';
-require_once __DIR__ . '/rest/routes/tags.php';
-require_once __DIR__ . '/rest/routes/job_titles.php';
-require_once __DIR__ . '/rest/routes/job_categories.php';
-require_once __DIR__ . '/rest/routes/reviews.php';
-require_once __DIR__ . '/rest/routes/review_tags.php';
-require_once __DIR__ . '/rest/routes/jobs.php';
-require_once __DIR__ . '/rest/routes/job_tags.php';
-require_once __DIR__ . '/rest/routes/job_perks.php';
-require_once __DIR__ . '/rest/routes/job_categories.php';
-require_once __DIR__ . '/rest/routes/bookmarked_jobs.php';
-require_once __DIR__ . '/rest/routes/applications.php';
+require_once __DIR__ . '/rest/routes/UserRoutes.php';
+require_once __DIR__ . '/rest/routes/CompanyRoutes.php';
+require_once __DIR__ . '/rest/routes/PerkRoutes.php';
+require_once __DIR__ . '/rest/routes/TagRoutes.php';
+require_once __DIR__ . '/rest/routes/JobTitleRoutes.php';
+require_once __DIR__ . '/rest/routes/JobCategoryRoutes.php';
+require_once __DIR__ . '/rest/routes/ReviewRoutes.php';
+require_once __DIR__ . '/rest/routes/ReviewTagRoutes.php';
+require_once __DIR__ . '/rest/routes/JobRoutes.php';
+require_once __DIR__ . '/rest/routes/JobTagRoutes.php';
+require_once __DIR__ . '/rest/routes/JobPerkRoutes.php';
+require_once __DIR__ . '/rest/routes/JobCategoryRoutes.php';
+require_once __DIR__ . '/rest/routes/BookmarkedJobRoutes.php';
+require_once __DIR__ . '/rest/routes/ApplicationRoutes.php';
 
 // Services
 require_once __DIR__ . '/rest/services/UserService.php';
