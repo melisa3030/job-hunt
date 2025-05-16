@@ -98,6 +98,10 @@ class UserService
             $this->validateUniqueEmail($data['email'], $id);
         }
 
+        if (isset($data['password'])) {
+            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+
         if (!$this->dao->update($id, $data)) {
             throw new Exception("Error updating user", 500);
         }
