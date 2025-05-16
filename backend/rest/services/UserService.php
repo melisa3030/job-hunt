@@ -48,6 +48,8 @@ class UserService
             throw new Exception("Create requires at least one of these fields: " . implode(", ", $requiredFields), 400);
         }
 
+        $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+
         $this->validateUniqueEmail($data['email']);
         $this->validateUniqueUsername($data['username']);
 
@@ -62,7 +64,6 @@ class UserService
                 throw new Exception("Invalid value for role. Must be APPLICANT or EMPLOYER.", 400);
             }
         }
-
 
         if (!$this->dao->insert($data)) {
             throw new Exception("Error creating user", 500);
