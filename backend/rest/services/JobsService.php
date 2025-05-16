@@ -1,25 +1,14 @@
 <?php
 
+require_once __DIR__ . '/../../data/ExperienceLevel.php';
+require_once __DIR__ . '/../../data/WorkType.php';
+
 require_once __DIR__ . '/../dao/JobsDao.php';
 require_once __DIR__ . '/../dao/CompaniesDao.php';
 require_once __DIR__ . '/../dao/JobTitlesDao.php';
 require_once __DIR__ . '/../dao/JobCategoriesDao.php';
 require_once __DIR__ . '/../dao/UsersDao.php';
 require_once __DIR__ . '/../../helpers.php';
-
-enum WorkType: string
-{
-  case Remote = 'REMOTE';
-  case Hybrid = 'HYBRID';
-  case OnSite = 'ON-SITE';
-}
-
-enum ExperienceLevel: string
-{
-  case Junior = 'JUNIOR';
-  case Intermediate = 'INTERMEDIATE';
-  case Senior = 'SENIOR';
-}
 
 class JobsService
 {

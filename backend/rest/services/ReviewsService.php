@@ -4,34 +4,10 @@ require_once __DIR__ . '/../../helpers.php';
 require_once __DIR__ . '/../dao/ReviewsDao.php';
 require_once __DIR__ . '/../dao/CompaniesDao.php';
 require_once __DIR__ . '/../dao/JobTitlesDao.php';
-
-enum CurrentlyWorking: string
-{
-  case YES = 'YES';
-  case NO = 'NO';
-}
-
-enum Recommend: string
-{
-  case YES = 'YES';
-  case NO = 'NO';
-}
-
-enum EmploymentType: string
-{
-  case FULL_TIME = 'FULL_TIME';
-  case PART_TIME = 'PART_TIME';
-  case CONTRACT = 'CONTRACT';
-  case INTERNSHIP = 'INTERNSHIP';
-}
-
-enum EmploymentDuration: string
-{
-  case LESS_THAN_A_YEAR = 'LESS_THAN_A_YEAR';
-  case ONE_TO_TWO_YEARS = 'ONE_TO_TWO_YEARS';
-  case THREE_TO_FIVE_YEARS = 'THREE_TO_FIVE_YEARS';
-  case MORE_THAN_FIVE_YEARS = 'MORE_THAN_FIVE_YEARS';
-}
+require_once __DIR__ . '/../../data/CurrentlyWorking.php';
+require_once __DIR__ . '/../../data/Recommend.php';
+require_once __DIR__ . '/../../data/EmploymentType.php';
+require_once __DIR__ . '/../../data/EmploymentDuration.php';
 
 class ReviewsService
 {

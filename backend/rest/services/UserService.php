@@ -1,13 +1,8 @@
 <?php
 
+require_once __DIR__ . '/../../data/Roles.php';
 require_once __DIR__ . '/../dao/UsersDao.php';
 require_once __DIR__ . '/../../helpers.php';
-
-enum ROLE: string
-{
-    case APPLICANT = 'APPLICANT';
-    case EMPLOYER = 'EMPLOYER';
-}
 
 class UserService
 {
@@ -55,11 +50,11 @@ class UserService
 
         if (!isset($data['role'])) {
             // If a role is not set, use the default value
-            $data['role'] = ROLE::APPLICANT->value;
+            $data['role'] = Roles::APPLICANT->value;
         } else {
             // If a role is set, validate it
             try {
-                ROLE::from(trim($data['role']));
+                Roles::from(trim($data['role']));
             } catch (\ValueError $e) {
                 throw new Exception("Invalid value for role. Must be APPLICANT or EMPLOYER.", 400);
             }
