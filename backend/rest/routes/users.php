@@ -2,20 +2,23 @@
 
 
 Flight::route('GET /users', function () {
-    Flight::json(Flight::userService()->getAllUsers());
-});
+    $email = Flight::request()->query->email;
 
-Flight::route('GET /users/@id', function ($id) {
-    try {
-        Flight::json(Flight::userService()->getUserById($id));
-    } catch (Exception $e) {
-        $code = $e->getCode();
-        if ($code < 100 || $code > 599) {
-            $code = 500;
+    if ($email) {
+        try {
+            Flight::json(Flight::userService()->getUserByEmail($email));
+        } catch (Exception $e) {
+            $code = $e->getCode();
+            if ($code < 100 || $code > 599) {
+                $code = 500;
+            }
+            Flight::jsonHalt(["message" => $e->getMessage()], $code);
         }
-        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    } else {
+        Flight::json(Flight::userService()->getAllUsers());
     }
 });
+
 
 Flight::route('POST /users', function () {
     try {
