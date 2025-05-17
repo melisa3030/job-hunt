@@ -2,29 +2,15 @@
 
 require_once __DIR__ . '/../../data/ExperienceLevel.php';
 require_once __DIR__ . '/../../data/WorkType.php';
-
-require_once __DIR__ . '/../dao/JobsDao.php';
-require_once __DIR__ . '/../dao/CompaniesDao.php';
-require_once __DIR__ . '/../dao/JobTitlesDao.php';
-require_once __DIR__ . '/../dao/JobCategoriesDao.php';
-require_once __DIR__ . '/../dao/UsersDao.php';
 require_once __DIR__ . '/../../helpers.php';
 
 class JobsService
 {
   private $dao;
-  private $companiesDao;
-  private $jobTitlesDao;
-  private $usersDao;
-  private $jobCategoriesDao;
 
   public function __construct()
   {
     $this->dao = new JobsDao();
-    $this->companiesDao = new CompaniesDao();
-    $this->jobTitlesDao = new JobTitlesDao();
-    $this->usersDao = new UsersDao();
-    $this->jobCategoriesDao = new JobCategoriesDao();
   }
 
   public function getAllJobs()
@@ -42,22 +28,32 @@ class JobsService
     }
   }
 
+  public function getJobIdsByEmployerId($employer_id)
+  {
+    $jobs = $this->dao->getByField('posted_by', $employer_id);
+    $jobIds = [];
+    foreach ($jobs as $job) {
+      $jobIds[] = $job['id'];
+    }
+    return $jobIds;
+  }
+
   public function createJob($data)
   {
     $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'posted_by', 'expires_at'];
     validateBody($requiredFields, $data);
 
 
-    if (!$this->companiesDao->getById($data['company_id'])) {
+    if (!Flight::companyService()->getById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
-    if (!$this->jobTitlesDao->getById($data['job_title_id'])) {
+    if (!Flight::jobTitleService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
-    if (!$this->usersDao->getById($data['posted_by'])) {
+    if (!Flight::userService()->getById($data['posted_by'])) {
       throw new Exception("User not found", 404);
     }
-    if (!$this->jobCategoriesDao->getById($data['category_id'])) {
+    if (!Flight::jobCategoryService()->getById($data['category_id'])) {
       throw new Exception("Category not found", 404);
     }
 
@@ -81,11 +77,18 @@ class JobsService
     return ["message" => "Job created successfully"];
   }
 
-  public function updateJob($id, $data)
+  public function updateJob($id, $data, $user)
   {
-    $job = $this->dao->getById($id);
+
+    $job = $this->getJobById($id);
     if (!$job) {
       throw new Exception("Job not found", 404);
+    }
+
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $job['employer_id'] != $user->id) {
+      throw new Exception("Forbidden: You can only update your own jobs", 403);
     }
 
     $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'posted_by', 'expires_at'];
@@ -103,16 +106,16 @@ class JobsService
     }
 
     // Validate only the fields that are present in the request
-    if (isset($data['company_id']) && !$this->companiesDao->getById($data['company_id'])) {
+    if (isset($data['company_id']) && !Flight::companyService()->getById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
-    if (isset($data['job_title_id']) && !$this->jobTitlesDao->getById($data['job_title_id'])) {
+    if (isset($data['job_title_id']) && !Flight::jobsService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
-    if (isset($data['posted_by']) && !$this->usersDao->getById($data['posted_by'])) {
+    if (isset($data['posted_by']) && !Flight::userService()->getById($data['posted_by'])) {
       throw new Exception("User not found", 404);
     }
-    if (isset($data['category_id']) && !$this->jobCategoriesDao->getById($data['category_id'])) {
+    if (isset($data['category_id']) && !Flight::jobCategoriesService()->getById($data['category_id'])) {
       throw new Exception("Category not found", 404);
     }
 
@@ -136,12 +139,19 @@ class JobsService
     return ["message" => "Job updated successfully"];
   }
 
-  public function deleteJob($id)
+  public function deleteJob($id, $user)
   {
     $job = $this->dao->getById($id);
     if (!$job) {
       throw new Exception("Job not found", 404);
     }
+
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $job['employer_id'] != $user->id) {
+      throw new Exception("Forbidden: You can only delete your own jobs", 403);
+    }
+
 
     if (!$this->dao->delete($id)) {
       throw new Exception("Error deleting job", 500);
