@@ -2,6 +2,7 @@
 
 enum WorkType: string
 {
-    case FullTime = 'FULL_TIME';
-    case PartTime = 'PART_TIME';
+    case REMOTE = 'REMOTE';
+    case HYBRID = 'HYBRID';
+    case ON_SITE = 'ON-SITE';
 }
