@@ -1,6 +1,4 @@
 <?php
-
-
 // Get all companies or filter by name
 Flight::route('GET /companies', function () {
   $name = Flight::request()->query->name;
@@ -35,6 +33,7 @@ Flight::route('GET /companies/@id', function ($id) {
 
 Flight::route('POST /companies', function () {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $data = Flight::request()->data->getData();
     $result = Flight::companiesService()->createCompany($data);
     Flight::json($result, 201);
@@ -49,6 +48,7 @@ Flight::route('POST /companies', function () {
 
 Flight::route('PUT /companies/@id', function ($id) {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $data = Flight::request()->data->getData();
     $result = Flight::companiesService()->updateCompany($id, $data);
     Flight::json($result, 200);
@@ -64,6 +64,7 @@ Flight::route('PUT /companies/@id', function ($id) {
 
 Flight::route('DELETE /companies/@id', function ($id) {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $result = Flight::companiesService()->deleteCompany($id);
     Flight::json($result, 200);
   } catch (Exception $e) {

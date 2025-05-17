@@ -37,8 +37,20 @@ class CompaniesService
 
   public function createCompany($data)
   {
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $userRole !== Roles::EMPLOYER) {
+      throw new Exception("Forbidden: You can only create a company as an admin or employer", 403);
+    }
+
     $requiredFields = ['name', 'country', 'city'];
     validateBody($requiredFields, $data);
+
+    $data['employer_id'] = $user->id;
 
     if (!$this->dao->insert($data)) {
       throw new Exception("Error creating company", 500);
@@ -49,7 +61,19 @@ class CompaniesService
 
   public function updateCompany($id, $data)
   {
-    $this->getCompanyById($id);
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
+
+    $company = $this->getCompanyById($id);
+
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $company['employer_id'] != $user->id) {
+      throw new Exception("Forbidden: You can only update your own company", 403);
+    }
+
 
     // Check if at least one required field is present
     $requiredFields = ['name', 'country', 'city', 'description'];
@@ -77,6 +101,17 @@ class CompaniesService
   public function deleteCompany($id)
   {
     $company = $this->getCompanyById($id);
+
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
+
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $company['employer_id'] != $user->id) {
+      throw new Exception("Forbidden: You can only delete your own company", 403);
+    }
 
     if (!$company) {
       throw new Exception("Company not found", 404);
