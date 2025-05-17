@@ -75,8 +75,14 @@ class UserService
         return ["message" => "User created successfully"];
     }
 
-    public function updateUser($id, $data)
+    public function updateUser($id, $data, $user)
     {
+        $userRole = Roles::from($user->role);
+
+        if ($userRole !== Roles::ADMIN && $user->id != $id) {
+            throw new Exception('Forbidden', 403);
+        }
+
         $this->getUserById($id);
 
         // Check if at least one required field is present
@@ -112,8 +118,13 @@ class UserService
         return ["message" => "User updated successfully"];
     }
 
-    public function deleteUser($id)
+    public function deleteUser($id, $user)
     {
+        $userRole = Roles::from($user->role);
+
+        if ($userRole !== Roles::ADMIN && $user->id != $id) {
+            throw new Exception('Forbidden', 403);
+        }
         $this->getUserById($id);
 
         if (!$this->dao->delete($id)) {
