@@ -17,6 +17,61 @@ Flight::route('GET /reviews/@id', function ($id) {
     }
 });
 
+Flight::route('GET /reviews/user/@user_id', function ($user_id) {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT]);
+        $reviews = Flight::reviewsService()->getByUserId($user_id);
+        Flight::json($reviews, 200);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
+Flight::route('GET /reviews_for_auth_user', function () {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::APPLICANT, Roles::ADMIN]);
+        $reviews = Flight::reviewsService()->getReviewsForAuthUser();
+        Flight::json($reviews, 200);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
+Flight::route('GET /reviews/company/@company_id', function ($company_id) {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT]);
+        $reviews = Flight::reviewsService()->getByCompanyId($company_id);
+        Flight::json($reviews, 200);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
+Flight::route('GET /reviews/job_title/@job_title_id', function ($job_title_id) {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT]);
+        $reviews = Flight::reviewsService()->getByJobTitleId($job_title_id);
+        Flight::json($reviews, 200);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
 
 Flight::route('POST /reviews', function () {
     try {

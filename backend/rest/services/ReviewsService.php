@@ -12,14 +12,10 @@ require_once __DIR__ . '/../../data/EmploymentDuration.php';
 class ReviewsService
 {
   private $dao;
-  private $companiesDao;
-  private $jobTitlesDao;
 
   public function __construct()
   {
     $this->dao = new ReviewsDao();
-    $this->companiesDao = new CompaniesDao();
-    $this->jobTitlesDao = new JobTitlesDao();
   }
 
   public function getAll()
@@ -37,15 +33,78 @@ class ReviewsService
     }
   }
 
+  public function getByCompanyId($company_id)
+  {
+    $reviews = $this->dao->getByField('company_id', $company_id);
+    if ($reviews) {
+      return $reviews;
+    } else {
+      throw new Exception('No reviews found for this company', 404);
+    }
+  }
+
+  public function getByJobTitleId($job_title_id)
+  {
+    $reviews = $this->dao->getByField('job_title_id', $job_title_id);
+    if ($reviews) {
+      return $reviews;
+    } else {
+      throw new Exception('No reviews found for this job title', 404);
+    }
+  }
+
+  public function getByUserId($user_id)
+  {
+    $reviews = $this->dao->getByField('user_id', $user_id);
+    if ($reviews) {
+      return $reviews;
+    } else {
+      throw new Exception('No reviews found for this user', 404);
+    }
+  }
+
+  public function getReviewsForAuthUser()
+  {
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception('User not authenticated or session expired', 401);
+    }
+    $reviews = $this->dao->getByField('user_id', $user->id);
+    if ($reviews) {
+      return $reviews;
+    } else {
+      throw new Exception('No reviews found for this user', 404);
+    }
+  }
+
   public function createReview($data)
   {
-    $requiredFields = ['company_id', 'job_title_id', 'rating', 'positive_review', 'negative_review', 'currently_working', 'recommend', 'employment_type', 'employment_duration'];
+    $requiredFields = [
+      'company_id',
+      'job_title_id',
+      'rating',
+      'positive_review',
+      'negative_review',
+      'currently_working',
+      'recommend',
+      'employment_type',
+      'employment_duration',
+      'anonymous'
+    ];
     validateBody($requiredFields, $data);
 
-    if (!$this->companiesDao->getById($data['company_id'])) {
+    $user = Flight::get('user');
+    $data['user_id'] = $user->id;
+
+    if (!Flight::userService()->getUserById($data['user_id'])) {
+      throw new Exception("User not found", 404);
+    }
+
+    if (!Flight::companiesService()->getCompanyById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
-    if (!$this->jobTitlesDao->getById($data['job_title_id'])) {
+
+    if (!Flight::jobTitlesService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
 
@@ -90,7 +149,18 @@ class ReviewsService
     }
 
     // Check if at least one required field is present
-    $requiredFields = ['company_id', 'job_title_id', 'rating', 'positive_review', 'negative_review', 'currently_working', 'recommend', 'employment_type', 'employment_duration'];
+    $requiredFields = [
+      'company_id',
+      'job_title_id',
+      'rating',
+      'positive_review',
+      'negative_review',
+      'currently_working',
+      'recommend',
+      'employment_type',
+      'employment_duration',
+      'anonymous',
+    ];
     $hasRequiredField = false;
 
     foreach ($requiredFields as $field) {
@@ -102,6 +172,13 @@ class ReviewsService
 
     if (!$hasRequiredField) {
       throw new Exception('Update requires at least one of these fields: ' . implode(', ', $requiredFields), 400);
+    }
+
+    $user = Flight::get('user');
+    $data['user_id'] = $user->id;
+
+    if (!Flight::userService()->getUserById($data['user_id'])) {
+      throw new Exception("User not found", 404);
     }
 
     // Validate enum values
@@ -135,6 +212,10 @@ class ReviewsService
       } catch (\ValueError $e) {
         throw new Exception('Invalid value for employment_duration. Must be LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, or MORE_THAN_FIVE_YEARS.', 400);
       }
+    }
+
+    if (isset($data['anonymous']) && !is_bool($data['anonymous'])) {
+      throw new Exception('Invalid value for anonymous. Must be a boolean.', 400);
     }
 
     if (!$this->dao->update($id, $data)) {
