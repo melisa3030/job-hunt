@@ -140,8 +140,16 @@ class ReviewsService
     return ['message' => 'Review created successfully'];
   }
 
-  public function updateReview($id, $data)
+  public function updateReview($id, $data, $user)
   {
+
+    $review = $this->getById($id);
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $user->id != $review['user_id']) {
+      throw new Exception('You can only update your own reviews', 403);
+    }
+
     $review = $this->getById($id);
 
     if (!$review) {
@@ -225,8 +233,15 @@ class ReviewsService
     return ['message' => 'Review updated successfully'];
   }
 
-  public function deleteReview($id)
+  public function deleteReview($id, $user)
   {
+    $review = $this->getById($id);
+    $userRole = Roles::from($user->role);
+
+    if ($userRole !== Roles::ADMIN && $user->id != $review['user_id']) {
+      throw new Exception('You can only delete your own reviews', 403);
+    }
+
     $review = $this->getById($id);
 
     if (!$review) {

@@ -75,6 +75,7 @@ Flight::route('GET /reviews/job_title/@job_title_id', function ($job_title_id) {
 
 Flight::route('POST /reviews', function () {
     try {
+        Flight::authMiddleware()->authorizeRoles([Roles::APPLICANT, Roles::ADMIN]);
         $data = Flight::request()->data->getData();
         $result = Flight::reviewsService()->createReview($data);
         Flight::json($result, 201);
@@ -89,8 +90,10 @@ Flight::route('POST /reviews', function () {
 
 Flight::route('PUT /reviews/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRoles([Roles::APPLICANT, Roles::ADMIN]);
+        $user = Flight::get('user');
         $data = Flight::request()->data->getData();
-        $result = Flight::reviewsService()->updateReview($id, $data);
+        $result = Flight::reviewsService()->updateReview($id, $data, $user);
         Flight::json($result, 200);
     } catch (Exception $e) {
         $code = $e->getCode();
@@ -103,7 +106,9 @@ Flight::route('PUT /reviews/@id', function ($id) {
 
 Flight::route('DELETE /reviews/@id', function ($id) {
     try {
-        $result = Flight::reviewsService()->delete($id);
+        Flight::authMiddleware()->authorizeRoles([Roles::APPLICANT, Roles::ADMIN]);
+        $user = Flight::get('user');
+        $result = Flight::reviewsService()->deleteReview($id, $user);
         Flight::json($result, 200);
     } catch (Exception $e) {
         $code = $e->getCode();
