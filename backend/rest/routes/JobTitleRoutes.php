@@ -2,12 +2,12 @@
 
 
 Flight::route('GET /job_titles', function () {
-    Flight::json(Flight::jobTitlesService()->getAllJobTitles(), 200);
+    Flight::json(Flight::jobTitlesService()->getAll(), 200);
 });
 
 Flight::route('GET /job_titles/@id', function ($id) {
     try {
-        Flight::json(Flight::jobTitlesService()->getJobTitleById($id), 200);
+        Flight::json(Flight::jobTitlesService()->getById($id), 200);
     } catch (Exception $e) {
         $code = $e->getCode();
         if ($code < 100 || $code > 599) {
@@ -19,6 +19,7 @@ Flight::route('GET /job_titles/@id', function ($id) {
 
 Flight::route('POST /job_titles', function () {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $data = Flight::request()->data->getData();
         $result = Flight::jobTitlesService()->createJobTitle($data);
         Flight::json($result, 201);
@@ -33,6 +34,7 @@ Flight::route('POST /job_titles', function () {
 
 Flight::route('PUT /job_titles/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $data = Flight::request()->data->getData();
         $result = Flight::jobTitlesService()->updateJobTitle($id, $data);
         Flight::json($result, 200);
@@ -47,6 +49,7 @@ Flight::route('PUT /job_titles/@id', function ($id) {
 
 Flight::route('DELETE /job_titles/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $result = Flight::jobTitlesService()->deleteJobTitle($id);
         Flight::json($result, 200);
     } catch (Exception $e) {
