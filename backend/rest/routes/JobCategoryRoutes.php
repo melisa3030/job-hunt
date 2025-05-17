@@ -20,6 +20,7 @@ Flight::route('GET /job_categories/@id', function ($id) {
 
 Flight::route('POST /job_categories', function () {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $data = Flight::request()->data->getData();
         $result = Flight::jobCategoriesService()->createJobCategory($data);
         Flight::json($result, 201);
@@ -34,6 +35,8 @@ Flight::route('POST /job_categories', function () {
 
 Flight::route('PUT /job_categories/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
+
         $data = Flight::request()->data->getData();
         $result = Flight::jobCategoriesService()->updateJobCategory($id, $data);
         Flight::json($result, 200);
@@ -48,6 +51,7 @@ Flight::route('PUT /job_categories/@id', function ($id) {
 
 Flight::route('DELETE /job_categories/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $result = Flight::jobCategoriesService()->deleteJobCategory($id);
         Flight::json($result, 200);
     } catch (Exception $e) {
