@@ -42,17 +42,43 @@ Flight::register('authMiddleware', 'AuthMiddleware');
 Flight::route('/*', function () {
     // Array of [METHOD, PATH] pairs
     $public_routes = [
-        // POST
+        // Auth
         ['POST', '/auth/login'],
+        // Users
         ['POST', '/users'],
-        // GET
+        // Tags
         ['GET', '/tags'],
+        ['GET', '/tags/@id'],
+        ['GET', '/tags'],
+        // Review Tags
         ['GET', '/review_tags'],
+        ['GET', '/review_tags/@id'],
+        // Reviews
         ['GET', '/reviews'],
         ['GET', '/reviews/@id'],
+        // Perks
         ['GET', '/perks'],
+        ['GET', '/perks/@id'],
+        ['GET', '/perks'],
+        // Job Titles
         ['GET', '/job_titles'],
-        ['GET', '/job_titles/@id']
+        ['GET', '/job_titles/@id'],
+        // Job Tags
+        ['GET', '/job_tags'],
+        ['GET', '/job_tags/tag/@tag_id'],
+        ['GET', '/job_tags/job/@job_id'],
+        // Jobs
+        ['GET', '/jobs'],
+        ['GET', '/jobs/@id'],
+        // Job Perks
+        ['GET', '/job_perks'],
+        ['GET', '/job_perks/@id'],
+        // Job Categories
+        ['GET', '/job_categories'],
+        ['GET', '/job_categories/@id'],
+        // Companies
+        ['GET', '/companies'],
+        ['GET', '/companies/@id'],
     ];
 
     $current_path = Flight::request()->url;
