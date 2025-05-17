@@ -44,16 +44,16 @@ class JobsService
     validateBody($requiredFields, $data);
 
 
-    if (!Flight::companyService()->getById($data['company_id'])) {
+    if (!Flight::companiesService()->getCompanyById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
-    if (!Flight::jobTitleService()->getById($data['job_title_id'])) {
+    if (!Flight::jobTitlesService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
-    if (!Flight::userService()->getById($data['posted_by'])) {
+    if (!Flight::userService()->getUserById($data['posted_by'])) {
       throw new Exception("User not found", 404);
     }
-    if (!Flight::jobCategoryService()->getById($data['category_id'])) {
+    if (!Flight::jobCategoriesService()->getJobCategoryById($data['category_id'])) {
       throw new Exception("Category not found", 404);
     }
 
