@@ -34,6 +34,7 @@ Flight::route('GET /tags/@id', function ($id) {
 
 Flight::route('POST /tags', function () {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $data = Flight::request()->data->getData();
         $result = Flight::tagsService()->createTag($data);
         Flight::json($result, 201);
@@ -49,6 +50,7 @@ Flight::route('POST /tags', function () {
 
 Flight::route('PUT /tags/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $data = Flight::request()->data->getData();
         $result = Flight::tagsService()->updateTag($id, $data);
         Flight::json($result, 200);
@@ -63,6 +65,7 @@ Flight::route('PUT /tags/@id', function ($id) {
 
 Flight::route('DELETE /tags/@id', function ($id) {
     try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
         $result = Flight::tagsService()->deleteTag($id);
         Flight::json($result, 200);
     } catch (Exception $e) {
