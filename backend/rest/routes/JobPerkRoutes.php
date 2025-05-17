@@ -32,6 +32,7 @@ Flight::route('GET /job_perks/perk/@perk_id', function ($perk_id) {
 
 Flight::route('POST /job_perks', function () {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $data = Flight::request()->data->getData();
     $result = Flight::jobPerksService()->createJobPerk($data);
     Flight::json($result, 201);
