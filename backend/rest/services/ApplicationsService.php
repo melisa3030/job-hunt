@@ -1,28 +1,17 @@
 <?php
 
 require_once __DIR__ . '/../dao/ApplicationsDao.php';
-require_once __DIR__ . '/../dao/UsersDao.php';
-require_once __DIR__ . '/../dao/JobsDao.php';
+require_once __DIR__ . '/../../data/Status.php';
 require_once __DIR__ . '/../../helpers.php';
-
-enum Status: string
-{
-  case PENDING = 'PENDING';
-  case ACCEPTED = 'ACCEPTED';
-  case REJECTED = 'REJECTED';
-}
 
 class ApplicationsService
 {
   private $applicationsDao;
-  private $usersDao;
-  private $jobsDao;
+
 
   public function __construct()
   {
     $this->applicationsDao = new ApplicationsDao();
-    $this->usersDao = new UsersDao();
-    $this->jobsDao = new JobsDao();
   }
   public function getAllApplications()
   {
@@ -49,23 +38,38 @@ class ApplicationsService
     }
   }
 
+  public function getApplicationsForCurrentAuthUser()
+  {
+    $user = Flight::get('user');
+    $applications = $this->applicationsDao->getByApplicantId($user->id);
+    if ($applications) {
+      return $applications;
+    } else {
+      throw new Exception("No job applications found for current user", 404);
+    }
+  }
+
   public function createApplication($data)
   {
-    validateBody(['job_id', 'applicant_id'], $data);
-
-    $job_id = $data['job_id'];
-    $applicant_id = $data['applicant_id'];
-    $status = $data['status'] ?? Status::PENDING->value;
-
-    $user = $this->usersDao->getById($applicant_id);
-    $job = $this->jobsDao->getById($job_id);
-
-    if (!$job) {
-      throw new Exception("Job not found", 404);
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
     }
 
-    if (!$user) {
+    validateBody(['job_id'], $data);
+
+    $job_id = $data['job_id'];
+    $status = $data['status'] ?? Status::PENDING->value;
+
+    $userExists = Flight::userService()->getUserById($user->id);
+    $jobExists = Flight::jobsService()->getJobById($job_id);
+
+    if (!$userExists) {
       throw new Exception("User not found", 404);
+    }
+
+    if (!$jobExists) {
+      throw new Exception("Job not found", 404);
     }
 
     try {
@@ -73,6 +77,8 @@ class ApplicationsService
     } catch (ValueError $e) {
       throw new Exception("Invalid value for status. Must be PENDING, ACCEPTED, or REJECTED.", 400);
     }
+
+    $data['applicant_id'] = $user->id;
 
     if ($this->applicationsDao->insert($data)) {
       return ["message" => "Application created successfully"];
@@ -83,6 +89,7 @@ class ApplicationsService
 
   public function updateApplication($application_id, $data)
   {
+    $user = Flight::get('user');
     validateBody(['status'], $data);
 
     $status = $data['status'];
@@ -91,6 +98,23 @@ class ApplicationsService
       Status::from($status);
     } catch (ValueError $e) {
       throw new Exception("Invalid value for status. Must be PENDING, ACCEPTED, or REJECTED.", 400);
+    }
+
+    // Get the application and related job
+    $application = $this->applicationsDao->getById($application_id);
+    if (!$application) {
+      throw new Exception("Application not found", 404);
+    }
+
+    $job = Flight::jobsService()->getJobById($application['job_id']);
+    if (!$job) {
+      throw new Exception("Job not found", 404);
+    }
+
+    // Check if the user is the employer who posted the job
+    $userRole = Roles::from($user->role);
+    if ($userRole !== Roles::ADMIN && $job['posted_by'] != $user->id) {
+      throw new Exception("Forbidden: You can only update applications for jobs you posted", 403);
     }
 
     if ($this->applicationsDao->update($application_id, $data)) {
