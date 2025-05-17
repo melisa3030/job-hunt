@@ -40,9 +40,13 @@ class JobsService
 
   public function createJob($data)
   {
-    $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'posted_by', 'expires_at'];
-    validateBody($requiredFields, $data);
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
 
+    $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'expires_at'];
+    validateBody($requiredFields, $data);
 
     if (!Flight::companiesService()->getCompanyById($data['company_id'])) {
       throw new Exception("Company not found", 404);
@@ -50,14 +54,14 @@ class JobsService
     if (!Flight::jobTitlesService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
-    if (!Flight::userService()->getUserById($data['posted_by'])) {
+    if (!Flight::userService()->getUserById($user->id)) {
       throw new Exception("User not found", 404);
     }
+
     if (!Flight::jobCategoriesService()->getJobCategoryById($data['category_id'])) {
       throw new Exception("Category not found", 404);
     }
 
-    // Validate enum values
     try {
       WorkType::from(trim($data['work_type']));
     } catch (\ValueError $e) {
@@ -69,6 +73,8 @@ class JobsService
     } catch (\ValueError $e) {
       throw new Exception("Invalid value for experience_level. Must be JUNIOR, INTERMEDIATE, or SENIOR.", 400);
     }
+
+    $data['posted_by'] = $user->id;
 
     if (!$this->dao->insert($data)) {
       throw new Exception("Error creating job", 500);
@@ -87,11 +93,11 @@ class JobsService
 
     $userRole = Roles::from($user->role);
 
-    if ($userRole !== Roles::ADMIN && $job['employer_id'] != $user->id) {
+    if ($userRole !== Roles::ADMIN && $job['posted_by'] != $user->id) {
       throw new Exception("Forbidden: You can only update your own jobs", 403);
     }
 
-    $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'posted_by', 'expires_at'];
+    $requiredFields = ['job_title_id', 'company_id', 'category_id', 'description', 'city', 'country', 'work_type', 'experience_level', 'salary', 'expires_at'];
     $hasRequiredField = false;
 
     foreach ($requiredFields as $field) {
@@ -148,7 +154,7 @@ class JobsService
 
     $userRole = Roles::from($user->role);
 
-    if ($userRole !== Roles::ADMIN && $job['employer_id'] != $user->id) {
+    if ($userRole !== Roles::ADMIN && $job['posted_by'] != $user->id) {
       throw new Exception("Forbidden: You can only delete your own jobs", 403);
     }
 
