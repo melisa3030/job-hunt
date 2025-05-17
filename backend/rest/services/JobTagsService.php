@@ -7,14 +7,10 @@ require_once __DIR__ . '/../dao/JobsDao.php';
 class JobTagsService
 {
   private $jobTagsDao;
-  private $tagsDao;
-  private $jobsDao;
 
   public function __construct()
   {
     $this->jobTagsDao = new JobTagsDao();
-    $this->tagsDao = new TagsDao();
-    $this->jobsDao = new JobsDao();
   }
 
   public function getAllJobTags()
@@ -49,8 +45,8 @@ class JobTagsService
     $job_id = $data['job_id'];
     $tag_id = $data['tag_id'];
 
-    $job = $this->jobsDao->getById($job_id);
-    $tag = $this->tagsDao->getById($tag_id);
+    $job = Flight::jobsService()->getJobById($job_id);
+    $tag = Flight::tagsService()->getTagById($tag_id);
 
     if (!$job) {
       throw new Exception("Job not found", 404);

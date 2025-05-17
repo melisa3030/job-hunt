@@ -9,14 +9,10 @@ require_once __DIR__ . '/../../helpers.php';
 class JobPerksService
 {
   private $jobPerksDao;
-  private $perksDao;
-  private $jobsDao;
 
   public function __construct()
   {
     $this->jobPerksDao = new JobPerksDao();
-    $this->perksDao = new PerksDao();
-    $this->jobsDao = new JobsDao();
   }
 
   public function getAllJobPerks()
@@ -51,8 +47,8 @@ class JobPerksService
     $job_id = $data['job_id'];
     $perk_id = $data['perk_id'];
 
-    $job = $this->jobsDao->getById($job_id);
-    $perk = $this->perksDao->getById($perk_id);
+    $job = Flight::jobsService()->getJobById($job_id);
+    $perk = Flight::perksService()->getPerkById($perk_id);
 
     if (!$job) {
       throw new Exception("Job not found", 404);
