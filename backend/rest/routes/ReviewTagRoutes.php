@@ -8,6 +8,7 @@ Flight::route('GET /review_tags', function () {
 
 Flight::route('POST /review_tags', function () {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $data = Flight::request()->data->getData();
     $result = Flight::reviewTagsService()->createReviewTag($data);
     Flight::json($result, 201);
