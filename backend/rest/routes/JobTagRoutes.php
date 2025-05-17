@@ -32,6 +32,7 @@ Flight::route('GET /job_tags/tag/@tag_id', function ($tag_id) {
 
 Flight::route('POST /job_tags', function () {
   try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
     $data = Flight::request()->data->getData();
     $result = Flight::jobTagsService()->createJobTag($data);
     Flight::json($result, 201);
