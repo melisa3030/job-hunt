@@ -66,7 +66,6 @@ export async function renderJobs() {
 
     // Render each job
     jobs.forEach((job) => {
-      // Enhance a job object with related data
       job.job_title = jobTitlesMap.get(job.job_title_id);
       job.category = categoriesMap.get(job.category_id);
       if (job.perks) {
