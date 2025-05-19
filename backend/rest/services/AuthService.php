@@ -16,6 +16,22 @@ class AuthService
         $this->userDao = new UsersDao();
     }
 
+    public function getCurrentUserData()
+    {
+        $user = Flight::get('user');
+        if (!$user) {
+            throw new Exception("User not authenticated", 401);
+        }
+
+        unset($user->password);
+        unset($user->email);
+        unset($user->company_id);
+        unset($user->created_at);
+
+        return $user;
+    }
+
+
     public function login($data)
     {
         $requiredFields = ["email", "password"];
