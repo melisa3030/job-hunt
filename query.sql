@@ -18,43 +18,6 @@ CREATE SCHEMA IF NOT EXISTS `job-hunt-app` DEFAULT CHARACTER SET utf8mb4 COLLATE
 USE `job-hunt-app` ;
 
 -- -----------------------------------------------------
--- Table `job-hunt-app`.`companies`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `job-hunt-app`.`companies` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
-  `country` VARCHAR(100) NULL DEFAULT NULL,
-  `city` VARCHAR(100) NULL DEFAULT NULL,
-  `description` TEXT NULL DEFAULT NULL,
-  `employer_id` INT NULL DEFAULT NULL,
-  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-    INDEX `fk_employer` (`employer_id` ASC) VISIBLE,
-    CONSTRAINT `fk_employer`
-    FOREIGN KEY (`employer_id`)
-    REFERENCES `job-hunt-app`.`users` (`id`)
-    ON DELETE SET NULL)
-ENGINE = InnoDB
-AUTO_INCREMENT = 3
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
--- -----------------------------------------------------
--- Table `job-hunt-app`.`job_categories`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `job-hunt-app`.`job_categories` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(100) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `name` (`name` ASC) VISIBLE)
-ENGINE = InnoDB
-AUTO_INCREMENT = 2
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
-
-
--- -----------------------------------------------------
 -- Table `job-hunt-app`.`users`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `job-hunt-app`.`users` (
@@ -75,7 +38,44 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`users` (
     REFERENCES `job-hunt-app`.`companies` (`id`)
     ON DELETE SET NULL)
 ENGINE = InnoDB
-AUTO_INCREMENT = 5
+AUTO_INCREMENT = 7
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `job-hunt-app`.`companies`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `job-hunt-app`.`companies` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `country` VARCHAR(100) NULL DEFAULT NULL,
+  `city` VARCHAR(100) NULL DEFAULT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `employer_id` INT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `fk_employer` (`employer_id` ASC) VISIBLE,
+  CONSTRAINT `fk_employer`
+    FOREIGN KEY (`employer_id`)
+    REFERENCES `job-hunt-app`.`users` (`id`)
+    ON DELETE SET NULL)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `job-hunt-app`.`job_categories`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `job-hunt-app`.`job_categories` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name` (`name` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`job_titles` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name` (`name` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
+AUTO_INCREMENT = 4
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -269,9 +269,12 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`reviews` (
   `employment_type` ENUM('FULL_TIME', 'PART_TIME', 'CONTRACT', 'INTERNSHIP') NULL DEFAULT NULL,
   `employment_duration` ENUM('LESS_THAN_A_YEAR', 'ONE_TO_TWO_YEARS', 'THREE_TO_FIVE_YEARS', 'MORE_THAN_FIVE_YEARS') NULL DEFAULT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `anonymous` TINYINT(1) NOT NULL DEFAULT '0',
+  `user_id` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `company_id` (`company_id` ASC) VISIBLE,
   INDEX `reviews_ibfk_2_idx` (`job_title_id` ASC) VISIBLE,
+  INDEX `user_id` (`user_id` ASC) VISIBLE,
   CONSTRAINT `reviews_ibfk_1`
     FOREIGN KEY (`company_id`)
     REFERENCES `job-hunt-app`.`companies` (`id`)
@@ -279,9 +282,12 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`reviews` (
   CONSTRAINT `reviews_ibfk_2`
     FOREIGN KEY (`job_title_id`)
     REFERENCES `job-hunt-app`.`job_titles` (`id`)
-    ON DELETE CASCADE)
+    ON DELETE CASCADE,
+  CONSTRAINT `reviews_ibfk_3`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `job-hunt-app`.`users` (`id`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
+AUTO_INCREMENT = 7
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
