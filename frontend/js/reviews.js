@@ -10,14 +10,15 @@ export async function renderReviews() {
   }
 
   // Show loading state
-  reviewsListElement.innerHTML = '<div class="reviews__loading">Loading reviews...</div>';
+  reviewsListElement.innerHTML =
+    '<div class="reviews__loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading reviews...</span></div></div>';
 
   try {
     // Fetch all necessary data in parallel
     const [reviews, companies, jobTitles] = await Promise.all([
       ReviewsApi.getAllReviews(),
       CompaniesApi.getAllCompanies(),
-      JobTitlesApi.getAllJobTitles()
+      JobTitlesApi.getAllJobTitles(),
     ]);
 
     reviewsListElement.innerHTML = '';
@@ -32,8 +33,12 @@ export async function renderReviews() {
       reviewItem.className = 'reviews__item';
       reviewItem.dataset.id = review.id;
 
-      const jobTitleObj = jobTitles.find((title) => title.id === review.job_title_id);
-      const companyObj = companies.find((company) => company.id === review.company_id);
+      const jobTitleObj = jobTitles.find(
+        (title) => title.id === review.job_title_id
+      );
+      const companyObj = companies.find(
+        (company) => company.id === review.company_id
+      );
       const jobTitle = jobTitleObj ? jobTitleObj.name : 'Unknown';
       const company = companyObj ? companyObj.name : 'Unknown';
 
@@ -58,7 +63,7 @@ export async function renderReviews() {
 
       const reviewRecommend = document.createElement('p');
       reviewRecommend.className = 'reviews__recommend';
-      reviewRecommend.innerHTML = `<span>👍</span> ${review.recommend === 'YES' ? 'Recommends' : 'Doesn\'t recommend'}`;
+      reviewRecommend.innerHTML = `<span>👍</span> ${review.recommend === 'YES' ? 'Recommends' : "Doesn't recommend"}`;
 
       reviewRatingContainer.appendChild(reviewRating);
       reviewRatingContainer.appendChild(reviewRecommend);
@@ -74,7 +79,9 @@ export async function renderReviews() {
       const reviewTechnologies = document.createElement('div');
       reviewTechnologies.className = 'reviews__technologies';
       if (Array.isArray(review.technologies)) {
-        reviewTechnologies.innerHTML = review.technologies.map((tech) => `<span class="reviews__technology">${tech}</span>`).join('');
+        reviewTechnologies.innerHTML = review.technologies
+          .map((tech) => `<span class="reviews__technology">${tech}</span>`)
+          .join('');
       }
 
       reviewItem.append(
@@ -93,4 +100,3 @@ export async function renderReviews() {
     console.error(error);
   }
 }
-
