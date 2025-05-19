@@ -1,19 +1,29 @@
+// reviews.js
 import { ReviewsApi } from './api/reviewsApi.js';
 import { CompaniesApi } from './api/companiesApi.js';
 import { JobTitlesApi } from './api/jobTitlesApi.js';
+import { createReviewCard } from './components/reviewCard.js';
 
 export async function renderReviews() {
+  const mainContainer = document.querySelector('.reviews');
   const reviewsListElement = document.querySelector('.reviews__list');
-  if (!reviewsListElement) {
-    console.error('Element with class .reviews__list not found in the DOM.');
+
+  if (!reviewsListElement || !mainContainer) {
+    console.error('Required elements not found in the DOM.');
     return;
   }
 
-  // Show loading state
-  reviewsListElement.innerHTML =
-    '<div class="reviews__loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading reviews...</span></div></div>';
-
   try {
+    // Show loading state
+    const spinnerElement = document.createElement('div');
+    spinnerElement.className = 'd-flex justify-content-center align-items-center my-3';
+    spinnerElement.innerHTML = `
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading reviews...</span>
+      </div>
+    `;
+    mainContainer.insertBefore(spinnerElement, reviewsListElement);
+
     // Fetch all necessary data in parallel
     const [reviews, companies, jobTitles] = await Promise.all([
       ReviewsApi.getAllReviews(),
@@ -21,82 +31,36 @@ export async function renderReviews() {
       JobTitlesApi.getAllJobTitles(),
     ]);
 
-    reviewsListElement.innerHTML = '';
+    // Remove spinner and show list
+    spinnerElement.remove();
+    reviewsListElement.style.display = '';
 
     if (!reviews || reviews.length === 0) {
-      reviewsListElement.innerHTML = '<p>No reviews found</p>';
+      reviewsListElement.innerHTML = '<div class="reviews__empty">No reviews found.</div>';
       return;
     }
 
+    reviewsListElement.innerHTML = ''; // Clear the list
+
+    // Create maps for quick lookups
+    const jobTitlesMap = new Map(jobTitles.map(title => [title.id, title]));
+    const companiesMap = new Map(companies.map(company => [company.id, company]));
+
     reviews.forEach((review) => {
-      const reviewItem = document.createElement('div');
-      reviewItem.className = 'reviews__item';
-      reviewItem.dataset.id = review.id;
+      const jobTitle = jobTitlesMap.get(review.job_title_id)?.name || 'Unknown Position';
+      const company = companiesMap.get(review.company_id)?.name || 'Unknown Company';
 
-      const jobTitleObj = jobTitles.find(
-        (title) => title.id === review.job_title_id
-      );
-      const companyObj = companies.find(
-        (company) => company.id === review.company_id
-      );
-      const jobTitle = jobTitleObj ? jobTitleObj.name : 'Unknown';
-      const company = companyObj ? companyObj.name : 'Unknown';
-
-      const reviewTitle = document.createElement('h4');
-      reviewTitle.textContent = jobTitle;
-
-      const reviewCompany = document.createElement('a');
-      reviewCompany.className = 'reviews__company';
-      reviewCompany.href = `company/${review.company_id}/about`;
-      reviewCompany.textContent = company;
-
-      const reviewDate = document.createElement('p');
-      reviewDate.className = 'reviews__date';
-      reviewDate.innerHTML = `<span>📅</span> ${new Date(review.created_at).toLocaleDateString('sr-RS')}`;
-
-      const reviewRatingContainer = document.createElement('div');
-      reviewRatingContainer.className = 'reviews__rating-container';
-
-      const reviewRating = document.createElement('p');
-      reviewRating.className = 'reviews__rating';
-      reviewRating.innerHTML = `<span>⭐</span> ${review.rating}`;
-
-      const reviewRecommend = document.createElement('p');
-      reviewRecommend.className = 'reviews__recommend';
-      reviewRecommend.innerHTML = `<span>👍</span> ${review.recommend === 'YES' ? 'Recommends' : "Doesn't recommend"}`;
-
-      reviewRatingContainer.appendChild(reviewRating);
-      reviewRatingContainer.appendChild(reviewRecommend);
-
-      const reviewPositive = document.createElement('p');
-      reviewPositive.className = 'reviews__positive';
-      reviewPositive.innerHTML = `<strong>Positive:</strong> ${review.positive_review}`;
-
-      const reviewNegative = document.createElement('p');
-      reviewNegative.className = 'reviews__negative';
-      reviewNegative.innerHTML = `<strong>Negative:</strong> ${review.negative_review}`;
-
-      const reviewTechnologies = document.createElement('div');
-      reviewTechnologies.className = 'reviews__technologies';
-      if (Array.isArray(review.technologies)) {
-        reviewTechnologies.innerHTML = review.technologies
-          .map((tech) => `<span class="reviews__technology">${tech}</span>`)
-          .join('');
-      }
-
-      reviewItem.append(
-        reviewDate,
-        reviewRatingContainer,
-        reviewTitle,
-        reviewCompany,
-        reviewPositive,
-        reviewNegative,
-        reviewTechnologies
-      );
-      reviewsListElement.appendChild(reviewItem);
+      const reviewCard = createReviewCard(review, jobTitle, company);
+      reviewsListElement.appendChild(reviewCard);
     });
   } catch (error) {
-    reviewsListElement.innerHTML = `<div class="reviews__error">Failed to load reviews. Please try again later.</div>`;
-    console.error(error);
+    console.error('Failed to fetch data:', error);
+    // Remove spinner if it exists
+    const existingSpinner = mainContainer.querySelector('.spinner-border')?.closest('div');
+    if (existingSpinner) {
+      existingSpinner.remove();
+    }
+    reviewsListElement.style.display = '';
+    reviewsListElement.innerHTML = '<div class="reviews__error">Failed to load reviews. Please try again later.</div>';
   }
 }
