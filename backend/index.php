@@ -1,6 +1,23 @@
 <?php
+// Debugging
+
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL);
 
 require_once __DIR__ . "/vendor/autoload.php";
+
+require_once __DIR__ . '/rest/middleware/CorsMiddleware.php';
+
+Flight::map('error', function (Exception $ex) {
+    Flight::json([
+        'error' => true,
+        'message' => $ex->getMessage()
+    ], 500);
+});
+
+// Register CORS middleware before anything else
+Flight::before('start', ['CorsMiddleware', 'handle']);
 
 // Services
 require_once __DIR__ . '/rest/services/UserService.php';
@@ -18,9 +35,6 @@ require_once __DIR__ . '/rest/services/BookmarkedJobsService.php';
 require_once __DIR__ . '/rest/services/ApplicationsService.php';
 require_once __DIR__ . '/rest/services/AuthService.php';
 
-// Middleware
-require_once __DIR__ . '/rest/middleware/AuthMiddleware.php';
-
 Flight::register('userService', 'UserService');
 Flight::register('tagsService', 'TagsService');
 Flight::register('reviewsService', 'ReviewsService');
@@ -36,6 +50,8 @@ Flight::register('bookmarkedJobsService', 'BookmarkedJobsService');
 Flight::register('applicationsService', 'ApplicationsService');
 Flight::register('authService', 'AuthService');
 
+// Middleware
+require_once __DIR__ . '/rest/middleware/AuthMiddleware.php';
 Flight::register('authMiddleware', 'AuthMiddleware');
 
 // Global middleware for all routes
@@ -103,7 +119,6 @@ Flight::route('/*', function () {
     }
 });
 
-
 // Routes
 require_once __DIR__ . '/rest/routes/UserRoutes.php';
 require_once __DIR__ . '/rest/routes/CompanyRoutes.php';
@@ -120,7 +135,6 @@ require_once __DIR__ . '/rest/routes/JobCategoryRoutes.php';
 require_once __DIR__ . '/rest/routes/BookmarkedJobRoutes.php';
 require_once __DIR__ . '/rest/routes/ApplicationRoutes.php';
 require_once __DIR__ . '/rest/routes/AuthRoutes.php';
-
 
 // Start Flight PHP
 Flight::start();
