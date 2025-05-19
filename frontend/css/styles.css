@@ -162,7 +162,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 20px;
     align-self: center;
 }
 
@@ -373,20 +373,30 @@ body {
     color: #666;
 }
 
-.reviews__technologies {
+.review__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
     margin-top: 10px;
 }
 
-.reviews__technology {
+.review__tag {
     background-color: #152e79;
     color: white;
     padding: 5px;
     font-size: 12px;
     border-radius: 5px;
     font-weight: bold;
+}
+
+.reviews__info {
+    margin-top: 10px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.reviews__separator {
+    margin: 0 8px;
 }
 
 /* Companies */
@@ -563,4 +573,49 @@ body {
     font-size: 1em;
     color: #666;
     line-height: 1.6;
+}
+
+.company-jobs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Components */
+
+/* Review card */
+.review-card {
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.review-card__rating {
+    color: #ffc107;
+    letter-spacing: 2px;
+}
+
+.review-card__meta {
+    font-size: 0.875rem;
+}
+
+.review-card__positive h6,
+.review-card__negative h6 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.review-card__details {
+    font-size: 0.875rem;
+}
+
+.review-card__details i {
+    margin-right: 0.25rem;
+}
+
+.review-card__author {
+    font-size: 0.875rem;
 }
