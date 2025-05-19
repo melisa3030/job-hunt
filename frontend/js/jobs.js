@@ -5,6 +5,7 @@ import { PerksApi } from './api/perksApi.js';
 import { JobTagsApi } from './api/jobTagsApi.js';
 import { TagsApi } from './api/tagsApi.js';
 import { createJobCard } from './components/jobCard.js';
+import { CompaniesApi } from './api/companiesApi.js';
 
 export async function renderJobs() {
   const jobsListElement = document.querySelector('.jobs__list');
@@ -16,18 +17,24 @@ export async function renderJobs() {
   try {
     // Show loading state
     jobsListElement.innerHTML = `
-      <div class="jobs__loading">Loading jobs...</div>
+      <div class="jobs__loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading jobs...</span>
+        </div>
+      </div>
     `;
 
     // Fetch all necessary data in parallel
-    const [jobs, jobTitles, categories, perks, jobTags, tags] = await Promise.all([
-      JobsApi.getAllJobs(),
-      JobTitlesApi.getAllJobTitles(),
-      JobCategoriesApi.getAllCategories(),
-      PerksApi.getAllPerks(),
-      JobTagsApi.getAllJobTags(),
-      TagsApi.getAllTags()
-    ]);
+    const [jobs, jobTitles, categories, perks, jobTags, tags, companies] =
+      await Promise.all([
+        JobsApi.getAllJobs(),
+        JobTitlesApi.getAllJobTitles(),
+        JobCategoriesApi.getAllCategories(),
+        PerksApi.getAllPerks(),
+        JobTagsApi.getAllJobTags(),
+        TagsApi.getAllTags(),
+        CompaniesApi.getAllCompanies(),
+      ]);
 
     jobsListElement.innerHTML = '';
 
@@ -39,14 +46,18 @@ export async function renderJobs() {
     }
 
     // Create maps for quick lookups
-    const jobTitlesMap = new Map(jobTitles.map(title => [title.id, title]));
-    const categoriesMap = new Map(categories.map(category => [category.id, category]));
-    const perksMap = new Map(perks.map(perk => [perk.id, perk]));
-    const tagsMap = new Map(tags.map(tag => [tag.id, tag]));
+    const jobTitlesMap = new Map(jobTitles.map((title) => [title.id, title]));
+    const categoriesMap = new Map(
+      categories.map((category) => [category.id, category])
+    );
+    const perksMap = new Map(perks.map((perk) => [perk.id, perk]));
+    const tagsMap = new Map(tags.map((tag) => [tag.id, tag]));
+    const companiesMap = new Map(companies.map((company) => [company.id, company]));
+    console.log(companiesMap);
 
     // Create a map of job tags
     const jobTagsMap = new Map();
-    jobTags.forEach(jobTag => {
+    jobTags.forEach((jobTag) => {
       if (!jobTagsMap.has(jobTag.job_id)) {
         jobTagsMap.set(jobTag.job_id, []);
       }
@@ -54,20 +65,19 @@ export async function renderJobs() {
     });
 
     // Render each job
-    jobs.forEach(job => {
-      // Enhance job object with related data
+    jobs.forEach((job) => {
+      // Enhance a job object with related data
       job.job_title = jobTitlesMap.get(job.job_title_id);
       job.category = categoriesMap.get(job.category_id);
       if (job.perks) {
-        job.perks = job.perks.map(perk_id => perksMap.get(perk_id));
+        job.perks = job.perks.map((perk_id) => perksMap.get(perk_id));
       }
-      // Add tags to the job object
       job.tags = jobTagsMap.get(job.id) || [];
+      job.company = companiesMap.get(job.company_id);
 
       const jobCard = createJobCard(job, job.job_title);
       jobsListElement.appendChild(jobCard);
     });
-
   } catch (error) {
     console.error('Failed to fetch data:', error);
     jobsListElement.innerHTML = `
