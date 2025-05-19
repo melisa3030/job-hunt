@@ -51,7 +51,7 @@ export const initSignupForm = () => {
       const data = JSON.parse(responseText);
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error(data.error || 'Signup failed');
       }
 
       // Show a success message before redirect
