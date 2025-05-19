@@ -1,7 +1,7 @@
 import { BASE_URL } from '../constants/constants.js';
 
 export const JobTitlesApi = {
-  getAllJobTitles: async () => {
+  async getAllJobTitles() {
     try {
       const response = await fetch(`${BASE_URL}/job_titles`);
       if (!response.ok) {
@@ -14,7 +14,7 @@ export const JobTitlesApi = {
     }
   },
 
-  getJobTitleById: async (id) => {
+  async getJobTitleById(id) {
     try {
       const response = await fetch(`${BASE_URL}/job_titles/${id}`);
       if (!response.ok) {
@@ -27,7 +27,7 @@ export const JobTitlesApi = {
     }
   },
 
-  createJobTitle: async (data) => {
+  async createJobTitle(data) {
     try {
       const response = await fetch(`${BASE_URL}/job_titles`, {
         method: 'POST',
@@ -46,7 +46,7 @@ export const JobTitlesApi = {
     }
   },
 
-  updateJobTitle: async (id, data) => {
+  async updateJobTitle(id, data) {
     try {
       const response = await fetch(`${BASE_URL}/job_titles/${id}`, {
         method: 'PUT',
@@ -65,7 +65,7 @@ export const JobTitlesApi = {
     }
   },
 
-  deleteJobTitle: async (id) => {
+  async deleteJobTitle(id) {
     try {
       const response = await fetch(`${BASE_URL}/job_titles/${id}`, {
         method: 'DELETE',

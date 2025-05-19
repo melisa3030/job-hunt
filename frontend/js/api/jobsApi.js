@@ -2,7 +2,7 @@ import { BASE_URL } from '../constants/constants.js';
 
 export const JobsApi = {
   // Get all jobs
-  getAllJobs: async () => {
+  async getAllJobs() {
     try {
       const response = await fetch(`${BASE_URL}/jobs`);
       if (!response.ok) {
@@ -15,7 +15,7 @@ export const JobsApi = {
     }
   },
 
-  getJobById: async (id) => {
+  async getJobById(id) {
     try {
       const response = await fetch(`${BASE_URL}/jobs/${id}`);
       if (!response.ok) {
@@ -28,14 +28,14 @@ export const JobsApi = {
     }
   },
 
-  createJob: async (jobData) => {
+  async createJob(jobData) {
     try {
       const response = await fetch(`${BASE_URL}/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(jobData)
+        body: JSON.stringify(jobData),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -47,14 +47,14 @@ export const JobsApi = {
     }
   },
 
-  updateJob: async (id, jobData) => {
+  async updateJob(id, jobData) {
     try {
       const response = await fetch(`${BASE_URL}/jobs/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(jobData)
+        body: JSON.stringify(jobData),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -66,10 +66,10 @@ export const JobsApi = {
     }
   },
 
-  deleteJob: async (id) => {
+  async deleteJob(id) {
     try {
       const response = await fetch(`${BASE_URL}/jobs/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -79,18 +79,5 @@ export const JobsApi = {
       console.error(`Error deleting job with ID ${id}:`, error);
       throw error;
     }
-  }
-};
-
-// Example usage:
-// Fetch all jobs
-const fetchJobs = async () => {
-  try {
-    const jobs = await JobsApi.getAllJobs();
-    console.log('All jobs:', jobs);
-    return jobs;
-  } catch (error) {
-    console.error('Failed to fetch jobs:', error);
-    // Handle error appropriately (e.g., show error message to user)
-  }
+  },
 };

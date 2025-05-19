@@ -18,7 +18,7 @@ export const AuthApi = {
       const response = await fetch(`${BASE_URL}/auth/me`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${this.getToken()}`,
+          Authorization: `Bearer ${this.getToken()}`,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
@@ -72,5 +72,5 @@ export const AuthApi = {
     localStorage.removeItem('user');
     window.history.pushState({}, '', '/login');
     window.dispatchEvent(new PopStateEvent('popstate'));
-  }
+  },
 };

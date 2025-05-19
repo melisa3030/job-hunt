@@ -1,7 +1,7 @@
 import { BASE_URL } from '../constants/constants.js';
 
 export const PerksApi = {
-  getAllPerks: async () => {
+  async getAllPerks() {
     try {
       const response = await fetch(`${BASE_URL}/perks`);
       if (!response.ok)

@@ -21,5 +21,5 @@ export const CompaniesApi = {
       console.error('Error fetching company:', error);
       throw error;
     }
-  }
+  },
 };

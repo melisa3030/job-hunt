@@ -1,10 +1,11 @@
 import { BASE_URL } from '../constants/constants.js';
 
 export const JobTagsApi = {
-  getAllJobTags: async () => {
+  async getAllJobTags() {
     try {
       const response = await fetch(`${BASE_URL}/job_tags`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error fetching job tags:', error);
@@ -12,14 +13,15 @@ export const JobTagsApi = {
     }
   },
 
-  getJobTagsByJobId: async (jobId) => {
+  async getJobTagsByJobId(jobId) {
     try {
       const response = await fetch(`${BASE_URL}/job_tags/job/${jobId}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
       return await response.json();
     } catch (error) {
       console.error('Error fetching job tags:', error);
       throw error;
     }
-  }
+  },
 };
