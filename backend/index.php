@@ -1,21 +1,19 @@
 <?php
 // Debugging
-
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
 error_reporting(E_ALL);
 
+//Flight::map('error', function (Exception $ex) {
+//    Flight::json([
+//        'error' => true,
+//        'message' => $ex->getMessage()
+//    ], 500);
+//});
+
 require_once __DIR__ . "/vendor/autoload.php";
 
 require_once __DIR__ . '/rest/middleware/CorsMiddleware.php';
-
-Flight::map('error', function (Exception $ex) {
-    Flight::json([
-        'error' => true,
-        'message' => $ex->getMessage()
-    ], 500);
-});
-
 // Register CORS middleware before anything else
 Flight::before('start', ['CorsMiddleware', 'handle']);
 
