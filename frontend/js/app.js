@@ -1,7 +1,9 @@
-import Navbar from './components/navbar.js';
-import { initRouter } from './router.js'; 
+import renderNavbar from './components/navbar.js';
+import { initRouter } from './router.js';
 
-const body = document.body;
+async function initApp() {
+  await renderNavbar();
+  initRouter();
+}
 
-body.insertAdjacentHTML('afterbegin', Navbar());
-initRouter(); 
+initApp();
