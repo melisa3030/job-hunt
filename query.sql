@@ -26,8 +26,14 @@ CREATE TABLE IF NOT EXISTS `job-hunt-app`.`companies` (
   `country` VARCHAR(100) NULL DEFAULT NULL,
   `city` VARCHAR(100) NULL DEFAULT NULL,
   `description` TEXT NULL DEFAULT NULL,
+  `employer_id` INT NULL DEFAULT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`))
+  PRIMARY KEY (`id`),
+    INDEX `fk_employer` (`employer_id` ASC) VISIBLE,
+    CONSTRAINT `fk_employer`
+    FOREIGN KEY (`employer_id`)
+    REFERENCES `job-hunt-app`.`users` (`id`)
+    ON DELETE SET NULL)
 ENGINE = InnoDB
 AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
