@@ -3,15 +3,25 @@ import { renderReviews } from './reviews.js';
 import { renderCompanies } from './companies.js';
 import { renderCompanyTab } from './company.js';
 import { initSignupForm } from './signup.js';
+import { initLoginForm } from './login.js';
+import { AuthApi } from './api/authApi.js';
 
 const urlPageTitle = 'Job Hunt App';
 
 const urlRoutes = {
+  // Error routes
   404: {
     template: '/views/404.html',
     title: '404 | ' + urlPageTitle,
     description: 'Page not found',
   },
+  '/forbidden': {
+    template: '/views/forbidden.html',
+    title: 'Forbidden | ' + urlPageTitle,
+    description: 'Access Denied',
+  },
+
+  // Public routes
   '/': {
     template: '/views/home.html',
     title: 'Home | ' + urlPageTitle,
@@ -26,11 +36,6 @@ const urlRoutes = {
     template: '/views/signup.html',
     title: 'Signup | ' + urlPageTitle,
     description: 'Create an account',
-  },
-  '/profile': {
-    template: '/views/profile.html',
-    title: 'Profile | ' + urlPageTitle,
-    description: 'User profile',
   },
   '/jobs': {
     template: '/views/jobs.html',
@@ -52,12 +57,114 @@ const urlRoutes = {
     title: 'Company | ' + urlPageTitle,
     description: 'Company details',
   },
+
+  // For logged-in users
+  '/profile': {
+    template: '/views/profile.html',
+    title: 'Profile | ' + urlPageTitle,
+    description: 'User profile',
+  },
+
+  // Admin routes
+  '/admin/dashboard': {
+    template: '/views/admin/dashboard.html',
+    title: 'Admin Dashboard | ' + urlPageTitle,
+    description: 'Admin Dashboard',
+  },
+  '/admin/users': {
+    template: '/views/admin/users.html',
+    title: 'Manage Users | ' + urlPageTitle,
+    description: 'User Management',
+  },
+  '/admin/companies': {
+    template: '/views/admin/companies.html',
+    title: 'Manage Companies | ' + urlPageTitle,
+    description: 'Company Management',
+  },
+  '/admin/jobs': {
+    template: '/views/admin/jobs.html',
+    title: 'Manage Jobs | ' + urlPageTitle,
+    description: 'Job Management',
+  },
+  '/admin/reviews': {
+    template: '/views/admin/reviews.html',
+    title: 'Manage Reviews | ' + urlPageTitle,
+    description: 'Review Management',
+  },
+
+  // Employer routes
+  '/employer/dashboard': {
+    template: '/views/employer/dashboard.html',
+    title: 'Employer Dashboard | ' + urlPageTitle,
+    description: 'Employer Dashboard',
+  },
+  '/employer/jobs': {
+    template: '/views/employer/jobs.html',
+    title: 'Posted Jobs | ' + urlPageTitle,
+    description: 'Manage Posted Jobs',
+  },
+  '/employer/applications': {
+    template: '/views/employer/applications.html',
+    title: 'Applications | ' + urlPageTitle,
+    description: 'Manage Job Applications',
+  },
+  '/employer/companies': {
+    template: '/views/employer/companies.html',
+    title: 'Manage Companies | ' + urlPageTitle,
+    description: 'Company Management',
+  },
+
+  // Applicant routes
+  '/my-applications': {
+    template: '/views/applicant/applications.html',
+    title: 'My Applications | ' + urlPageTitle,
+    description: 'View My Job Applications',
+  },
+  '/bookmarks': {
+    template: '/views/applicant/bookmarks.html',
+    title: 'Saved Jobs | ' + urlPageTitle,
+    description: 'View Saved Jobs',
+  },
+
 };
 
 // Main route handler - processes URL changes and renders appropriate content
 const urlLocationHandler = async () => {
-  // Get the current URL path
   const path = window.location.pathname;
+  const isAuthenticated = AuthApi.isAuthenticated();
+  const user = await AuthApi.getCurrentUser();
+
+  // Check if the path is a role-specific route
+  const isRoleSpecificRoute =
+    path.startsWith('/admin/') ||
+    path.startsWith('/employer/') ||
+    path === '/my-applications' ||
+    path === '/bookmarks';
+
+  // Role-based route protection
+  if (isRoleSpecificRoute) {
+    if (!isAuthenticated) {
+      window.history.pushState({}, '', '/login');
+      return urlLocationHandler();
+    }
+
+    // Check role-specific routes
+    if (path.startsWith('/admin/') && user.role !== 'ADMIN') {
+      window.history.pushState({}, '', '/forbidden');
+      return urlLocationHandler();
+    }
+
+    if (path.startsWith('/employer/') && user.role !== 'EMPLOYER') {
+      window.history.pushState({}, '', '/forbidden');
+      return urlLocationHandler();
+    }
+
+    if ((path === '/my-applications' || path === '/bookmarks') &&
+      user.role !== 'APPLICANT') {
+      window.history.pushState({}, '', '/forbidden');
+      return urlLocationHandler();
+    }
+  }
 
   // Find matching route - handles both static and dynamic routes (with :id)
   // Falls back to 404 if no match is found
@@ -79,7 +186,6 @@ const urlLocationHandler = async () => {
     .querySelector('meta[name="description"]')
     .setAttribute('content', route.description);
 
-
   // Handle special routes with dynamic content
   if (routeKey === '/company/:id') {
     const id = path.split('/')[2];
@@ -88,11 +194,11 @@ const urlLocationHandler = async () => {
   }
 
   // Render section-specific content
-  if (routeKey === '/jobs') renderJobs();
+  if (routeKey === '/jobs') await renderJobs();
   if (routeKey === '/reviews') renderReviews();
   if (routeKey === '/companies') renderCompanies();
   if (routeKey === '/signup') initSignupForm();
-
+  if (routeKey === '/login') initLoginForm();
 };
 
 // Handle client-side navigation
@@ -104,7 +210,6 @@ const urlRoute = (event) => {
   // Handle the route change
   urlLocationHandler();
 };
-
 
 // Initialize the router
 export const initRouter = () => {
@@ -131,6 +236,5 @@ export const initRouter = () => {
   // Handle initial page load
   urlLocationHandler();
 };
-
 
 export { urlLocationHandler };
