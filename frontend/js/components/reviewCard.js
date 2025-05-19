@@ -20,7 +20,10 @@ export const createReviewCard = (review, jobTitle, company) => {
         ).join(' ');
     };
 
-    reviewItem.innerHTML = `
+  const isAnonymous = review.anonymous === true || review.anonymous === 1 || review.anonymous === "1";
+
+
+  reviewItem.innerHTML = `
     <p class="reviews__date">
       <span>📅</span> ${new Date(review.created_at).toLocaleDateString('sr-RS')}
     </p>
@@ -65,7 +68,8 @@ export const createReviewCard = (review, jobTitle, company) => {
     <div class="reviews__info">
       <span>${review.currently_working === 'YES' ? 'Current employee' : 'Former employee'}</span>
       <span class="reviews__separator">•</span>
-      <span>Posted by ${review.anonymous ? 'Anonymous User' : `User #${review.user_id}`}</span>
+      <span>Posted by ${isAnonymous ? 'Anonymous User' : `User #${review.user_id}`}</span>
+
     </div>
   `;
 
