@@ -6,10 +6,16 @@ Flight::route('GET /users', function () {
     try {
         Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
 
+        $id = Flight::request()->query->id;
         $email = Flight::request()->query->email;
+        $name = Flight::request()->query->name;
 
-        if ($email) {
+        if ($id) {
+            Flight::json(Flight::userService()->getUserById($id));
+        } elseif ($email) {
             Flight::json(Flight::userService()->getUserByEmail($email));
+        } elseif ($name) {
+            Flight::json(Flight::userService()->getUserByName($name));
         } else {
             Flight::json(Flight::userService()->getAllUsers());
         }

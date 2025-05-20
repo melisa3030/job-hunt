@@ -36,6 +36,22 @@ class UserService
         return $user;
     }
 
+    public function getUserByUsername($username)
+    {
+        $user = $this->dao->getByUsername($username);
+        if (!$user) {
+            throw new Exception("User not found", 404);
+        }
+    }
+
+    public function getUserByName($name) {
+        $user = $this->dao->getByName($name);
+        if (!$user) {
+            throw new Exception("User not found", 404);
+        }
+        return $user;
+    }
+
     public function createUser($data)
     {
         $requiredFields = ['name', 'username', 'email', 'password'];
