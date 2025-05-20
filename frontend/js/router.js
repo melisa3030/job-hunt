@@ -5,6 +5,7 @@ import { renderCompanyTab } from './company.js';
 import { initSignupForm } from './signup.js';
 import { initLoginForm } from './login.js';
 import { AuthApi } from './api/authApi.js';
+import { initManageUsers } from './admin/manageUsers.js';
 
 const urlPageTitle = 'Job Hunt App';
 
@@ -199,6 +200,7 @@ const urlLocationHandler = async () => {
   if (routeKey === '/companies') renderCompanies();
   if (routeKey === '/signup') initSignupForm();
   if (routeKey === '/login') initLoginForm();
+  if (routeKey === '/admin/users') initManageUsers();
 };
 
 // Handle client-side navigation
