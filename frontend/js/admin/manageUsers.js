@@ -87,9 +87,23 @@ export const initManageUsers = () => {
     // Set default role
     createRole.value = 'APPLICANT';
 
-    // Show the modal
-    const modal = new bootstrap.Modal(createUserModal);
-    modal.show();
+    try {
+      // Try Bootstrap 5 Modal constructor first
+      const bsModal = new bootstrap.Modal(createUserModal);
+      bsModal.show();
+    } catch (error) {
+      // Fallback to showing manually
+      createUserModal.classList.add('show');
+      createUserModal.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      let backdrop = document.querySelector('.modal-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+      }
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
   }
 
   // Create new user
@@ -126,7 +140,6 @@ export const initManageUsers = () => {
       showLoading(false);
     }
   }
-
 
   async function loadUsers() {
     showLoading(true);
@@ -294,6 +307,7 @@ export const initManageUsers = () => {
   }
 
   // Open edit user modal
+
   async function openEditModal(userId) {
     try {
       // Get user data from our local array for better performance
@@ -307,8 +321,23 @@ export const initManageUsers = () => {
         editEmail.value = user.email;
         editRole.value = user.role || 'APPLICANT';
 
-        const modal = new bootstrap.Modal(editUserModal);
-        modal.show();
+        try {
+          // Try Bootstrap 5 Modal constructor first
+          const bsModal = new bootstrap.Modal(editUserModal);
+          bsModal.show();
+        } catch (error) {
+          // Fallback to showing manually
+          editUserModal.classList.add('show');
+          editUserModal.style.display = 'block';
+          document.body.classList.add('modal-open');
+
+          let backdrop = document.querySelector('.modal-backdrop');
+          if (!backdrop) {
+            backdrop = document.createElement('div');
+          }
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        }
       } else {
         throw new Error('User not found');
       }
@@ -375,21 +404,34 @@ export const initManageUsers = () => {
   }
 
   // Open delete confirmation modal
+
   function openDeleteModal(userId, userName) {
     deleteUserName.textContent = userName;
     confirmDeleteUser.setAttribute('data-user-id', userId);
 
-    const modal = new bootstrap.Modal(deleteUserModal);
-    modal.show();
+    try {
+      // Try Bootstrap 5 Modal constructor first
+      const bsModal = new bootstrap.Modal(deleteUserModal);
+      bsModal.show();
+    } catch (error) {
+      // Fallback to showing manually
+      deleteUserModal.classList.add('show');
+      deleteUserModal.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      let backdrop = document.querySelector('.modal-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+      }
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
   }
 
-  // Delete user
   async function deleteUser(userId) {
     try {
-      // Use the UsersApi deleteUser method
       await UsersApi.deleteUser(userId);
 
-      // Remove user from arrays
       currentUsers = currentUsers.filter(
         (user) => user.id.toString() !== userId.toString()
       );
@@ -397,11 +439,26 @@ export const initManageUsers = () => {
         (user) => user.id.toString() !== userId.toString()
       );
 
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(deleteUserModal);
-      modal.hide();
+      try {
+        const modal = bootstrap.Modal.getInstance(deleteUserModal);
+        if (modal) {
+          modal.hide();
+        } else {
+          // Manual closing
+          deleteUserModal.classList.remove('show');
+          deleteUserModal.style.display = 'none';
+          document.body.classList.remove('modal-open');
 
-      // Update display
+          // Remove backdrop
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.remove();
+          }
+        }
+      } catch (error) {
+        console.error('Error closing modal:', error);
+      }
+
       displayUsers(currentPage);
       setupPagination();
 
@@ -421,8 +478,6 @@ export const initManageUsers = () => {
       loadingMessage.classList.add('d-none');
     }
   }
-
-  // Replace the existing showAlert function with these two functions from manageCompanies.js
 
   function showError(message) {
     const alertsContainer = document.getElementById('alerts-container');

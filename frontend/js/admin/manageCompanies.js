@@ -228,38 +228,22 @@ function openCompanyModal(company = null) {
     document.getElementById('company-id').value = '';
   }
 
-  // Try multiple ways to show the modal to ensure it works
   try {
-    // Method 1: Using Bootstrap 5 Modal constructor
+    // Try Bootstrap 5 Modal constructor first
     const bsModal = new bootstrap.Modal(companyModal);
     bsModal.show();
   } catch (error) {
-    console.error(
-      'Error showing modal with Bootstrap Modal constructor:',
-      error
-    );
+    // Fallback to showing manually
+    companyModal.classList.add('show');
+    companyModal.style.display = 'block';
+    document.body.classList.add('modal-open');
 
-    try {
-      // Method 2: Using jQuery if available
-      if (typeof $ !== 'undefined') {
-        $(companyModal).modal('show');
-      } else {
-        // Method 3: Fallback to showing manually
-        companyModal.classList.add('show');
-        companyModal.style.display = 'block';
-        document.body.classList.add('modal-open');
-
-        // Create backdrop if it doesn't exist
-        let backdrop = document.querySelector('.modal-backdrop');
-        if (!backdrop) {
-          backdrop = document.createElement('div');
-          backdrop.className = 'modal-backdrop fade show';
-          document.body.appendChild(backdrop);
-        }
-      }
-    } catch (secondError) {
-      console.error('All methods to show modal failed:', secondError);
+    let backdrop = document.querySelector('.modal-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
     }
+    backdrop.className = 'modal-backdrop fade show';
+    document.body.appendChild(backdrop);
   }
 }
 
