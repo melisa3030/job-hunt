@@ -221,7 +221,6 @@ function displayJobs(page) {
       jobTitles.get(job.job_title_id)?.name || 'Unknown Position';
     const categoryName =
       jobCategories.get(job.category_id)?.name || 'Uncategorized';
-    const formattedDate = new Date(job.created_at).toLocaleDateString();
     const expiryDate = new Date(job.expires_at).toLocaleDateString();
 
     // Truncate description if too long
