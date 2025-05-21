@@ -29,7 +29,7 @@ export async function renderJobs() {
       await Promise.all([
         JobsApi.getAllJobs(),
         JobTitlesApi.getAllJobTitles(),
-        JobCategoriesApi.getAllCategories(),
+        JobCategoriesApi.getAllJobCategories(),
         PerksApi.getAllPerks(),
         JobTagsApi.getAllJobTags(),
         TagsApi.getAllTags(),
