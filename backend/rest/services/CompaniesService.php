@@ -47,7 +47,7 @@ class CompaniesService
       throw new Exception("Forbidden: You can only create a company as an admin or employer", 403);
     }
 
-    $requiredFields = ['name', 'country', 'city'];
+    $requiredFields = ['name', 'country', 'city', 'description'];
     validateBody($requiredFields, $data);
 
     $data['employer_id'] = $user->id;
