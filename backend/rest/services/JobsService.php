@@ -112,7 +112,7 @@ class JobsService
     }
 
     // Validate only the fields that are present in the request
-    if (isset($data['company_id']) && !Flight::companyService()->getById($data['company_id'])) {
+    if (isset($data['company_id']) && !Flight::companiesService()->getById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
     if (isset($data['job_title_id']) && !Flight::jobsService()->getById($data['job_title_id'])) {
