@@ -1,11 +1,21 @@
 import { BASE_URL } from '../constants/constants.js';
+import { AuthApi } from './authApi.js';
 
 export const JobsApi = {
   // Get all jobs
   async getAllJobs() {
     try {
-      const response = await fetch(`${BASE_URL}/jobs`);
+      const response = await fetch(`${BASE_URL}/jobs`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -17,8 +27,17 @@ export const JobsApi = {
 
   async getJobById(id) {
     try {
-      const response = await fetch(`${BASE_URL}/jobs/${id}`);
+      const response = await fetch(`${BASE_URL}/jobs/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -33,11 +52,14 @@ export const JobsApi = {
       const response = await fetch(`${BASE_URL}/jobs`, {
         method: 'POST',
         headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(jobData),
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -52,11 +74,14 @@ export const JobsApi = {
       const response = await fetch(`${BASE_URL}/jobs/${id}`, {
         method: 'PUT',
         headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(jobData),
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -70,8 +95,14 @@ export const JobsApi = {
     try {
       const response = await fetch(`${BASE_URL}/jobs/${id}`, {
         method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
