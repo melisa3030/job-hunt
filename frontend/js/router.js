@@ -1,4 +1,4 @@
-import { renderJobs } from './jobs.js';
+import { renderJobsWithFilters } from './jobs.js';
 import { renderReviews } from './reviews.js';
 import { renderCompanies } from './companies.js';
 import { renderCompanyTab } from './company.js';
@@ -69,11 +69,6 @@ const urlRoutes = {
   },
 
   // Admin routes
-  '/admin/dashboard': {
-    template: '/views/admin/dashboard.html',
-    title: 'Admin Dashboard | ' + urlPageTitle,
-    description: 'Admin Dashboard',
-  },
   '/admin/users': {
     template: '/views/admin/users.html',
     title: 'Manage Users | ' + urlPageTitle,
@@ -193,7 +188,9 @@ const urlLocationHandler = async () => {
   }
 
   // Render section-specific content
-  if (routeKey === '/jobs') await renderJobs();
+  if (routeKey === '/jobs') {
+    renderJobsWithFilters();
+  }
   if (routeKey === '/reviews') renderReviews();
   if (routeKey === '/companies') renderCompanies();
   if (routeKey === '/signup') initSignupForm();
