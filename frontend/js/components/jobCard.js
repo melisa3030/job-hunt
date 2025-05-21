@@ -12,12 +12,12 @@ export const createJobCard = (job, jobTitle) => {
     <p class="jobs__category">${job.category?.name || 'Uncategorized'}</p>
 
     ${job.perks && job.perks.length > 0
-      ? `
+    ? `
       <p class="jobs__perks">
         ${job.perks.map((perk) => `<span class="jobs__perk">${perk.name}</span>`).join(' · ')}
       </p>
     `
-      : ''}
+    : ''}
 
     <p class="jobs__location">
       <span class="jobs__location-icon">📍</span> ${job.city}, ${job.country} |
@@ -36,29 +36,31 @@ export const createJobCard = (job, jobTitle) => {
     </p>
 
     ${job.tags && job.tags.length > 0
-      ? `
+    ? `
       <p class="jobs__tags">
         ${job.tags.map((tag) => `<span class="jobs__tag">${tag.name}</span>`).join('')}
       </p>
     `
-      : ''}
+    : ''}
 
     <button class="jobs__bookmark-btn">
       <img src="/static/bookmark.svg" alt="Bookmark" />
     </button>
   `;
 
-  // Add click event to the bookmark button
+  // Handle bookmark button visibility based on user role
   const user = JSON.parse(localStorage.getItem('user'));
-  if (user) {
-    const bookmarkBtn = jobItem.querySelector('.jobs__bookmark-btn');
+  const bookmarkBtn = jobItem.querySelector('.jobs__bookmark-btn');
+
+  if (user && user.role === 'APPLICANT') {
+    // Only APPLICANT role can see and use the bookmark button
     bookmarkBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       // TODO: Handle bookmark action here
       console.log(`Bookmarking job with ID: ${job.id}`);
     });
   } else {
-    const bookmarkBtn = jobItem.querySelector('.jobs__bookmark-btn');
+    // Hide bookmark button for non-APPLICANT users or when not logged in
     bookmarkBtn.style.display = 'none';
   }
 
