@@ -1,4 +1,3 @@
-// company.js
 import { CompaniesApi } from './api/companiesApi.js';
 import { JobsApi } from './api/jobsApi.js';
 import { ReviewsApi } from './api/reviewsApi.js';
