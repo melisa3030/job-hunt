@@ -126,7 +126,7 @@ async function renderJobsTab(companyId) {
         await Promise.all([
           JobsApi.getAllJobs(),
           JobTitlesApi.getAllJobTitles(),
-          JobCategoriesApi.getAllCategories(),
+          JobCategoriesApi.getAllJobCategories(),
           PerksApi.getAllPerks(),
           JobTagsApi.getAllJobTags(),
           TagsApi.getAllTags(),
