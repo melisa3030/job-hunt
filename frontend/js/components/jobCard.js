@@ -1,4 +1,3 @@
-// components/jobCard.js
 export const createJobCard = (job, jobTitle) => {
   const jobItem = document.createElement('div');
   jobItem.className = 'jobs__item';
