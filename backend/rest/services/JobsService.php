@@ -112,16 +112,16 @@ class JobsService
     }
 
     // Validate only the fields that are present in the request
-    if (isset($data['company_id']) && !Flight::companiesService()->getById($data['company_id'])) {
+    if (isset($data['company_id']) && !Flight::companiesService()->getCompanyById($data['company_id'])) {
       throw new Exception("Company not found", 404);
     }
-    if (isset($data['job_title_id']) && !Flight::jobsService()->getById($data['job_title_id'])) {
+    if (isset($data['job_title_id']) && !Flight::jobTitlesService()->getById($data['job_title_id'])) {
       throw new Exception("Job title not found", 404);
     }
-    if (isset($data['posted_by']) && !Flight::userService()->getById($data['posted_by'])) {
+    if (isset($data['posted_by']) && !Flight::userService()->getUserById($data['posted_by'])) {
       throw new Exception("User not found", 404);
     }
-    if (isset($data['category_id']) && !Flight::jobCategoriesService()->getById($data['category_id'])) {
+    if (isset($data['category_id']) && !Flight::jobCategoriesService()->getJobCategoryById($data['category_id'])) {
       throw new Exception("Category not found", 404);
     }
 

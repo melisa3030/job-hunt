@@ -17,6 +17,12 @@ class CompaniesService
     return $this->dao->getAll();
   }
 
+
+  public function getById($id)
+  {
+    return $this->getCompanyById($id);
+  }
+
   public function getCompanyByName($name)
   {
     $company = $this->dao->getCompanyByName($name);
