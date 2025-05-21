@@ -7,6 +7,7 @@ import { initLoginForm } from './login.js';
 import { AuthApi } from './api/authApi.js';
 import { initManageUsers } from './admin/manageUsers.js';
 import { initManageCompanies } from './admin/manageCompanies.js';
+import { initManageJobs } from './admin/manageJobs.js';
 
 const urlPageTitle = 'Job Hunt App';
 
@@ -88,11 +89,6 @@ const urlRoutes = {
     title: 'Manage Jobs | ' + urlPageTitle,
     description: 'Job Management',
   },
-  '/admin/reviews': {
-    template: '/views/admin/reviews.html',
-    title: 'Manage Reviews | ' + urlPageTitle,
-    description: 'Review Management',
-  },
 
   // Employer routes
   '/employer/dashboard': {
@@ -127,7 +123,6 @@ const urlRoutes = {
     title: 'Saved Jobs | ' + urlPageTitle,
     description: 'View Saved Jobs',
   },
-
 };
 
 // Main route handler - processes URL changes and renders appropriate content
@@ -161,8 +156,10 @@ const urlLocationHandler = async () => {
       return urlLocationHandler();
     }
 
-    if ((path === '/my-applications' || path === '/bookmarks') &&
-      user.role !== 'APPLICANT') {
+    if (
+      (path === '/my-applications' || path === '/bookmarks') &&
+      user.role !== 'APPLICANT'
+    ) {
       window.history.pushState({}, '', '/forbidden');
       return urlLocationHandler();
     }
@@ -203,6 +200,7 @@ const urlLocationHandler = async () => {
   if (routeKey === '/login') initLoginForm();
   if (routeKey === '/admin/users') initManageUsers();
   if (routeKey === '/admin/companies') initManageCompanies();
+  if (routeKey === '/admin/jobs') initManageJobs();
 };
 
 // Handle client-side navigation
