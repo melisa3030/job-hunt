@@ -1,10 +1,23 @@
 import { BASE_URL } from '../constants/constants.js';
+import { AuthApi } from './authApi.js';
 
 export const CompaniesApi = {
   async getAllCompanies() {
     try {
-      const response = await fetch(`${BASE_URL}/companies`);
-      if (!response.ok) throw new Error('Failed to fetch companies');
+      const response = await fetch(`${BASE_URL}/companies`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to get companies');
+      }
       return response.json();
     } catch (error) {
       console.error('Error fetching companies:', error);
@@ -14,11 +27,95 @@ export const CompaniesApi = {
 
   async getCompanyById(id) {
     try {
-      const response = await fetch(`${BASE_URL}/companies/${id}`);
-      if (!response.ok) throw new Error('Failed to fetch company');
+      const response = await fetch(`${BASE_URL}/companies/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to get company');
+      }
       return response.json();
     } catch (error) {
-      console.error('Error fetching company:', error);
+      console.error(`Error fetching company with ID ${id}:`, error);
+      throw error;
+    }
+  },
+  async createCompany(companyData) {
+    try {
+      console.log('Creating company with data:', companyData);
+
+      const response = await fetch(`${BASE_URL}/companies`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(companyData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to create company');
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Error creating company:', error);
+      throw error;
+    }
+  },
+  async updateCompany(id, companyData) {
+    try {
+
+      const response = await fetch(`${BASE_URL}/companies/${id}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(companyData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to update company');
+      }
+      return response.json();
+    } catch (error) {
+      console.error(`Error updating company with ID ${id}:`, error);
+      throw error;
+    }
+  },
+  async deleteCompany(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/companies/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to create company');
+      }
+      return true;
+    } catch (error) {
+      console.error(`Error deleting company with ID ${id}:`, error);
       throw error;
     }
   },
