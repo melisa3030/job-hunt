@@ -1,4 +1,3 @@
-// components/navbar.js
 import { AuthApi } from '../api/authApi.js';
 
 async function Navbar() {
@@ -17,7 +16,6 @@ async function Navbar() {
         `<li><a class="dropdown-item" href="/admin/users" data-link>Manage Users</a></li>`,
         `<li><a class="dropdown-item" href="/admin/companies" data-link>Manage Companies</a></li>`,
         `<li><a class="dropdown-item" href="/admin/jobs" data-link>Manage Jobs</a></li>`,
-        `<li><a class="dropdown-item" href="/admin/reviews" data-link>Manage Reviews</a></li>`,
       ],
       EMPLOYER: [
         `<li><a class="dropdown-item" href="/profile" data-link>Profile</a></li>`,
@@ -98,22 +96,24 @@ async function Navbar() {
               </a>
             </li>
           </ul>
-          <div class="d-flex align-items-center">
+          <div class="d-flex navbar-nav">
             ${isAuthenticated && user
               ? `
-                <div class="dropdown">
-                  <button class="btn btn-link dropdown-toggle text-decoration-none" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     ${user.username}
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-lg-end" aria-labelledby="userDropdown">
                     ${getMenuItemsByRole(user)}
                   </ul>
-                </div>
+                </li>
               `
               : `
-                <a href="/login" class="btn btn-primary" data-link>
-                  Login
-                </a>
+                <li class="nav-item">
+                  <a href="/login" class="nav-link btn btn-primary text-white" data-link>
+                    Login
+                  </a>
+                </li>
               `}
           </div>
         </div>
