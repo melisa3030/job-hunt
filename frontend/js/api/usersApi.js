@@ -13,7 +13,11 @@ export const UsersApi = {
         credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to fetch users');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to get users');
+      }
       return response.json();
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -32,7 +36,11 @@ export const UsersApi = {
         credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to fetch user');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch user');
+      }
       return response.json();
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -51,7 +59,11 @@ export const UsersApi = {
         credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to fetch user');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch user');
+      }
       return response.json();
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -70,33 +82,40 @@ export const UsersApi = {
         credentials: 'include',
       });
 
-      if (!response.ok) throw new Error('Failed to fetch users');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch users');
+      }
       return response.json();
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error;
     }
   },
-
-  async deleteUser(id) {
+  async createUser(userData) {
     try {
-      const response = await fetch(`${BASE_URL}/users/${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`${BASE_URL}/users`, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
         credentials: 'include',
+        body: JSON.stringify(userData),
       });
 
-      if (!response.ok) throw new Error('Failed to delete user');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to create user');
+      }
       return response.json();
     } catch (error) {
-      console.error('Error deleting user:', error);
+      console.error('Error creating user:', error);
       throw error;
     }
   },
-
   async updateUser(id, data) {
     try {
       console.log(data);
@@ -113,11 +132,37 @@ export const UsersApi = {
 
       console.log(response);
 
-      if (!response.ok) throw new Error('Failed to update user');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to update user');
+      }
       return response.json();
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
     }
   },
+  async deleteUser(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to delete user');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+  }
 };

@@ -8,6 +8,17 @@ export const initManageUsers = () => {
   const searchBtn = document.getElementById('searchBtn');
   const searchType = document.getElementById('searchType');
   const pagination = document.getElementById('pagination');
+  const createUserBtn = document.getElementById('createUserBtn');
+
+  // Create user modal elements
+  const createUserModal = document.getElementById('createUserModal');
+  const createUserForm = document.getElementById('createUserForm');
+  const createName = document.getElementById('createName');
+  const createUsername = document.getElementById('createUsername');
+  const createEmail = document.getElementById('createEmail');
+  const createPassword = document.getElementById('createPassword');
+  const createRole = document.getElementById('createRole');
+  const saveNewUser = document.getElementById('saveNewUser');
 
   // Edit modal elements
   const editUserModal = document.getElementById('editUserModal');
@@ -29,18 +40,32 @@ export const initManageUsers = () => {
   let filteredUsers = [];
 
   // Search functionality
-  searchBtn.addEventListener('click', function() {
+  searchBtn.addEventListener('click', function () {
     filterUsers();
   });
 
-  searchInput.addEventListener('keyup', function(event) {
+  searchInput.addEventListener('keyup', function (event) {
     if (event.key === 'Enter') {
       filterUsers();
     }
   });
 
+  // Create user button
+  createUserBtn.addEventListener('click', function () {
+    openCreateUserModal();
+  });
+
+  // Save new user
+  saveNewUser.addEventListener('click', function () {
+    if (createUserForm.checkValidity()) {
+      createUser();
+    } else {
+      createUserForm.reportValidity();
+    }
+  });
+
   // Save user changes
-  saveUserChanges.addEventListener('click', function() {
+  saveUserChanges.addEventListener('click', function () {
     if (editUserForm.checkValidity()) {
       updateUser();
     } else {
@@ -49,12 +74,60 @@ export const initManageUsers = () => {
   });
 
   // Confirm delete user
-  confirmDeleteUser.addEventListener('click', function() {
+  confirmDeleteUser.addEventListener('click', function () {
     const userId = confirmDeleteUser.getAttribute('data-user-id');
     deleteUser(userId);
   });
 
-  // Load users from API
+  // Open create user modal
+  function openCreateUserModal() {
+    // Reset the form
+    createUserForm.reset();
+
+    // Set default role
+    createRole.value = 'APPLICANT';
+
+    // Show the modal
+    const modal = new bootstrap.Modal(createUserModal);
+    modal.show();
+  }
+
+  // Create new user
+  async function createUser() {
+    const userData = {
+      name: createName.value,
+      username: createUsername.value,
+      email: createEmail.value,
+      password: createPassword.value,
+      role: createRole.value,
+    };
+
+    try {
+      showLoading(true);
+
+      const response = await UsersApi.createUser(userData);
+      console.log(response);
+
+      if (response && response.message) {
+        const modal = bootstrap.Modal.getInstance(createUserModal);
+        modal.hide();
+
+        // Reload all users from the server to ensure we have the latest data
+        await loadUsers();
+
+        showSuccess(response.message || 'User created successfully!');
+      } else {
+        throw new Error('Failed to create user');
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      showError('Failed to create user. Please try again.');
+    } finally {
+      showLoading(false);
+    }
+  }
+
+
   async function loadUsers() {
     showLoading(true);
 
@@ -85,7 +158,7 @@ export const initManageUsers = () => {
       filteredUsers = [...currentUsers];
     } else {
       // Client-side filtering for better reliability
-      filteredUsers = currentUsers.filter(user => {
+      filteredUsers = currentUsers.filter((user) => {
         if (searchBy === 'name') {
           return user.name.toLowerCase().includes(searchValue);
         } else if (searchBy === 'id') {
@@ -100,7 +173,7 @@ export const initManageUsers = () => {
     setupPagination();
   }
 
-  // Display users for current page
+  // Display users for the current page
   function displayUsers(page) {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
@@ -116,42 +189,53 @@ export const initManageUsers = () => {
     noUsersMessage.classList.add('d-none');
 
     usersToDisplay.forEach((user, index) => {
-      const userRow = document.createElement('div');
-      userRow.className = 'list-group-item';
-      userRow.innerHTML = `
-        <div class="row align-items-center">
-          <div class="col-1">${startIndex + index + 1}</div>
-          <div class="col-2">${user.id}</div>
-          <div class="col-3">${user.name}</div>
-          <div class="col-3">${user.email}</div>
-          <div class="col-3">
-            <button class="btn btn-sm btn-primary edit-user" data-user-id="${user.id}">
-              <i class="fas fa-edit"></i> Edit
-            </button>
-            <button class="btn btn-sm btn-danger delete-user" data-user-id="${user.id}" data-user-name="${user.name}">
-              <i class="fas fa-trash"></i> Delete
-            </button>
-          </div>
-        </div>
-      `;
-      usersList.appendChild(userRow);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+      <td>${startIndex + index + 1}</td>
+      <td>${user.id}</td>
+      <td>${user.name || ''}</td>
+      <td>${user.username || ''}</td>
+      <td>${user.email || ''}</td>
+      <td><span class="badge ${getRoleBadgeClass(user.role)}">${user.role || 'APPLICANT'}</span></td>
+      <td>
+        <button class="btn btn-sm btn-primary edit-user" data-user-id="${user.id}">
+          <i class="fas fa-edit"></i> Edit
+        </button>
+        <button class="btn btn-sm btn-danger delete-user" data-user-id="${user.id}" data-user-name="${user.name}">
+          <i class="fas fa-trash"></i> Delete
+        </button>
+      </td>
+    `;
+      usersList.appendChild(row);
     });
 
-    // Add event listeners to edit and delete buttons
-    document.querySelectorAll('.edit-user').forEach(button => {
-      button.addEventListener('click', function() {
+    document.querySelectorAll('.edit-user').forEach((button) => {
+      button.addEventListener('click', function () {
         const userId = this.getAttribute('data-user-id');
         openEditModal(userId);
       });
     });
 
-    document.querySelectorAll('.delete-user').forEach(button => {
-      button.addEventListener('click', function() {
+    document.querySelectorAll('.delete-user').forEach((button) => {
+      button.addEventListener('click', function () {
         const userId = this.getAttribute('data-user-id');
         const userName = this.getAttribute('data-user-name');
         openDeleteModal(userId, userName);
       });
     });
+  }
+
+  // Helper function for role badge styling
+  function getRoleBadgeClass(role) {
+    switch (role) {
+      case 'ADMIN':
+        return 'bg-danger';
+      case 'EMPLOYER':
+        return 'bg-primary';
+      case 'APPLICANT':
+      default:
+        return 'bg-success';
+    }
   }
 
   // Set up pagination
@@ -169,7 +253,7 @@ export const initManageUsers = () => {
     prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
     pagination.appendChild(prevLi);
 
-    prevLi.addEventListener('click', function(e) {
+    prevLi.addEventListener('click', function (e) {
       e.preventDefault();
       if (currentPage > 1) {
         currentPage--;
@@ -185,7 +269,7 @@ export const initManageUsers = () => {
       pageLi.innerHTML = `<a class="page-link" href="#">${i}</a>`;
       pagination.appendChild(pageLi);
 
-      pageLi.addEventListener('click', function(e) {
+      pageLi.addEventListener('click', function (e) {
         e.preventDefault();
         currentPage = i;
         displayUsers(currentPage);
@@ -199,7 +283,7 @@ export const initManageUsers = () => {
     nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
     pagination.appendChild(nextLi);
 
-    nextLi.addEventListener('click', function(e) {
+    nextLi.addEventListener('click', function (e) {
       e.preventDefault();
       if (currentPage < totalPages) {
         currentPage++;
@@ -213,7 +297,9 @@ export const initManageUsers = () => {
   async function openEditModal(userId) {
     try {
       // Get user data from our local array for better performance
-      const user = currentUsers.find(user => user.id.toString() === userId.toString());
+      const user = currentUsers.find(
+        (user) => user.id.toString() === userId.toString()
+      );
 
       if (user) {
         editUserId.value = user.id;
@@ -228,7 +314,7 @@ export const initManageUsers = () => {
       }
     } catch (error) {
       console.error('Error opening edit modal:', error);
-      showAlert('danger', 'Could not load user details. Please try again.');
+      showError('Could not load user details. Please try again.');
     }
   }
 
@@ -239,34 +325,37 @@ export const initManageUsers = () => {
     // Build the userData object with the required fields
     const userData = {
       name: editName.value,
-      email: editEmail.value
+      email: editEmail.value,
     };
 
-    // Only include role if it has a value
+    // Only include a role if it has a value
     if (editRole.value) {
       userData.role = editRole.value;
     }
-
 
     try {
       // Use the UsersApi updateUser method
       await UsersApi.updateUser(userId, userData);
 
       // Update the local user data
-      const userIndex = currentUsers.findIndex(user => user.id.toString() === userId.toString());
+      const userIndex = currentUsers.findIndex(
+        (user) => user.id.toString() === userId.toString()
+      );
       if (userIndex !== -1) {
         // Update the user in our array
         currentUsers[userIndex] = {
           ...currentUsers[userIndex],
-          ...userData
+          ...userData,
         };
 
         // Update filtered users if needed
-        const filteredIndex = filteredUsers.findIndex(user => user.id.toString() === userId.toString());
+        const filteredIndex = filteredUsers.findIndex(
+          (user) => user.id.toString() === userId.toString()
+        );
         if (filteredIndex !== -1) {
           filteredUsers[filteredIndex] = {
             ...filteredUsers[filteredIndex],
-            ...userData
+            ...userData,
           };
         }
       }
@@ -278,10 +367,10 @@ export const initManageUsers = () => {
       // Update display
       displayUsers(currentPage);
 
-      showAlert('success', 'User updated successfully!');
+      showSuccess('User updated successfully!');
     } catch (error) {
       console.error('Error updating user:', error);
-      showAlert('danger', 'Failed to update user. Please try again.');
+      showError('Failed to update user. Please try again.');
     }
   }
 
@@ -301,8 +390,12 @@ export const initManageUsers = () => {
       await UsersApi.deleteUser(userId);
 
       // Remove user from arrays
-      currentUsers = currentUsers.filter(user => user.id.toString() !== userId.toString());
-      filteredUsers = filteredUsers.filter(user => user.id.toString() !== userId.toString());
+      currentUsers = currentUsers.filter(
+        (user) => user.id.toString() !== userId.toString()
+      );
+      filteredUsers = filteredUsers.filter(
+        (user) => user.id.toString() !== userId.toString()
+      );
 
       // Close modal
       const modal = bootstrap.Modal.getInstance(deleteUserModal);
@@ -312,10 +405,10 @@ export const initManageUsers = () => {
       displayUsers(currentPage);
       setupPagination();
 
-      showAlert('success', 'User deleted successfully!');
+      showSuccess('User deleted successfully!');
     } catch (error) {
       console.error('Error deleting user:', error);
-      showAlert('danger', 'Failed to delete user. Please try again.');
+      showError('Failed to delete user. Please try again.');
     }
   }
 
@@ -329,28 +422,58 @@ export const initManageUsers = () => {
     }
   }
 
+  // Replace the existing showAlert function with these two functions from manageCompanies.js
+
   function showError(message) {
-    noUsersMessage.textContent = message;
-    noUsersMessage.classList.remove('d-none');
-  }
+    const alertsContainer = document.getElementById('alerts-container');
+    if (!alertsContainer) return;
 
-  function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.role = 'alert';
-    alertDiv.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show';
+    alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
 
-    const container = document.querySelector('.admin-users');
-    container.insertBefore(alertDiv, container.firstChild);
+    alertsContainer.appendChild(alert);
 
     // Auto-dismiss after 5 seconds
     setTimeout(() => {
-      alertDiv.classList.remove('show');
-      setTimeout(() => alertDiv.remove(), 150);
+      alert.classList.remove('show');
+      setTimeout(() => alert.remove(), 300);
     }, 5000);
+  }
+
+  function showSuccess(message) {
+    const alertsContainer = document.getElementById('alerts-container');
+    if (!alertsContainer) return;
+
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show';
+    alert.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+
+    alertsContainer.appendChild(alert);
+
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      alert.classList.remove('show');
+      setTimeout(() => alert.remove(), 300);
+    }, 5000);
+  }
+
+  // Add a showLoading function too (useful for async operations)
+  function showLoading(isLoading) {
+    const loadingMessage = document.getElementById('loadingMessage');
+    if (loadingMessage) {
+      if (isLoading) {
+        loadingMessage.classList.remove('d-none');
+      } else {
+        loadingMessage.classList.add('d-none');
+      }
+    }
   }
 
   // Initialize the page
