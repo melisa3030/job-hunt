@@ -20,11 +20,6 @@ function setupEventListeners() {
   const searchInput = document.getElementById('job-search');
   searchInput.addEventListener('input', handleSearch);
 
-  const addJobBtn = document.getElementById('add-job-btn');
-  addJobBtn.addEventListener('click', function () {
-    openJobModal();
-  });
-
   document.querySelectorAll('.close-modal').forEach((button) => {
     button.addEventListener('click', closeAllModals);
   });
@@ -371,6 +366,11 @@ async function handleJobSubmit(e) {
 
   const jobId = document.getElementById('job-id').value;
 
+  if (!jobId) {
+    showError('Job ID is required for updates');
+    return;
+  }
+
   // Get the expires_at value and convert it to mm/dd/yyyy format
   const expiresAtInput = document.getElementById('job-expires-at').value;
   let formattedExpiresAt = '';
@@ -450,27 +450,20 @@ async function handleJobSubmit(e) {
 
   try {
     showLoading(true);
-    let result;
-    if (jobId) {
-      // Update existing job
-      result = await JobsApi.updateJob(jobId, jobData);
-    } else {
-      // Create new job
-      result = await JobsApi.createJob(jobData);
-    }
+
+    // Only update existing jobs
+    const result = await JobsApi.updateJob(jobId, jobData);
 
     if (result) {
       closeAllModals();
       await loadData();
-      showSuccess(
-        jobId ? 'Job updated successfully' : 'Job created successfully'
-      );
+      showSuccess('Job updated successfully');
     } else {
-      throw new Error(jobId ? 'Failed to update job' : 'Failed to create job');
+      throw new Error('Failed to update job');
     }
   } catch (error) {
-    console.error('Error saving job:', error);
-    showError(error.message || 'An error occurred while saving the job');
+    console.error('Error updating job:', error);
+    showError(error.message || 'An error occurred while updating the job');
   } finally {
     showLoading(false);
   }
