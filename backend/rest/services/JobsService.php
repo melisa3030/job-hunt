@@ -73,6 +73,14 @@ class JobsService
             throw new Exception("Category not found", 404);
         }
 
+        if (isset($data['expires_at'])) {
+            $date = DateTime::createFromFormat('m/d/Y', $data['expires_at']);
+            if (!$date || $date->format('m/d/Y') !== $data['expires_at']) {
+                throw new Exception("Invalid date format for expires_at. Expected mm/dd/yyyy", 400);
+            }
+            $data['expires_at'] = $date->format('Y-m-d H:i:s');
+        }
+
         try {
             WorkType::from(trim($data['work_type']));
         } catch (\ValueError $e) {
@@ -136,6 +144,15 @@ class JobsService
             throw new Exception("Category not found", 404);
         }
 
+        if (isset($data['expires_at'])) {
+            $date = DateTime::createFromFormat('m/d/Y', $data['expires_at']);
+            if (!$date || $date->format('m/d/Y') !== $data['expires_at']) {
+                throw new Exception("Invalid date format for expires_at. Expected mm/dd/yyyy", 400);
+            }
+            // Convert the DateTime object back to a string format that MySQL expects
+            $data['expires_at'] = $date->format('Y-m-d H:i:s');
+        }
+
         // Validate enum values only if they are present
         if (isset($data['work_type'])) {
             try {
@@ -151,6 +168,10 @@ class JobsService
             } catch (\ValueError $e) {
                 throw new Exception("Invalid value for experience_level. Must be JUNIOR, INTERMEDIATE, or SENIOR.", 400);
             }
+        }
+
+        if (!$this->dao->update($id, $data)) {
+            throw new Exception("Error updating job", 500);
         }
 
         return ["message" => "Job updated successfully"];
