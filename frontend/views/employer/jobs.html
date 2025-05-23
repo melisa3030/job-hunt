@@ -1,0 +1,240 @@
+<!-- views/employer/jobs.html -->
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Posted Jobs</h2>
+    <button id="add-job-btn" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>Add New Job
+    </button>
+  </div>
+
+  <!-- Alerts container for success and error messages -->
+  <div id="alerts-container"></div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <div class="input-group">
+            <input
+              type="text"
+              id="job-search"
+              class="form-control"
+              placeholder="Search jobs by keyword (title, category, experience etc..)"
+            />
+            <button class="btn btn-primary" type="button" id="search-btn">
+              Search
+            </button>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <select id="status-filter" class="form-select">
+            <option value="">All Jobs</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="jobs-table-container">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Experience</th>
+          <th>Location</th>
+          <th>Posted Date</th>
+          <th>Expires</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="jobs-table-body">
+        <!-- Jobs will be loaded here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div
+    id="no-jobs-message"
+    class="alert alert-info text-center"
+    style="display: none"
+  >
+    You haven't posted any jobs yet. Click "Add New Job" to get started.
+  </div>
+
+  <div id="loading-jobs" class="text-center p-3">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Job Form Modal -->
+<div
+  class="modal fade"
+  id="job-modal"
+  tabindex="-1"
+  aria-labelledby="job-modal-label"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="job-modal-label">Add New Job</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="job-form">
+          <input type="hidden" id="job-id" />
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="job-title" class="form-label"
+                >Job Title <span class="text-danger">*</span></label
+              >
+              <select id="job-title" class="form-select" required>
+                <option value="">Select job title</option>
+                <!-- Titles will be loaded here -->
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="job-category" class="form-label"
+                >Category <span class="text-danger">*</span></label
+              >
+              <select id="job-category" class="form-select" required>
+                <option value="">Select category</option>
+                <!-- Categories will be loaded here -->
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="job-country" class="form-label"
+                >Country <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="job-country"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="job-city" class="form-label"
+                >City <span class="text-danger">*</span></label
+              >
+              <input type="text" class="form-control" id="job-city" required />
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label for="job-work-type" class="form-label"
+                >Work Type <span class="text-danger">*</span></label
+              >
+              <select id="job-work-type" class="form-select" required>
+                <option value="">Select work type</option>
+                <option value="REMOTE">Remote</option>
+                <option value="HYBRID">Hybrid</option>
+                <option value="ON-SITE">On-site</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="job-experience" class="form-label"
+                >Experience Level <span class="text-danger">*</span></label
+              >
+              <select id="job-experience" class="form-select" required>
+                <option value="">Select experience level</option>
+                <option value="JUNIOR">Junior</option>
+                <option value="INTERMEDIATE">Intermediate</option>
+                <option value="SENIOR">Senior</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="job-salary" class="form-label"
+                >Salary <span class="text-danger">*</span></label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="job-salary"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="job-expires" class="form-label"
+              >Expires At <span class="text-danger">*</span></label
+            >
+            <input type="date" class="form-control" id="job-expires" required />
+          </div>
+
+          <div class="mb-3">
+            <label for="job-description" class="form-label"
+              >Description <span class="text-danger">*</span></label
+            >
+            <textarea
+              class="form-control"
+              id="job-description"
+              rows="5"
+              required
+            ></textarea>
+          </div>
+
+          <div
+            id="form-error"
+            class="alert alert-danger"
+            style="display: none"
+          ></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" id="save-job-btn">
+          Save Job
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Delete</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this job? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
