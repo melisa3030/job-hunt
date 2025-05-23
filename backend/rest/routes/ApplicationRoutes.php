@@ -57,7 +57,7 @@ Flight::route('GET /applications_for_current_auth_user', function () {
 
 Flight::route('GET /applications_for_company_by_employer_id/@id', function ($id) {
   try {
-    Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
+    Flight::authMiddleware()->authorizeRoles([Roles::EMPLOYER, Roles::ADMIN]);
     $applications = Flight::applicationsService()->getApplicationsForCompanyByEmployerId($id);
     Flight::json($applications);
   } catch (Exception $e) {
