@@ -2,7 +2,6 @@ import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
 
 export const JobsApi = {
-  // Get all jobs
   async getAllJobs() {
     try {
       const response = await fetch(`${BASE_URL}/jobs`, {
@@ -21,6 +20,28 @@ export const JobsApi = {
       return await response.json();
     } catch (error) {
       console.error('Error fetching jobs:', error);
+      throw error;
+    }
+  },
+
+  async getJobsForCurrentEmployer() {
+    try {
+      const response = await fetch(`${BASE_URL}/jobs_for_auth_user`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching jobs for employer', error);
       throw error;
     }
   },
@@ -55,6 +76,7 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(jobData),
       });
       if (!response.ok) {
