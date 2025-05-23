@@ -93,6 +93,7 @@ export const UsersApi = {
       throw error;
     }
   },
+
   async createUser(userData) {
     try {
       const response = await fetch(`${BASE_URL}/users`, {
@@ -116,6 +117,7 @@ export const UsersApi = {
       throw error;
     }
   },
+
   async updateUser(id, data) {
     try {
       console.log(data);
@@ -143,6 +145,7 @@ export const UsersApi = {
       throw error;
     }
   },
+
   async deleteUser(id) {
     try {
       const response = await fetch(`${BASE_URL}/users/${id}`, {
@@ -164,5 +167,71 @@ export const UsersApi = {
       console.error('Error deleting user:', error);
       throw error;
     }
-  }
+  },
+
+  async getApplicantById(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/users/applicant/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch applicant');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching applicant:', error);
+      throw error;
+    }
+  },
+
+  async getApplicants() {
+    try {
+      const response = await fetch(`${BASE_URL}/users/applicants`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch applicants');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching applicants:', error);
+      throw error;
+    }
+  },
+
+  async getApplicantsById(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/users/applicant/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch applicants');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching applicants:', error);
+      throw error;
+    }
+  },
 };
