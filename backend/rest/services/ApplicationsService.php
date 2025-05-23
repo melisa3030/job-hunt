@@ -21,32 +21,61 @@ class ApplicationsService
   public function getApplicationsByJobId($job_id)
   {
     $applications = $this->applicationsDao->getByJobId($job_id);
-    if ($applications) {
-      return $applications;
-    } else {
-      throw new Exception("No job applications found for job", 404);
-    }
+    return $applications ?: [];
   }
 
   public function getApplicationsByApplicantId($applicant_id)
   {
     $applications = $this->applicationsDao->getByApplicantId($applicant_id);
-    if ($applications) {
-      return $applications;
-    } else {
-      throw new Exception("No job applications found for applicant", 404);
-    }
+    return $applications ?: [];
   }
 
   public function getApplicationsForCurrentAuthUser()
   {
     $user = Flight::get('user');
     $applications = $this->applicationsDao->getByApplicantId($user->id);
-    if ($applications) {
-      return $applications;
-    } else {
-      throw new Exception("No job applications found for current user", 404);
+    return $applications ?: [];
+  }
+
+  public function getApplicationsForCompanyByEmployerId($id)
+  {
+    $employer = Flight::userService()->getUserById($id);
+    if (!$employer) {
+      throw new Exception("Employer not found", 404);
     }
+
+    try {
+      $jobs = Flight::jobsService()->getJobsByEmployerId($id);
+
+      // If we get here, jobs were found, continue with the rest of the method
+      $job_ids = array_map(function ($job) {
+        return $job['id'];
+      }, $jobs);
+
+      $applications = $this->applicationsDao->getByJobIds($job_ids);
+      return $applications ?: [];
+    } catch (Exception $e) {
+      // If the exception message is "No jobs found for this employer", return an empty array
+      if ($e->getCode() == 404 && strpos($e->getMessage(), "No jobs found") !== false) {
+        return [];
+      }
+      // Re-throw any other exception
+      throw $e;
+    }
+  }
+
+  public function getApplicationsForCompanyByCurrentEmployer()
+  {
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
+    $userRole = Roles::from($user->role);
+    if ($userRole !== Roles::EMPLOYER && $userRole !== Roles::ADMIN) {
+      throw new Exception("Access denied: Only employers can view company applications", 403);
+    }
+
+    return $this->getApplicationsForCompanyByEmployerId($user->id);
   }
 
   public function createApplication($data)

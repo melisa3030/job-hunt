@@ -55,6 +55,34 @@ Flight::route('GET /applications_for_current_auth_user', function () {
   }
 });
 
+Flight::route('GET /applications_for_company_by_employer_id/@id', function ($id) {
+  try {
+    Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
+    $applications = Flight::applicationsService()->getApplicationsForCompanyByEmployerId($id);
+    Flight::json($applications);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
+
+Flight::route('GET /applications_for_company_by_current_employer', function () {
+  try {
+    Flight::authMiddleware()->authorizeRoles([Roles::EMPLOYER, Roles::ADMIN]);
+    $applications = Flight::applicationsService()->getApplicationsForCompanyByCurrentEmployer();
+    Flight::json($applications);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
+
 Flight::route('POST /applications', function () {
   try {
     Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT]);

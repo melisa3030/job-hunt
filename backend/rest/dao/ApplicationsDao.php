@@ -24,4 +24,20 @@ class ApplicationsDao extends BaseDao
     $stmt->execute();
     return $stmt->fetchAll();
   }
+
+  public function getByJobIds($job_ids)
+  {
+    if (empty($job_ids)) {
+      return [];
+    }
+
+    // Create placeholders for PDO
+    $placeholders = implode(',', array_fill(0, count($job_ids), '?'));
+    $stmt = $this->connection->prepare("SELECT * FROM applications WHERE job_id IN ($placeholders)");
+
+    // Execute with all job IDs as parameters (PDO style)
+    $stmt->execute($job_ids);
+
+    return $stmt->fetchAll();
+  }
 }
