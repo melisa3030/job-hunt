@@ -28,6 +28,77 @@ Flight::route('GET /users', function () {
     }
 });
 
+/**
+ * Get limited applicant information (for employers viewing job applications)
+ * This endpoint provides restricted user information without sensitive data
+ */
+Flight::route('GET /users/applicant/@id', function ($id) {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+
+        $user = Flight::userService()->getUserById($id);
+
+        // Return only the safe fields (no password, personal details, etc.)
+        $limitedUserData = [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'username' => $user['username'] ?? null,
+        ];
+
+        Flight::json($limitedUserData);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
+Flight::route('GET /users/applicants', function () {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+
+        $data = Flight::request()->data->getData();
+
+        if (!isset($data['applicant_ids']) || !is_array($data['applicant_ids'])) {
+            Flight::jsonHalt(["message" => "applicant_ids array is required"], 400);
+            return;
+        }
+
+        $applicantIds = $data['applicant_ids'];
+        $limitedUsersData = [];
+
+        foreach ($applicantIds as $id) {
+            try {
+                $user = Flight::userService()->getUserById($id);
+
+                if ($user) {
+                    $limitedUsersData[] = [
+                        'id' => $user['id'],
+                        'name' => $user['name'],
+                        'email' => $user['email'],
+                        'username' => $user['username'] ?? null,
+                        l,
+                    ];
+                }
+            } catch (Exception $e) {
+                // Skip users that couldn't be found
+                continue;
+            }
+        }
+
+        Flight::json($limitedUsersData);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
 
 Flight::route('POST /users', function () {
     try {
