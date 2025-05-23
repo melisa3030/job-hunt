@@ -25,7 +25,6 @@ class AuthService
 
         unset($user->password);
         unset($user->email);
-        unset($user->company_id);
         unset($user->created_at);
 
         return $user;
