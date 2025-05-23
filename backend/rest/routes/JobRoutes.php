@@ -35,8 +35,8 @@ Flight::route('GET /jobs/employer/@id', function ($id) {
 Flight::route('GET /jobs_for_auth_user', function () {
     try {
         Flight::authMiddleware()->authorizeRoles([Roles::EMPLOYER, Roles::ADMIN]);
-        $reviews = Flight::jobsService()->getJobsForAuthUser();
-        Flight::json($reviews, 200);
+        $jobs = Flight::jobsService()->getJobsForAuthUser();
+        Flight::json($jobs, 200);
     } catch (Exception $e) {
         $code = $e->getCode();
         if ($code < 100 || $code > 599) {
