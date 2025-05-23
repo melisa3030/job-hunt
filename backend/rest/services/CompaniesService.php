@@ -41,6 +41,29 @@ class CompaniesService
     return $company;
   }
 
+  public function getCompanyByEmployerId($id)
+  {
+    $companies = $this->dao->getByField('employer_id', $id);
+    if (!$companies) {
+      throw new Exception("No company found for this employer", 404);
+    }
+    return $companies;
+  }
+
+  public function getCompanyForAuthUser()
+  {
+    $user = Flight::get('user');
+    if (!$user) {
+      throw new Exception("User not authenticated", 401);
+    }
+
+    $company = $this->dao->getByField('employer_id', $user->id);
+    if (!$company) {
+      throw new Exception("No company found for this employer", 404);
+    }
+    return $company;
+  }
+
   public function createCompany($data)
   {
     $user = Flight::get('user');
@@ -51,6 +74,11 @@ class CompaniesService
 
     if ($userRole !== Roles::ADMIN && $userRole !== Roles::EMPLOYER) {
       throw new Exception("Forbidden: You can only create a company as an admin or employer", 403);
+    }
+
+    $existingCompany = $this->dao->getByField('employer_id', $user->id);
+    if ($existingCompany) {
+      throw new Exception("You already have a company", 400);
     }
 
     $requiredFields = ['name', 'country', 'city', 'description'];

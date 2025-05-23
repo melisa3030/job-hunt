@@ -18,6 +18,34 @@ Flight::route('GET /companies', function () {
   }
 });;
 
+Flight::route('GET /companies/employer/@id', function ($id) {
+  try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+    $result = Flight::companiesService()->getCompanyByEmployerId($id);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
+
+Flight::route('GET /companies/me', function () {
+  try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+    $result = Flight::companiesService()->getCompanyForAuthUser();
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
+
 Flight::route('GET /companies/@id', function ($id) {
   try {
     $result = Flight::companiesService()->getCompanyById($id);
