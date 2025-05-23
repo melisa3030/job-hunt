@@ -5,9 +5,12 @@ import { renderCompanyTab } from './company.js';
 import { initSignupForm } from './signup.js';
 import { initLoginForm } from './login.js';
 import { AuthApi } from './api/authApi.js';
-import { initManageUsers } from './admin/manageUsers.js';
-import { initManageCompanies } from './admin/manageCompanies.js';
-import { initManageJobs } from './admin/manageJobs.js';
+import { initManageAdminUsers } from './admin/manageUsers.js';
+import { initManageAdminCompanies } from './admin/manageCompanies.js';
+import { initManageAdminJobs } from './admin/manageJobs.js';
+import { initManageEmployerJobs } from './employer/manageJobs.js';
+import { initManageEmployerApplications } from './employer/manageApplications.js';
+import { initManageEmployerCompany } from './employer/manageCompany.js';
 
 const urlPageTitle = 'Job Hunt App';
 
@@ -96,8 +99,8 @@ const urlRoutes = {
     title: 'Applications | ' + urlPageTitle,
     description: 'Manage Job Applications',
   },
-  '/employer/companies': {
-    template: '/views/employer/companies.html',
+  '/employer/company': {
+    template: '/views/employer/company.html',
     title: 'Manage Companies | ' + urlPageTitle,
     description: 'Company Management',
   },
@@ -190,9 +193,16 @@ const urlLocationHandler = async () => {
   if (routeKey === '/companies') renderCompanies();
   if (routeKey === '/signup') initSignupForm();
   if (routeKey === '/login') initLoginForm();
-  if (routeKey === '/admin/users') initManageUsers();
-  if (routeKey === '/admin/companies') initManageCompanies();
-  if (routeKey === '/admin/jobs') initManageJobs();
+
+  // Admin
+  if (routeKey === '/admin/users') initManageAdminUsers();
+  if (routeKey === '/admin/companies') initManageAdminCompanies();
+  if (routeKey === '/admin/jobs') initManageAdminJobs();
+
+  // Employer
+  if (routeKey === '/employer/jobs') initManageEmployerJobs();
+  if (routeKey === '/employer/applications') initManageEmployerApplications();
+  if (routeKey === '/employer/company') initManageEmployerCompany();
 };
 
 // Handle client-side navigation
