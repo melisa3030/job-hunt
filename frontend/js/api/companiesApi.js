@@ -47,6 +47,51 @@ export const CompaniesApi = {
       throw error;
     }
   },
+
+  async getCompanyByEmployerId(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/companies/employer/${id}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to get company');
+      }
+      return response.json();
+    } catch (error) {
+      console.error(`Error fetching company with employer ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  async getCompanyForCurrentEmployer() {
+    try {
+      const response = await fetch(`${BASE_URL}/companies/me`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to get company');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching company for current employer:', error);
+      throw error;
+    }
+  },
+
   async createCompany(companyData) {
     try {
       console.log('Creating company with data:', companyData);
@@ -75,7 +120,6 @@ export const CompaniesApi = {
   },
   async updateCompany(id, companyData) {
     try {
-
       const response = await fetch(`${BASE_URL}/companies/${id}`, {
         method: 'PUT',
         headers: {
