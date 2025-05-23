@@ -39,6 +39,12 @@ class AuthMiddleware
     public function authorizeRoles(array $roles)
     {
         $user = Flight::get('user');
+        error_log('User in auth middleware: ' . print_r($user, true));
+
+        if (!$user) {
+            throw new Exception('User not authenticated', 401);
+        }
+
         try {
             $userRoleEnum = Roles::from($user->role);
             // Ensure all roles are enums
@@ -58,6 +64,10 @@ class AuthMiddleware
     public function authorizePermission($permission)
     {
         $user = Flight::get('user');
+        if (!$user) {
+            throw new Exception('User not authenticated', 401);
+        }
+
         if (!in_array($permission, $user->permissions)) {
             throw new Exception('Access denied: permission missing', 403);
         }
