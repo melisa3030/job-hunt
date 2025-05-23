@@ -1,0 +1,208 @@
+<!-- views/employer/company.html -->
+<div class="container mt-4">
+  <h2 class="mb-4">Manage Company</h2>
+
+  <!-- Alerts container for success and error messages -->
+  <div id="alerts-container"></div>
+
+  <div id="company-container">
+    <!-- Company form or details will be shown here -->
+  </div>
+
+  <div id="loading-company" class="text-center p-3">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div
+  class="modal fade"
+  id="edit-company-modal"
+  tabindex="-1"
+  aria-labelledby="editCompanyModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCompanyModalLabel">Edit Company</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="edit-company-form">
+          <div
+            class="alert alert-danger"
+            id="edit-form-error"
+            style="display: none"
+          ></div>
+
+          <div class="mb-3">
+            <label for="edit-company-name" class="form-label"
+              >Company Name*</label
+            >
+            <input
+              type="text"
+              class="form-control"
+              id="edit-company-name"
+              required
+            />
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="edit-company-country" class="form-label"
+                >Country*</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="edit-company-country"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="edit-company-city" class="form-label">City*</label>
+              <input
+                type="text"
+                class="form-control"
+                id="edit-company-city"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="edit-company-description" class="form-label"
+              >Description*</label
+            >
+            <textarea
+              class="form-control"
+              id="edit-company-description"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary close-modal"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Company Creation Form Template -->
+<template id="company-form-template">
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-4">Create Your Company</h5>
+      <p class="text-muted mb-4">
+        You haven't created a company yet. Please fill out the form below to
+        create your company profile. You need a company profile to post jobs.
+      </p>
+
+      <form id="company-form">
+        <div class="mb-3">
+          <label for="company-name" class="form-label">Company Name*</label>
+          <input type="text" class="form-control" id="company-name" required />
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <label for="company-country" class="form-label">Country*</label>
+            <input
+              type="text"
+              class="form-control"
+              id="company-country"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="company-city" class="form-label">City*</label>
+            <input
+              type="text"
+              class="form-control"
+              id="company-city"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="company-description" class="form-label"
+            >Description*</label
+          >
+          <textarea
+            class="form-control"
+            id="company-description"
+            rows="5"
+            required
+          ></textarea>
+          <div class="form-text">
+            Describe your company, mission, values, and what makes it a great
+            place to work.
+          </div>
+        </div>
+
+        <div
+          id="company-form-error"
+          class="alert alert-danger"
+          style="display: none"
+        ></div>
+
+        <div class="d-grid gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">Create Company</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<!-- Company Details Template -->
+<template id="company-details-template">
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <h5 class="card-title">Company Profile</h5>
+        <button id="edit-company-btn" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-pencil me-1"></i>Edit
+        </button>
+      </div>
+
+      <div id="company-info">
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Company Name:</div>
+          <div class="col-md-9" id="display-company-name"></div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Location:</div>
+          <div class="col-md-9">
+            <span id="display-company-city"></span>,
+            <span id="display-company-country"></span>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-3 fw-bold">Description:</div>
+          <div class="col-md-9" id="display-company-description"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
