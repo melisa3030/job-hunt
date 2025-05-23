@@ -1,6 +1,25 @@
+import { BASE_URL } from './constants/constants.js';
+
 export const initSignupForm = () => {
   const form = document.getElementById('signup-form');
   const errorMessage = document.getElementById('signup_error');
+  const applicantBtn = document.getElementById('applicant-btn');
+  const employerBtn = document.getElementById('employer-btn');
+
+  // Default to applicant
+  let isEmployer = false;
+
+  applicantBtn.addEventListener('click', () => {
+    applicantBtn.classList.add('active');
+    employerBtn.classList.remove('active');
+    isEmployer = false;
+  });
+
+  employerBtn.addEventListener('click', () => {
+    employerBtn.classList.add('active');
+    applicantBtn.classList.remove('active');
+    isEmployer = true;
+  });
 
   const showError = (message) => {
     errorMessage.textContent = message;
@@ -35,7 +54,12 @@ export const initSignupForm = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/users', {
+      // Choose endpoint based on account type
+      const endpoint = isEmployer
+        ? `${BASE_URL}/users/employer`
+        : `${BASE_URL}/users`;
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,18 +81,17 @@ export const initSignupForm = () => {
       // Show a success message before redirect
       form.innerHTML = `
         <div class="alert alert-success">
-            Registration successful! Redirecting to log in...
+            ${isEmployer ? 'Employer' : 'Applicant'} registration successful! Redirecting to log in...
         </div>
-    `;
+      `;
 
       setTimeout(() => {
-        window.history.pushState({}, '', '/login');  // Updates URL to /login
+        window.history.pushState({}, '', '/login'); // Updates URL to /login
         window.dispatchEvent(new PopStateEvent('popstate')); // Triggers router to show login page
       }, 1500);
     } catch (error) {
       console.error('Error:', error);
       showError(error.message);
     }
-
   });
 };
