@@ -16,4 +16,12 @@ class CompaniesDao extends BaseDao
     $stmt->execute();
     return $stmt->fetch();
   }
+
+  public function getByField($field, $value)
+  {
+    $stmt = $this->connection->prepare("SELECT * FROM companies WHERE $field = :value");
+    $stmt->bindParam(":value", $value);
+    $stmt->execute();
+    return $stmt->fetchAll();
+  }
 }
