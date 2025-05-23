@@ -43,6 +43,21 @@ Flight::route('POST /users', function () {
     }
 });
 
+Flight::route('POST /users/employer', function () {
+    try {
+        $data = Flight::request()->data->getData();
+        $data['role'] = Roles::EMPLOYER->value;
+        $result = Flight::userService()->createUser($data);
+        Flight::json($result, 201);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
 Flight::route('PUT /users/@id', function ($id) {
     try {
         Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT, Roles::EMPLOYER]);

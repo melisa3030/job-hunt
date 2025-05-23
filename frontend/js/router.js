@@ -86,11 +86,6 @@ const urlRoutes = {
   },
 
   // Employer routes
-  '/employer/dashboard': {
-    template: '/views/employer/dashboard.html',
-    title: 'Employer Dashboard | ' + urlPageTitle,
-    description: 'Employer Dashboard',
-  },
   '/employer/jobs': {
     template: '/views/employer/jobs.html',
     title: 'Posted Jobs | ' + urlPageTitle,

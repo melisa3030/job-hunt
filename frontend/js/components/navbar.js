@@ -19,10 +19,9 @@ async function Navbar() {
       ],
       EMPLOYER: [
         `<li><a class="dropdown-item" href="/profile" data-link>Profile</a></li>`,
-        `<li><a class="dropdown-item" href="/employer/dashboard" data-link>Dashboard</a></li>`,
         `<li><a class="dropdown-item" href="/employer/jobs" data-link>Posted Jobs</a></li>`,
         `<li><a class="dropdown-item" href="/employer/applications" data-link>Applications</a></li>`,
-        `<li><a class="dropdown-item" href="/employer/companies" data-link>Manage Companies</a></li>`,
+        `<li><a class="dropdown-item" href="/employer/company" data-link>Manage company</a></li>`,
       ],
       APPLICANT: [
         `<li><a class="dropdown-item" href="/profile" data-link>Profile</a></li>`,
@@ -110,7 +109,7 @@ async function Navbar() {
               `
               : `
                 <li class="nav-item">
-                  <a href="/login" class="nav-link btn btn-primary text-white" data-link>
+                  <a href="/login" class="btn btn-primary text-white" data-link>
                     Login
                   </a>
                 </li>
