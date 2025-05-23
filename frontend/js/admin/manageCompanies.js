@@ -1,13 +1,15 @@
 import { CompaniesApi } from '../api/companiesApi.js';
+import { UsersApi } from '../api/usersApi.js';
 
 let currentCompanies = [];
 let filteredCompanies = [];
 let currentPage = 1;
 const itemsPerPage = 10;
+let employers = new Map();
 
-export async function initManageCompanies() {
+export async function initManageAdminCompanies() {
   setupEventListeners();
-  await loadCompanies();
+  await loadData();
 }
 
 function setupEventListeners() {
@@ -30,24 +32,78 @@ function setupEventListeners() {
   confirmDeleteBtn.addEventListener('click', confirmDeleteCompany);
 }
 
-async function loadCompanies() {
+async function loadData() {
   showLoading(true);
 
   try {
-    const companies = await CompaniesApi.getAllCompanies();
-    if (companies) {
-      currentCompanies = companies;
-      filteredCompanies = [...currentCompanies];
-      displayCompanies(currentPage);
-      setupPagination();
-    } else {
-      throw new Error('Failed to fetch companies data');
+    let companiesResponse, employersResponse;
+
+    try {
+      [companiesResponse, employersResponse] = await Promise.all([
+        CompaniesApi.getAllCompanies(),
+        UsersApi.getAllEmployers(),
+      ]);
+    } catch (error) {
+      console.error('Error loading data:', error);
+      throw new Error('Failed to load data');
     }
+
+    // Process employers into lookup Map
+    if (employersResponse && employersResponse.data) {
+      employersResponse.data.forEach((employer) => {
+        employers.set(employer.id, employer);
+      });
+    } else if (employersResponse && Array.isArray(employersResponse)) {
+      employersResponse.forEach((employer) => {
+        employers.set(employer.id, employer);
+      });
+    }
+
+    // Process companies
+    if (companiesResponse && companiesResponse.data) {
+      currentCompanies = companiesResponse.data;
+    } else if (companiesResponse && Array.isArray(companiesResponse)) {
+      currentCompanies = companiesResponse;
+    } else {
+      currentCompanies = [];
+    }
+
+    filteredCompanies = [...currentCompanies];
+    displayCompanies(currentPage);
+    setupPagination();
+    populateEmployerSelect();
   } catch (error) {
-    console.error('Error loading companies:', error);
+    console.error('Error loading data:', error);
     showError('Failed to load companies. Please try again later.');
   } finally {
     showLoading(false);
+  }
+}
+
+function populateEmployerSelect() {
+  const employerSelect = document.getElementById('company-employer');
+  if (employerSelect) {
+    employerSelect.innerHTML = '<option value="">Select an employer</option>';
+
+    const employerList = Array.from(employers.values());
+    if (employerList.length > 0) {
+      employerList
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+        .forEach((employer) => {
+          const option = document.createElement('option');
+          option.value = employer.id;
+          option.textContent =
+            employer.name && employer.email
+              ? `${employer.name} (${employer.email})`
+              : `Employer ID: ${employer.id}`;
+          employerSelect.appendChild(option);
+        });
+    } else {
+      const option = document.createElement('option');
+      option.disabled = true;
+      option.textContent = 'No employers available';
+      employerSelect.appendChild(option);
+    }
   }
 }
 
@@ -64,18 +120,22 @@ function displayCompanies(page) {
   if (paginatedCompanies.length === 0) {
     companiesTableBody.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center">No companies found</td>
+        <td colspan="8" class="text-center">No companies found</td>
       </tr>
     `;
     return;
   }
 
   paginatedCompanies.forEach((company, index) => {
+    const employerName =
+      employers.get(company.employer_id)?.name || 'Unassigned';
+
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${start + index + 1}</td>
       <td>${company.id}</td>
       <td>${company.name}</td>
+      <td>${employerName}</td>
       <td>${company.country || 'N/A'}</td>
       <td>${company.city || 'N/A'}</td>
       <td>${company.description || 'N/A'}</td>
@@ -186,11 +246,16 @@ function handleSearch(e) {
     filteredCompanies = [...currentCompanies];
   } else {
     filteredCompanies = currentCompanies.filter((company) => {
+      const employerName = employers.get(company.employer_id)?.name || '';
+
       return (
         company.name.toLowerCase().includes(searchTerm) ||
         (company.country &&
           company.country.toLowerCase().includes(searchTerm)) ||
-        (company.city && company.city.toLowerCase().includes(searchTerm))
+        (company.city && company.city.toLowerCase().includes(searchTerm)) ||
+        (company.description &&
+          company.description.toLowerCase().includes(searchTerm)) ||
+        employerName.toLowerCase().includes(searchTerm)
       );
     });
   }
@@ -199,6 +264,88 @@ function handleSearch(e) {
   displayCompanies(currentPage);
   setupPagination();
 }
+
+async function handleCompanySubmit(e) {
+  e.preventDefault();
+
+  const companyId = document.getElementById('company-id').value;
+  const companyData = {
+    name: document.getElementById('company-name').value,
+    employer_id: document.getElementById('company-employer').value,
+    country: document.getElementById('company-country').value,
+    city: document.getElementById('company-city').value,
+    description: document.getElementById('company-description').value,
+  };
+
+  // Validation
+  if (!companyData.name) {
+    showError('Company name is required');
+    return;
+  }
+
+  if (!companyData.employer_id) {
+    showError('Employer is required');
+    return;
+  }
+
+  try {
+    showLoading(true);
+
+    let result;
+    if (companyId) {
+      // Update existing company
+      result = await CompaniesApi.updateCompany(companyId, companyData);
+    } else {
+      // Create new company
+      result = await CompaniesApi.createCompany(companyData);
+    }
+
+    if (result) {
+      closeAllModals();
+      await loadData();
+      showSuccess(
+        companyId
+          ? 'Company updated successfully'
+          : 'Company created successfully'
+      );
+    } else {
+      throw new Error(
+        companyId ? 'Failed to update company' : 'Failed to create company'
+      );
+    }
+  } catch (error) {
+    console.error('Error saving company:', error);
+    showError(error.message || 'An error occurred while saving the company');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function confirmDeleteCompany() {
+  const companyId = document.getElementById('company-id-to-delete').value;
+  if (!companyId) return;
+
+  try {
+    showLoading(true);
+
+    const result = await CompaniesApi.deleteCompany(companyId);
+
+    if (result) {
+      closeAllModals();
+      await loadData();
+      showSuccess('Company deleted successfully');
+    } else {
+      throw new Error('Failed to delete company');
+    }
+  } catch (error) {
+    console.error('Error deleting company:', error);
+    showError(error.message || 'An error occurred while deleting the company');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Modals
 
 function openCompanyModal(company = null) {
   const modalTitle = document.getElementById('company-modal-title');
@@ -218,6 +365,9 @@ function openCompanyModal(company = null) {
     modalTitle.textContent = 'Edit Company';
     document.getElementById('company-id').value = company.id;
     document.getElementById('company-name').value = company.name || '';
+    document.getElementById('company-employer').value =
+      company.employer_id || '';
+    document.getElementById('company-employer').disabled = true; // Disable employer selection for editing
     document.getElementById('company-country').value = company.country || '';
     document.getElementById('company-city').value = company.city || '';
     document.getElementById('company-description').value =
@@ -247,56 +397,6 @@ function openCompanyModal(company = null) {
   }
 }
 
-async function handleCompanySubmit(e) {
-  e.preventDefault();
-
-  const companyId = document.getElementById('company-id').value;
-  const companyData = {
-    name: document.getElementById('company-name').value,
-    country: document.getElementById('company-country').value,
-    city: document.getElementById('company-city').value,
-    description: document.getElementById('company-description').value,
-  };
-
-  // Validation
-  if (!companyData.name) {
-    showError('Company name is required');
-    return;
-  }
-
-  try {
-    showLoading(true);
-
-    let result;
-    if (companyId) {
-      // Update existing company
-      result = await CompaniesApi.updateCompany(companyId, companyData);
-    } else {
-      // Create new company
-      result = await CompaniesApi.createCompany(companyData);
-    }
-
-    if (result) {
-      closeAllModals();
-      await loadCompanies();
-      showSuccess(
-        companyId
-          ? 'Company updated successfully'
-          : 'Company created successfully'
-      );
-    } else {
-      throw new Error(
-        companyId ? 'Failed to update company' : 'Failed to create company'
-      );
-    }
-  } catch (error) {
-    console.error('Error saving company:', error);
-    showError(error.message || 'An error occurred while saving the company');
-  } finally {
-    showLoading(false);
-  }
-}
-
 function openDeleteModal(companyId) {
   const company = currentCompanies.find(
     (c) => c.id.toString() === companyId.toString()
@@ -305,9 +405,11 @@ function openDeleteModal(companyId) {
 
   const deleteModal = document.getElementById('delete-company-modal');
   const modalBody = deleteModal.querySelector('.modal-body p');
+  const employerName =
+    employers.get(company.employer_id)?.name || 'Unknown Employer';
 
   if (modalBody) {
-    modalBody.textContent = `Are you sure you want to delete the company "${company.name}"? This action cannot be undone.`;
+    modalBody.textContent = `Are you sure you want to delete the company "${company.name}" owned by ${employerName}? This action cannot be undone.`;
   }
 
   document.getElementById('company-id-to-delete').value = companyId;
@@ -326,30 +428,6 @@ function openDeleteModal(companyId) {
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop fade show';
     document.body.appendChild(backdrop);
-  }
-}
-
-async function confirmDeleteCompany() {
-  const companyId = document.getElementById('company-id-to-delete').value;
-  if (!companyId) return;
-
-  try {
-    showLoading(true);
-
-    const result = await CompaniesApi.deleteCompany(companyId);
-
-    if (result) {
-      closeAllModals();
-      await loadCompanies();
-      showSuccess('Company deleted successfully');
-    } else {
-      throw new Error('Failed to delete company');
-    }
-  } catch (error) {
-    console.error('Error deleting company:', error);
-    showError(error.message || 'An error occurred while deleting the company');
-  } finally {
-    showLoading(false);
   }
 }
 
@@ -379,10 +457,13 @@ function closeAllModals() {
   });
 }
 
+// Helper functions
+
 function showLoading(isLoading) {
   const loadingSpinner = document.getElementById('loading-spinner');
   if (loadingSpinner) {
-    loadingSpinner.style.display = isLoading ? 'flex' : 'none';
+    loadingSpinner.classList.toggle('d-none', !isLoading);
+    loadingSpinner.classList.toggle('d-flex', isLoading);
   }
 }
 
