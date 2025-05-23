@@ -66,36 +66,6 @@ export const AuthApi = {
     return user;
   },
 
-  async refreshCurrentUser() {
-    try {
-      const response = await fetch(`${BASE_URL}/auth/me`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${this.getToken()}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to refresh user data');
-      }
-
-      const userData = await response.json();
-
-      // Update cached user data
-      if (userData && userData.data) {
-        localStorage.setItem('user', JSON.stringify(userData.data));
-      } else if (userData) {
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-
-      return userData;
-    } catch (error) {
-      console.error('Error refreshing user data:', error);
-      throw error;
-    }
-  },
-
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
