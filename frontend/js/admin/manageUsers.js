@@ -1,6 +1,6 @@
 import { UsersApi } from '../api/usersApi.js';
 
-export const initManageUsers = () => {
+export const initManageAdminUsers = () => {
   const usersList = document.getElementById('usersList');
   const loadingMessage = document.getElementById('loadingMessage');
   const noUsersMessage = document.getElementById('noUsersMessage');
@@ -36,10 +36,12 @@ export const initManageUsers = () => {
 
   let currentPage = 1;
   const itemsPerPage = 10;
+
   let currentUsers = [];
   let filteredUsers = [];
 
-  // Search functionality
+  // Event listeners
+
   searchBtn.addEventListener('click', function () {
     filterUsers();
   });
@@ -50,12 +52,10 @@ export const initManageUsers = () => {
     }
   });
 
-  // Create user button
   createUserBtn.addEventListener('click', function () {
     openCreateUserModal();
   });
 
-  // Save new user
   saveNewUser.addEventListener('click', function () {
     if (createUserForm.checkValidity()) {
       createUser();
@@ -64,7 +64,6 @@ export const initManageUsers = () => {
     }
   });
 
-  // Save user changes
   saveUserChanges.addEventListener('click', function () {
     if (editUserForm.checkValidity()) {
       updateUser();
@@ -73,40 +72,13 @@ export const initManageUsers = () => {
     }
   });
 
-  // Confirm delete user
   confirmDeleteUser.addEventListener('click', function () {
     const userId = confirmDeleteUser.getAttribute('data-user-id');
     deleteUser(userId);
   });
 
-  // Open create user modal
-  function openCreateUserModal() {
-    // Reset the form
-    createUserForm.reset();
+  // CRUD operations
 
-    // Set default role
-    createRole.value = 'APPLICANT';
-
-    try {
-      // Try Bootstrap 5 Modal constructor first
-      const bsModal = new bootstrap.Modal(createUserModal);
-      bsModal.show();
-    } catch (error) {
-      // Fallback to showing manually
-      createUserModal.classList.add('show');
-      createUserModal.style.display = 'block';
-      document.body.classList.add('modal-open');
-
-      let backdrop = document.querySelector('.modal-backdrop');
-      if (!backdrop) {
-        backdrop = document.createElement('div');
-      }
-      backdrop.className = 'modal-backdrop fade show';
-      document.body.appendChild(backdrop);
-    }
-  }
-
-  // Create new user
   async function createUser() {
     const userData = {
       name: createName.value,
@@ -126,7 +98,7 @@ export const initManageUsers = () => {
         const modal = bootstrap.Modal.getInstance(createUserModal);
         modal.hide();
 
-        // Reload all users from the server to ensure we have the latest data
+        // Reload all users from the server to latest data
         await loadUsers();
 
         showSuccess(response.message || 'User created successfully!');
@@ -162,6 +134,99 @@ export const initManageUsers = () => {
     }
   }
 
+  async function deleteUser(userId) {
+    try {
+      await UsersApi.deleteUser(userId);
+
+      currentUsers = currentUsers.filter(
+        (user) => user.id.toString() !== userId.toString()
+      );
+      filteredUsers = filteredUsers.filter(
+        (user) => user.id.toString() !== userId.toString()
+      );
+
+      try {
+        const modal = bootstrap.Modal.getInstance(deleteUserModal);
+        if (modal) {
+          modal.hide();
+        } else {
+          // Manual closing
+          deleteUserModal.classList.remove('show');
+          deleteUserModal.style.display = 'none';
+          document.body.classList.remove('modal-open');
+
+          // Remove backdrop
+          const backdrop = document.querySelector('.modal-backdrop');
+          if (backdrop) {
+            backdrop.remove();
+          }
+        }
+      } catch (error) {
+        console.error('Error closing modal:', error);
+      }
+
+      displayUsers(currentPage);
+      setupPagination();
+
+      showSuccess('User deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      showError('Failed to delete user. Please try again.');
+    }
+  }
+
+  async function updateUser() {
+    const userId = editUserId.value;
+
+    const userData = {
+      name: editName.value,
+      email: editEmail.value,
+    };
+
+    if (editRole.value) {
+      userData.role = editRole.value;
+    }
+
+    try {
+      await UsersApi.updateUser(userId, userData);
+
+      // Update the local user data
+      const userIndex = currentUsers.findIndex(
+        (user) => user.id.toString() === userId.toString()
+      );
+      if (userIndex !== -1) {
+        // Update the user in our array
+        currentUsers[userIndex] = {
+          ...currentUsers[userIndex],
+          ...userData,
+        };
+
+        // Update filtered users if needed
+        const filteredIndex = filteredUsers.findIndex(
+          (user) => user.id.toString() === userId.toString()
+        );
+        if (filteredIndex !== -1) {
+          filteredUsers[filteredIndex] = {
+            ...filteredUsers[filteredIndex],
+            ...userData,
+          };
+        }
+      }
+
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(editUserModal);
+      modal.hide();
+
+      // Update display
+      displayUsers(currentPage);
+
+      showSuccess('User updated successfully!');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      showError('Failed to update user. Please try again.');
+    }
+  }
+
   // Filter users based on search
   async function filterUsers() {
     const searchValue = searchInput.value.trim().toLowerCase();
@@ -170,7 +235,7 @@ export const initManageUsers = () => {
     if (searchValue === '') {
       filteredUsers = [...currentUsers];
     } else {
-      // Client-side filtering for better reliability
+      // Client-side filtering
       filteredUsers = currentUsers.filter((user) => {
         if (searchBy === 'name') {
           return user.name.toLowerCase().includes(searchValue);
@@ -212,10 +277,10 @@ export const initManageUsers = () => {
       <td><span class="badge ${getRoleBadgeClass(user.role)}">${user.role || 'APPLICANT'}</span></td>
       <td>
         <button class="btn btn-sm btn-primary edit-user" data-user-id="${user.id}">
-          <i class="fas fa-edit"></i> Edit
+          Edit
         </button>
         <button class="btn btn-sm btn-danger delete-user" data-user-id="${user.id}" data-user-name="${user.name}">
-          <i class="fas fa-trash"></i> Delete
+         Delete
         </button>
       </td>
     `;
@@ -236,19 +301,6 @@ export const initManageUsers = () => {
         openDeleteModal(userId, userName);
       });
     });
-  }
-
-  // Helper function for role badge styling
-  function getRoleBadgeClass(role) {
-    switch (role) {
-      case 'ADMIN':
-        return 'bg-danger';
-      case 'EMPLOYER':
-        return 'bg-primary';
-      case 'APPLICANT':
-      default:
-        return 'bg-success';
-    }
   }
 
   // Set up pagination
@@ -306,11 +358,36 @@ export const initManageUsers = () => {
     });
   }
 
-  // Open edit user modal
+  // Modals
+  function openCreateUserModal() {
+    // Reset the form
+    createUserForm.reset();
+
+    // Set default role
+    createRole.value = 'APPLICANT';
+
+    try {
+      // Try Bootstrap 5 Modal constructor first
+      const bsModal = new bootstrap.Modal(createUserModal);
+      bsModal.show();
+    } catch (error) {
+      // Fallback to showing manually
+      createUserModal.classList.add('show');
+      createUserModal.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      let backdrop = document.querySelector('.modal-backdrop');
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+      }
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
+  }
 
   async function openEditModal(userId) {
     try {
-      // Get user data from our local array for better performance
+      // Get user data from local array for better performance
       const user = currentUsers.find(
         (user) => user.id.toString() === userId.toString()
       );
@@ -343,67 +420,9 @@ export const initManageUsers = () => {
       }
     } catch (error) {
       console.error('Error opening edit modal:', error);
-      showError('Could not load user details. Please try again.');
+      showError('Could not load user details. ');
     }
   }
-
-  // Update user
-  async function updateUser() {
-    const userId = editUserId.value;
-
-    // Build the userData object with the required fields
-    const userData = {
-      name: editName.value,
-      email: editEmail.value,
-    };
-
-    // Only include a role if it has a value
-    if (editRole.value) {
-      userData.role = editRole.value;
-    }
-
-    try {
-      // Use the UsersApi updateUser method
-      await UsersApi.updateUser(userId, userData);
-
-      // Update the local user data
-      const userIndex = currentUsers.findIndex(
-        (user) => user.id.toString() === userId.toString()
-      );
-      if (userIndex !== -1) {
-        // Update the user in our array
-        currentUsers[userIndex] = {
-          ...currentUsers[userIndex],
-          ...userData,
-        };
-
-        // Update filtered users if needed
-        const filteredIndex = filteredUsers.findIndex(
-          (user) => user.id.toString() === userId.toString()
-        );
-        if (filteredIndex !== -1) {
-          filteredUsers[filteredIndex] = {
-            ...filteredUsers[filteredIndex],
-            ...userData,
-          };
-        }
-      }
-
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(editUserModal);
-      modal.hide();
-
-      // Update display
-      displayUsers(currentPage);
-
-      showSuccess('User updated successfully!');
-    } catch (error) {
-      console.error('Error updating user:', error);
-      showError('Failed to update user. Please try again.');
-    }
-  }
-
-  // Open delete confirmation modal
 
   function openDeleteModal(userId, userName) {
     deleteUserName.textContent = userName;
@@ -428,48 +447,8 @@ export const initManageUsers = () => {
     }
   }
 
-  async function deleteUser(userId) {
-    try {
-      await UsersApi.deleteUser(userId);
-
-      currentUsers = currentUsers.filter(
-        (user) => user.id.toString() !== userId.toString()
-      );
-      filteredUsers = filteredUsers.filter(
-        (user) => user.id.toString() !== userId.toString()
-      );
-
-      try {
-        const modal = bootstrap.Modal.getInstance(deleteUserModal);
-        if (modal) {
-          modal.hide();
-        } else {
-          // Manual closing
-          deleteUserModal.classList.remove('show');
-          deleteUserModal.style.display = 'none';
-          document.body.classList.remove('modal-open');
-
-          // Remove backdrop
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) {
-            backdrop.remove();
-          }
-        }
-      } catch (error) {
-        console.error('Error closing modal:', error);
-      }
-
-      displayUsers(currentPage);
-      setupPagination();
-
-      showSuccess('User deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      showError('Failed to delete user. Please try again.');
-    }
-  }
-
   // Helper functions
+
   function showLoading(isLoading) {
     if (isLoading) {
       loadingMessage.classList.remove('d-none');
@@ -519,15 +498,15 @@ export const initManageUsers = () => {
     }, 5000);
   }
 
-  // Add a showLoading function too (useful for async operations)
-  function showLoading(isLoading) {
-    const loadingMessage = document.getElementById('loadingMessage');
-    if (loadingMessage) {
-      if (isLoading) {
-        loadingMessage.classList.remove('d-none');
-      } else {
-        loadingMessage.classList.add('d-none');
-      }
+  function getRoleBadgeClass(role) {
+    switch (role) {
+      case 'ADMIN':
+        return 'bg-danger';
+      case 'EMPLOYER':
+        return 'bg-primary';
+      case 'APPLICANT':
+      default:
+        return 'bg-success';
     }
   }
 
