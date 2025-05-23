@@ -44,8 +44,18 @@ class UserService
         }
     }
 
-    public function getUserByName($name) {
+    public function getUserByName($name)
+    {
         $user = $this->dao->getByName($name);
+        if (!$user) {
+            throw new Exception("User not found", 404);
+        }
+        return $user;
+    }
+
+    public function getUserByCompanyId($company_id)
+    {
+        $user = $this->dao->getByCompanyId($company_id);
         if (!$user) {
             throw new Exception("User not found", 404);
         }
@@ -102,7 +112,7 @@ class UserService
         $this->getUserById($id);
 
         // Check if at least one required field is present
-        $requiredFields = ['name', 'email', 'username', 'password'];
+        $requiredFields = ['name', 'email', 'username', 'password', 'company_id'];
         $hasRequiredField = false;
 
         foreach ($requiredFields as $field) {
@@ -128,10 +138,36 @@ class UserService
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
+        // Validate company_id if it's being updated
+        if (isset($data['company_id']) && !empty($data['company_id'])) {
+            $this->validateCompany($data['company_id'], $id);
+        }
+
         if (!$this->dao->update($id, $data)) {
             throw new Exception("Error updating user", 500);
         }
         return ["message" => "User updated successfully"];
+    }
+
+    // Add this new validation method
+    private function validateCompany($companyId, $userId)
+    {
+        // Check if company exists using Flight's companiesService
+        try {
+            $company = \Flight::companiesService()->getCompanyById($companyId);
+        } catch (Exception $e) {
+            // If company not found, companiesService will throw an exception
+            throw new Exception("Company does not exist", 404);
+        }
+
+        // Check if company is already associated with another employer
+        $existingEmployer = $this->dao->getByCompanyId($companyId);
+
+        if ($existingEmployer && $existingEmployer['id'] != $userId) {
+            throw new Exception("Company is already associated with another employer", 409);
+        }
+
+        return true;
     }
 
     public function deleteUser($id, $user)

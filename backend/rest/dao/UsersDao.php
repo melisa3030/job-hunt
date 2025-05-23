@@ -27,9 +27,25 @@ class UsersDao extends BaseDao
 
     public function getByName($name)
     {
-         $stmt = $this->connection->prepare("SELECT * FROM users WHERE name = :name");
-         $stmt->bindParam(':name', $name);
-         $stmt->execute();
-         return $stmt->fetchAll();
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE name = :name");
+        $stmt->bindParam(':name', $name);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getByCompanyId($company_id)
+    {
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE company_id = :company_id");
+        $stmt->bindParam(':company_id', $company_id);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getByField($field, $value)
+    {
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE $field = :value");
+        $stmt->bindParam(':value', $value);
+        $stmt->execute();
+        return $stmt->fetchAll();
     }
 }

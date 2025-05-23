@@ -28,6 +28,21 @@ Flight::route('GET /users', function () {
     }
 });
 
+Flight::route('GET /users/company/@id', function ($id) {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+
+        $user = Flight::userService()->getUserByCompanyId($id);
+        Flight::json($user);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
 /**
  * Get limited applicant information (for employers viewing job applications)
  * This endpoint provides restricted user information without sensitive data
