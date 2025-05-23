@@ -28,6 +28,19 @@ Flight::route('GET /users', function () {
     }
 });
 
+Flight::route('GET /users/employers', function () {
+    try {
+        Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
+        Flight::json(Flight::userService()->getAllEmployers());
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
 Flight::route('GET /users/company/@id', function ($id) {
     try {
         Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);

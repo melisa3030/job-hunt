@@ -27,6 +27,11 @@ class UserService
         return $user;
     }
 
+    public function getAllEmployers()
+    {
+        return $this->dao->getAllEmployers();
+    }
+
     public function getUserByEmail($email)
     {
         $user = $this->dao->getByEmail($email);

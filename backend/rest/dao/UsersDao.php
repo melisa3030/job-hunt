@@ -48,4 +48,11 @@ class UsersDao extends BaseDao
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function getAllEmployers()
+    {
+        $stmt = $this->connection->prepare("SELECT * FROM users WHERE role = 'employer'");
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }
