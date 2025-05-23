@@ -86,9 +86,26 @@ class CompaniesService
 
     $data['employer_id'] = $user->id;
 
+    $company = $this->dao->getByField('name', $data['name']);
+    if ($company) {
+      throw new Exception("Company with this name already exists", 400);
+    }
+
     if (!$this->dao->insert($data)) {
       throw new Exception("Error creating company", 500);
     }
+
+    $company = $this->dao->getCompanyByName($data['name']);
+
+    if (!$company) {
+      throw new Exception("Error retrieving created company", 500);
+    }
+
+    $userService = Flight::userService();
+    $userId = $user->id;
+    $userData = ['company_id' => $company['id']];
+    $userService->updateUser($userId, $userData, $user);
+
 
     return ["message" => "Company created successfully"];
   }
