@@ -46,11 +46,7 @@ class JobsService
         }
 
         $jobs = $this->dao->getByField('posted_by', $user->id);
-        if ($jobs) {
-            return $jobs;
-        } else {
-            throw new Exception("No jobs found for this user", 404);
-        }
+        return $jobs;
     }
 
     public function createJob($data)
