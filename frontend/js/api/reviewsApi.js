@@ -10,7 +10,6 @@ export const ReviewsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -33,7 +32,6 @@ export const ReviewsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -56,7 +54,7 @@ export const ReviewsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(data),
       });
 
@@ -80,7 +78,6 @@ export const ReviewsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {

@@ -10,7 +10,6 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -32,7 +31,6 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -54,7 +52,6 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -76,7 +73,7 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(jobData),
       });
       if (!response.ok) {

@@ -10,7 +10,6 @@ export const JobCategoriesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -32,9 +31,10 @@ export const JobCategoriesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();

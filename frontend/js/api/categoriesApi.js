@@ -10,7 +10,6 @@ export const CategoriesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {

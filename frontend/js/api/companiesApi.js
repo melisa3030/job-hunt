@@ -10,7 +10,6 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -33,7 +32,6 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -56,7 +54,6 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -78,7 +75,6 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -102,17 +98,25 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
         body: JSON.stringify(companyData),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to create company');
+
+        // Try to parse error message from response
+        try {
+          const errorObj = JSON.parse(errorText);
+          throw new Error(errorObj.message || 'Failed to create company');
+        } catch (parseError) {
+          throw new Error('Failed to create company');
+        }
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log('Company creation result:', result);
+      return result;
     } catch (error) {
       console.error('Error creating company:', error);
       throw error;
@@ -126,7 +130,7 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(companyData),
       });
 
@@ -149,7 +153,6 @@ export const CompaniesApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {

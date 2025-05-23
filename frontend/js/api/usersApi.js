@@ -10,7 +10,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -33,7 +32,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -56,7 +54,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -79,7 +76,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -102,7 +98,7 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(userData),
       });
 
@@ -128,7 +124,7 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+
         body: JSON.stringify(data),
       });
 
@@ -154,7 +150,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -176,7 +171,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -199,7 +193,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -221,7 +214,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();
@@ -243,7 +235,6 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
       });
       if (!response.ok) {
         const errorText = await response.text();

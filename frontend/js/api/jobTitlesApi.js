@@ -5,6 +5,8 @@ export const JobTitlesApi = {
     try {
       const response = await fetch(`${BASE_URL}/job_titles`);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -18,6 +20,8 @@ export const JobTitlesApi = {
     try {
       const response = await fetch(`${BASE_URL}/job_titles/${id}`);
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -37,6 +41,8 @@ export const JobTitlesApi = {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -56,6 +62,8 @@ export const JobTitlesApi = {
         body: JSON.stringify(data),
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();
@@ -71,6 +79,8 @@ export const JobTitlesApi = {
         method: 'DELETE',
       });
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       return await response.json();

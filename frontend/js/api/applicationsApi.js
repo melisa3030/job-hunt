@@ -16,6 +16,8 @@ export const ApplicationsApi = {
       );
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -59,6 +61,8 @@ export const ApplicationsApi = {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
