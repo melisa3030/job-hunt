@@ -11,7 +11,7 @@ let companies = new Map();
 let jobTitles = new Map();
 let jobCategories = new Map();
 
-export async function initManageJobs() {
+export async function initManageAdminJobs() {
   setupEventListeners();
   await loadData();
 }
@@ -62,7 +62,6 @@ async function loadData() {
     }
 
     // Process companies into lookup Map
-    companies = new Map();
     if (companiesResponse && companiesResponse.data) {
       companiesResponse.data.forEach((company) => {
         companies.set(company.id, company);
@@ -74,7 +73,6 @@ async function loadData() {
     }
 
     // Process job titles into lookup Map
-    jobTitles = new Map();
     if (jobTitlesResponse && jobTitlesResponse.data) {
       jobTitlesResponse.data.forEach((title) => {
         jobTitles.set(title.id, title);
@@ -86,7 +84,6 @@ async function loadData() {
     }
 
     // Process job categories into lookup Map
-    jobCategories = new Map();
     if (jobCategoriesResponse && jobCategoriesResponse.data) {
       jobCategoriesResponse.data.forEach((category) => {
         jobCategories.set(category.id, category);
@@ -369,6 +366,142 @@ function handleSearch(e) {
   setupPagination();
 }
 
+async function handleJobSubmit(e) {
+  e.preventDefault();
+
+  const jobId = document.getElementById('job-id').value;
+
+  // Get the expires_at value and convert it to mm/dd/yyyy format
+  const expiresAtInput = document.getElementById('job-expires-at').value;
+  let formattedExpiresAt = '';
+
+  if (expiresAtInput) {
+    // Convert from yyyy-mm-dd to mm/dd/yyyy
+    const date = new Date(expiresAtInput);
+    if (!isNaN(date.getTime())) {
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = date.getFullYear();
+      formattedExpiresAt = `${month}/${day}/${year}`;
+    } else {
+      showError('Invalid expiry date format');
+      return;
+    }
+  }
+
+  const jobData = {
+    company_id: document.getElementById('job-company').value,
+    job_title_id: document.getElementById('job-title').value,
+    category_id: document.getElementById('job-category').value,
+    city: document.getElementById('job-city').value,
+    country: document.getElementById('job-country').value,
+    work_type: document.getElementById('job-work-type').value,
+    experience_level: document.getElementById('job-experience-level').value,
+    salary: document.getElementById('job-salary').value,
+    description: document.getElementById('job-description').value,
+    expires_at: formattedExpiresAt, // Use the formatted date
+  };
+
+  // Validation
+  if (!jobData.company_id) {
+    showError('Company is required');
+    return;
+  }
+
+  if (!jobData.job_title_id) {
+    showError('Job title is required');
+    return;
+  }
+
+  if (!jobData.category_id) {
+    showError('Job category is required');
+    return;
+  }
+
+  if (!jobData.city || !jobData.country) {
+    showError('Location (city and country) is required');
+    return;
+  }
+
+  if (!jobData.description) {
+    showError('Job description is required');
+    return;
+  }
+
+  if (!jobData.expires_at) {
+    showError('Expiry date is required');
+    return;
+  }
+
+  if (jobData.salary) {
+    const salaryValue = parseFloat(jobData.salary);
+    if (isNaN(salaryValue)) {
+      showError('Salary must be a valid number');
+      return;
+    }
+    if (salaryValue < 0 || salaryValue > 2147483647) {
+      showError('Salary is out of acceptable range');
+      return;
+    }
+    jobData.salary = salaryValue;
+  } else {
+    jobData.salary = 1;
+  }
+
+  try {
+    showLoading(true);
+    let result;
+    if (jobId) {
+      // Update existing job
+      result = await JobsApi.updateJob(jobId, jobData);
+    } else {
+      // Create new job
+      result = await JobsApi.createJob(jobData);
+    }
+
+    if (result) {
+      closeAllModals();
+      await loadData();
+      showSuccess(
+        jobId ? 'Job updated successfully' : 'Job created successfully'
+      );
+    } else {
+      throw new Error(jobId ? 'Failed to update job' : 'Failed to create job');
+    }
+  } catch (error) {
+    console.error('Error saving job:', error);
+    showError(error.message || 'An error occurred while saving the job');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function confirmDeleteJob() {
+  const jobId = document.getElementById('job-id-to-delete').value;
+  if (!jobId) return;
+
+  try {
+    showLoading(true);
+
+    const result = await JobsApi.deleteJob(jobId);
+
+    if (result) {
+      closeAllModals();
+      await loadData();
+      showSuccess('Job deleted successfully');
+    } else {
+      throw new Error('Failed to delete job');
+    }
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    showError(error.message || 'An error occurred while deleting the job');
+  } finally {
+    showLoading(false);
+  }
+}
+
+// Modals
+
 function openJobModal(job = null) {
   const modalTitle = document.getElementById('job-modal-title');
   const jobForm = document.getElementById('job-form');
@@ -435,98 +568,6 @@ function openJobModal(job = null) {
   }
 }
 
-async function handleJobSubmit(e) {
-  e.preventDefault();
-
-  const jobId = document.getElementById('job-id').value;
-  const jobData = {
-    company_id: document.getElementById('job-company').value,
-    job_title_id: document.getElementById('job-title').value,
-    category_id: document.getElementById('job-category').value,
-    city: document.getElementById('job-city').value,
-    country: document.getElementById('job-country').value,
-    work_type: document.getElementById('job-work-type').value,
-    experience_level: document.getElementById('job-experience-level').value,
-    salary: document.getElementById('job-salary').value,
-    description: document.getElementById('job-description').value,
-    expires_at: document.getElementById('job-expires-at').value,
-  };
-
-  // Validation
-  if (!jobData.company_id) {
-    showError('Company is required');
-    return;
-  }
-
-  if (!jobData.job_title_id) {
-    showError('Job title is required');
-    return;
-  }
-
-  if (!jobData.category_id) {
-    showError('Job category is required');
-    return;
-  }
-
-  if (!jobData.city || !jobData.country) {
-    showError('Location (city and country) is required');
-    return;
-  }
-
-  if (!jobData.description) {
-    showError('Job description is required');
-    return;
-  }
-
-  if (!jobData.expires_at) {
-    showError('Expiry date is required');
-    return;
-  }
-
-  if (jobData.salary) {
-    const salaryValue = parseFloat(jobData.salary);
-    if (isNaN(salaryValue)) {
-      showError('Salary must be a valid number');
-      return;
-    }
-    if (salaryValue < 0 || salaryValue > 2147483647) {
-      showError('Salary is out of acceptable range ');
-      return;
-    }
-
-    jobData.salary = salaryValue;
-  } else {
-    jobData.salary = 1;
-  }
-
-  try {
-    showLoading(true);
-    let result;
-    if (jobId) {
-      // Update existing job
-      result = await JobsApi.updateJob(jobId, jobData);
-    } else {
-      // Create new job
-      result = await JobsApi.createJob(jobData);
-    }
-
-    if (result) {
-      closeAllModals();
-      await loadData();
-      showSuccess(
-        jobId ? 'Job updated successfully' : 'Job created successfully'
-      );
-    } else {
-      throw new Error(jobId ? 'Failed to update job' : 'Failed to create job');
-    }
-  } catch (error) {
-    console.error('Error saving job:', error);
-    showError(error.message || 'An error occurred while saving the job');
-  } finally {
-    showLoading(false);
-  }
-}
-
 function openDeleteModal(jobId) {
   const job = currentJobs.find((j) => j.id.toString() === jobId.toString());
   if (!job) return;
@@ -561,30 +602,6 @@ function openDeleteModal(jobId) {
   }
 }
 
-async function confirmDeleteJob() {
-  const jobId = document.getElementById('job-id-to-delete').value;
-  if (!jobId) return;
-
-  try {
-    showLoading(true);
-
-    const result = await JobsApi.deleteJob(jobId);
-
-    if (result) {
-      closeAllModals();
-      await loadData();
-      showSuccess('Job deleted successfully');
-    } else {
-      throw new Error('Failed to delete job');
-    }
-  } catch (error) {
-    console.error('Error deleting job:', error);
-    showError(error.message || 'An error occurred while deleting the job');
-  } finally {
-    showLoading(false);
-  }
-}
-
 function closeAllModals() {
   document.querySelectorAll('.modal').forEach((modal) => {
     try {
@@ -611,6 +628,7 @@ function closeAllModals() {
   });
 }
 
+// Helper functions
 function showLoading(isLoading) {
   const loadingSpinner = document.getElementById('loading-spinner');
   if (loadingSpinner) {
