@@ -168,6 +168,28 @@ export const UsersApi = {
       throw error;
     }
   },
+  async getAllEmployers() {
+    try {
+      const response = await fetch(`${BASE_URL}/users/employers`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server response:', response.status, errorText);
+        throw new Error('Failed to fetch employers');
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching employers:', error);
+      throw error;
+    }
+  },
 
   async getApplicantById(id) {
     try {
