@@ -7,9 +7,11 @@ import { JobTagsApi } from './api/jobTagsApi.js';
 import { TagsApi } from './api/tagsApi.js';
 import { createJobCard } from './components/jobCard.js';
 import { CompaniesApi } from './api/companiesApi.js';
+import { debounceFilterInput } from './utils/debounceFilterInput.js';
 
-// Store the complete set of jobs and related data
 let allJobs = [];
+
+// lookup maps for quick access to related data
 let jobTitlesMap = new Map();
 let categoriesMap = new Map();
 let perksMap = new Map();
@@ -36,15 +38,24 @@ export function initJobsFilter() {
 
   // Set up event listeners for filter inputs
   if (keywordInput) {
-    keywordInput.addEventListener('input', debounce(applyFilters, 300));
+    keywordInput.addEventListener(
+      'input',
+      debounceFilterInput(applyFilters, 300)
+    );
   }
 
   if (technologyInput) {
-    technologyInput.addEventListener('input', debounce(applyFilters, 300));
+    technologyInput.addEventListener(
+      'input',
+      debounceFilterInput(applyFilters, 300)
+    );
   }
 
   if (locationInput) {
-    locationInput.addEventListener('input', debounce(applyFilters, 300));
+    locationInput.addEventListener(
+      'input',
+      debounceFilterInput(applyFilters, 300)
+    );
   }
 
   // Add event listeners to experience level checkboxes
@@ -101,7 +112,6 @@ export async function renderJobsWithFilters() {
 
     allJobs = jobs || [];
 
-    // Create maps for quick lookups
     jobTitlesMap = new Map(jobTitles.map((title) => [title.id, title]));
     categoriesMap = new Map(
       categories.map((category) => [category.id, category])
@@ -110,7 +120,6 @@ export async function renderJobsWithFilters() {
     tagsMap = new Map(tags.map((tag) => [tag.id, tag]));
     companiesMap = new Map(companies.map((company) => [company.id, company]));
 
-    // Create a map of job tags
     jobTagsMap = new Map();
     jobTags.forEach((jobTag) => {
       if (!jobTagsMap.has(jobTag.job_id)) {
@@ -119,7 +128,6 @@ export async function renderJobsWithFilters() {
       jobTagsMap.get(jobTag.job_id).push(tagsMap.get(jobTag.tag_id));
     });
 
-    // Create a map of job perks
     jobPerksMap = new Map();
     jobPerks.forEach((jobPerk) => {
       if (!jobPerksMap.has(jobPerk.job_id)) {
@@ -128,7 +136,7 @@ export async function renderJobsWithFilters() {
       jobPerksMap.get(jobPerk.job_id).push(perksMap.get(jobPerk.perk_id));
     });
 
-    // Display jobs (all jobs initially)
+    // Display all jobs initially
     displayJobs(allJobs);
 
     // Initialize filter functionality after data is loaded
@@ -177,28 +185,31 @@ function displayJobs(jobsToDisplay) {
 
 // Apply all active filters and update the displayed jobs
 function applyFilters() {
-  // Get filter values from inputs
+  // Get filter values
   const keyword =
     document
       .querySelector('.jobs__filter-input[placeholder*="keyword"]')
-      ?.value.toLowerCase() || '';
+      ?.value.trim()
+      .toLowerCase() || '';
   const technology =
     document
       .querySelector('.jobs__filter-input[placeholder*="Technology"]')
-      ?.value.toLowerCase() || '';
+      ?.value.trim()
+      .toLowerCase() || '';
   const location =
     document
       .querySelector('.jobs__filter-input[placeholder*="Country / City"]')
-      ?.value.toLowerCase() || '';
+      ?.value.trim()
+      .toLowerCase() || '';
 
-  // Get selected experience levels
-  const selectedExperienceLevels = Array.from(
-    document.querySelectorAll('.dropdown-menu input[type="checkbox"]:checked')
-  ).map((checkbox) => checkbox.value.toUpperCase());
+  const selectedExperienceLevels = [
+    ...document.querySelectorAll(
+      '.dropdown-menu input[type="checkbox"]:checked'
+    ),
+  ].map((checkbox) => checkbox.value.toUpperCase());
 
   // Filter the jobs based on all criteria
   const filteredJobs = allJobs.filter((job) => {
-    // Get job title, category and company names for filtering
     const jobTitle = jobTitlesMap.get(job.job_title_id)?.name || '';
     const categoryName = categoriesMap.get(job.category_id)?.name || '';
     const companyName = companiesMap.get(job.company_id)?.name || '';
@@ -252,13 +263,4 @@ function applyFilters() {
 
   // Update the displayed jobs
   displayJobs(filteredJobs);
-}
-
-// Utility function to debounce filter inputs (prevents too many updates while typing)
-function debounce(func, wait) {
-  let timeout;
-  return function (...args) {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
 }
