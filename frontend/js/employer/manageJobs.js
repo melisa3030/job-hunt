@@ -3,6 +3,7 @@ import { JobsApi } from '../api/jobsApi.js';
 import { CategoriesApi } from '../api/categoriesApi.js';
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
 
+// TODO: Add perks and tags to the job creation and editing process
 export const initManageEmployerJobs = async () => {
   // ===========================
   // === DOM Elements & State
