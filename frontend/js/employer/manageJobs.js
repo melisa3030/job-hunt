@@ -2,6 +2,7 @@ import { AuthApi } from '../api/authApi.js';
 import { JobsApi } from '../api/jobsApi.js';
 import { CategoriesApi } from '../api/categoriesApi.js';
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
+import { CompaniesApi } from '../api/companiesApi.js';
 
 // TODO: Add perks and tags to the job creation and editing process
 export const initManageEmployerJobs = async () => {
@@ -126,7 +127,10 @@ export const initManageEmployerJobs = async () => {
       noJobsMessage.style.display = 'none';
 
       const user = await AuthApi.getCurrentUser();
-      if (!user || !user.company_id) {
+
+      const company = await CompaniesApi.getCompanyByEmployerId(user.id);
+
+      if (!company) {
         throw new Error('You must create a company before managing jobs');
       }
 
@@ -210,12 +214,7 @@ export const initManageEmployerJobs = async () => {
         });
       }
     } catch (error) {
-      console.error('Error loading jobs:', error);
-      if (error.message === 'You must create a company before managing jobs') {
-        showError('Please create a company before you can manage jobs.');
-      } else {
-        showError('Failed to load jobs. Please try again.');
-      }
+      showError(error)
     } finally {
       loadingIndicator.style.display = 'none';
     }
