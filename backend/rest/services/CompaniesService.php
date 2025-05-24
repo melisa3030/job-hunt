@@ -43,11 +43,11 @@ class CompaniesService
 
   public function getCompanyByEmployerId($id)
   {
-    $companies = $this->dao->getByField('employer_id', $id);
-    if (!$companies) {
+    $company = $this->dao->getCompanyByEmployerId($id);
+    if (!$company) {
       throw new Exception("No company found for this employer", 404);
     }
-    return $companies;
+    return $company;
   }
 
   public function getCompanyForAuthUser()
@@ -57,7 +57,7 @@ class CompaniesService
       throw new Exception("User not authenticated", 401);
     }
 
-    $company = $this->dao->getByField('employer_id', $user->id);
+    $company = $this->dao->getCompanyByEmployerId($user->id);
     if (!$company) {
       throw new Exception("No company found for this employer", 404);
     }

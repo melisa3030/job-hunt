@@ -24,4 +24,12 @@ class CompaniesDao extends BaseDao
     $stmt->execute();
     return $stmt->fetchAll();
   }
+
+  public function getCompanyByEmployerId($id)
+  {
+    $stmt = $this->connection->prepare("SELECT * FROM companies WHERE employer_id = :id");
+    $stmt->bindParam(":id", $id);
+    $stmt->execute();
+    return $stmt->fetch();
+  }
 }
