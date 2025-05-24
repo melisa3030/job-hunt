@@ -1,6 +1,8 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
 
+// TODO: Update all other API functions to use the same error handling pattern
+
 export const CompaniesApi = {
   async getAllCompanies() {
     try {
@@ -12,15 +14,15 @@ export const CompaniesApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get companies');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get companies');
       }
       return response.json();
     } catch (error) {
       console.error('Error fetching companies:', error);
-      throw error;
     }
   },
 
@@ -34,15 +36,15 @@ export const CompaniesApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get company');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get company by ID');
       }
       return response.json();
     } catch (error) {
       console.error(`Error fetching company with ID ${id}:`, error);
-      throw error;
     }
   },
 
@@ -55,15 +57,16 @@ export const CompaniesApi = {
           'Content-Type': 'application/json',
         },
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get company');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get company by employer ID');
       }
       return response.json();
     } catch (error) {
       console.error(`Error fetching company with employer ID ${id}:`, error);
-      throw error;
     }
   },
 
@@ -76,15 +79,17 @@ export const CompaniesApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get company');
+        console.error('Server response:', response.status, data);
+        throw new Error(
+          data.message || 'Failed to get company for current employer'
+        );
       }
       return response.json();
     } catch (error) {
       console.error('Error fetching company for current employer:', error);
-      throw error;
     }
   },
 
@@ -101,17 +106,11 @@ export const CompaniesApi = {
         body: JSON.stringify(companyData),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
+      const data = await response.json();
 
-        // Try to parse error message from response
-        try {
-          const errorObj = JSON.parse(errorText);
-          throw new Error(errorObj.message || 'Failed to create company');
-        } catch (parseError) {
-          throw new Error('Failed to create company');
-        }
+      if (!response.ok) {
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to create company');
       }
 
       const result = await response.json();
@@ -119,7 +118,6 @@ export const CompaniesApi = {
       return result;
     } catch (error) {
       console.error('Error creating company:', error);
-      throw error;
     }
   },
   async updateCompany(id, companyData) {
@@ -134,15 +132,15 @@ export const CompaniesApi = {
         body: JSON.stringify(companyData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to update company');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to update company');
       }
       return response.json();
     } catch (error) {
       console.error(`Error updating company with ID ${id}:`, error);
-      throw error;
     }
   },
   async deleteCompany(id) {
@@ -155,15 +153,16 @@ export const CompaniesApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to create company');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to delete');
       }
+
       return true;
     } catch (error) {
       console.error(`Error deleting company with ID ${id}:`, error);
-      throw error;
     }
   },
 };
