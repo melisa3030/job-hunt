@@ -11,6 +11,7 @@ export const AuthApi = {
 
   async getCurrentUser() {
     if (!this.isAuthenticated()) {
+      this.clearUserCache();
       return null;
     }
 
@@ -29,12 +30,12 @@ export const AuthApi = {
 
       const userData = await response.json();
 
-      // Store user data in localStorage for quick access
+      // Store fresh user data in localStorage
       localStorage.setItem('user', JSON.stringify(userData));
       return userData;
     } catch (error) {
       console.error('Error fetching user data:', error);
-      this.logout(); // Clear authentication if the token is invalid
+      this.logout(); // Clears token + user
       return null;
     }
   },
@@ -42,6 +43,10 @@ export const AuthApi = {
   getCachedUser() {
     const userData = localStorage.getItem('user');
     return userData ? JSON.parse(userData) : null;
+  },
+
+  clearUserCache() {
+    localStorage.removeItem('user');
   },
 
   async login(email, password) {
