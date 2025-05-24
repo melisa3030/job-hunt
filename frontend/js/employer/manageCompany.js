@@ -2,6 +2,7 @@ import { AuthApi } from '../api/authApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 
 export const initManageEmployerCompany = async () => {
+  // --- DOM Elements & State ---
   const companyContainer = document.getElementById('company-container');
   const loadingIndicator = document.getElementById('loading-company');
   const formTemplate = document.getElementById('company-form-template');
@@ -10,7 +11,10 @@ export const initManageEmployerCompany = async () => {
   let currentCompany = null;
   let editCompanyModal = null;
 
-  // Handle company edit form submission
+  // ===========================
+  // === Form Submission Handlers
+  // ===========================
+
   async function handleEditCompanySubmit(e) {
     e.preventDefault();
 
@@ -69,7 +73,65 @@ export const initManageEmployerCompany = async () => {
     }
   }
 
-  // Setup event listeners for the page
+  async function handleCompanySubmit(e) {
+    e.preventDefault();
+
+    const formError = document.getElementById('company-form-error');
+    formError.style.display = 'none';
+
+    try {
+      const companyData = {
+        name: document.getElementById('company-name').value.trim(),
+        country: document.getElementById('company-country').value.trim(),
+        city: document.getElementById('company-city').value.trim(),
+        description: document
+          .getElementById('company-description')
+          .value.trim(),
+      };
+
+      if (
+        !companyData.name ||
+        !companyData.country ||
+        !companyData.city ||
+        !companyData.description
+      ) {
+        throw new Error('All fields are required');
+      }
+
+      showLoading(true);
+      const result = await CompaniesApi.createCompany(companyData);
+
+      if (result && result.id) {
+        // Use the returned company directly
+        currentCompany = result;
+        renderCompanyDetails();
+        showSuccess('Company created successfully');
+      } else {
+        const user = await AuthApi.getCurrentUser();
+        if (user) {
+          currentCompany = await CompaniesApi.getCompanyForCurrentEmployer(
+            user.id
+          );
+          renderCompanyDetails();
+          showSuccess('Company created successfully');
+        } else {
+          throw new Error('Failed to retrieve company details');
+        }
+      }
+    } catch (error) {
+      console.error('Error creating company:', error);
+      formError.textContent =
+        error.message || 'Failed to create company. Please try again.';
+      formError.style.display = 'block';
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  // ===========================
+  // === Event Listeners
+  // ===========================
+
   function setupEventListeners() {
     document.addEventListener('click', function (event) {
       // Handle edit button click
@@ -93,64 +155,10 @@ export const initManageEmployerCompany = async () => {
     });
   }
 
-  // Handle company creation form submission
-  async function handleCompanySubmit(e) {
-    e.preventDefault();
+  // ===========================
+  // === Rendering Functions
+  // ===========================
 
-    const formError = document.getElementById('company-form-error');
-    formError.style.display = 'none';
-
-    try {
-      // Get form data
-      const companyData = {
-        name: document.getElementById('company-name').value.trim(),
-        country: document.getElementById('company-country').value.trim(),
-        city: document.getElementById('company-city').value.trim(),
-        description: document
-          .getElementById('company-description')
-          .value.trim(),
-      };
-
-      // Validate form data
-      if (
-        !companyData.name ||
-        !companyData.country ||
-        !companyData.city ||
-        !companyData.description
-      ) {
-        throw new Error('All fields are required');
-      }
-
-      showLoading(true);
-      const result = await CompaniesApi.createCompany(companyData);
-
-      if (result) {
-        // Refresh user data to get the company ID
-        await AuthApi.getCurrentUser();
-        const user = AuthApi.getCachedUser();
-
-        if (user && user.company_id) {
-          // Fetch the newly created company
-          currentCompany = await CompaniesApi.getCompanyById(user.company_id);
-          renderCompanyDetails();
-          showSuccess('Company created successfully');
-        } else {
-          throw new Error('Failed to retrieve company details');
-        }
-      } else {
-        throw new Error('Failed to create company');
-      }
-    } catch (error) {
-      console.error('Error creating company:', error);
-      formError.textContent =
-        error.message || 'Failed to create company. Please try again.';
-      formError.style.display = 'block';
-    } finally {
-      showLoading(false);
-    }
-  }
-
-  // Update the displayed company information
   function updateCompanyDisplay() {
     console.log('Updating company display with data:', currentCompany);
 
@@ -175,13 +183,11 @@ export const initManageEmployerCompany = async () => {
     });
   }
 
-  // Render company form for creation
   const renderCompanyForm = () => {
     companyContainer.innerHTML = '';
     companyContainer.appendChild(formTemplate.content.cloneNode(true));
   };
 
-  // Render company details
   const renderCompanyDetails = () => {
     if (!currentCompany) return;
 
@@ -200,7 +206,10 @@ export const initManageEmployerCompany = async () => {
     }
   };
 
-  // Open company edit modal
+  // ===========================
+  // === Modal Functions
+  // ===========================
+
   function openEditModal() {
     try {
       // Make sure we have current company data
@@ -240,7 +249,6 @@ export const initManageEmployerCompany = async () => {
     }
   }
 
-  // Close a specific modal
   function closeModal(modalId) {
     try {
       if (modalId === 'edit-company-modal' && editCompanyModal) {
@@ -259,14 +267,16 @@ export const initManageEmployerCompany = async () => {
     }
   }
 
-  // Show/hide loading indicator
+  // ===========================
+  // === Utility Functions
+  // ===========================
+
   function showLoading(isLoading) {
     if (loadingIndicator) {
       loadingIndicator.style.display = isLoading ? 'block' : 'none';
     }
   }
 
-  // Show success message
   function showSuccess(message) {
     const alertsContainer = document.getElementById('alerts-container');
     if (!alertsContainer) return;
@@ -274,9 +284,9 @@ export const initManageEmployerCompany = async () => {
     const alert = document.createElement('div');
     alert.className = 'alert alert-success alert-dismissible fade show';
     alert.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
+              ${message}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
 
     // Clear previous alerts
     alertsContainer.innerHTML = '';
@@ -289,24 +299,29 @@ export const initManageEmployerCompany = async () => {
     }, 5000);
   }
 
-  // Load company data
+  // ===========================
+  // === Data Loading
+  // ===========================
+
   const loadCompanyData = async () => {
     try {
       showLoading(true);
 
-      // Get current user
-      const user = AuthApi.getCachedUser();
-      if (!user || user.role !== 'EMPLOYER') {
-        throw new Error('Unauthorized access');
-      }
+      const user = await AuthApi.getCurrentUser();
+      console.log('Log company data for user:', user);
 
-      if (user.company_id) {
-        // User already has a company, fetch its details
-        currentCompany = await CompaniesApi.getCompanyById(user.company_id);
-        renderCompanyDetails();
-      } else {
-        // User doesn't have a company, show creation form
-        renderCompanyForm();
+      if (user) {
+        try {
+          const company = await CompaniesApi.getCompanyByEmployerId(user.id);
+          if (company) {
+            currentCompany = company;
+            renderCompanyDetails();
+          } else {
+            renderCompanyForm();
+          }
+        } catch (err) {
+          renderCompanyForm();
+        }
       }
     } catch (error) {
       console.error('Error loading company data:', error);
@@ -314,17 +329,20 @@ export const initManageEmployerCompany = async () => {
       const alertsContainer = document.getElementById('alerts-container');
       if (alertsContainer) {
         alertsContainer.innerHTML = `
-          <div class="alert alert-danger">
-            Failed to load company data: ${error.message}
-          </div>
-        `;
+                <div class="alert alert-danger">
+                  Failed to load company data: ${error.message}
+                </div>
+              `;
       }
     } finally {
       showLoading(false);
     }
   };
 
-  // Initialize
+  // ===========================
+  // === Initialization
+  // ===========================
+
   await loadCompanyData();
   setupEventListeners();
 };
