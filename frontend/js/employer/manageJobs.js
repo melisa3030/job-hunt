@@ -124,13 +124,13 @@ export const initManageEmployerJobs = async () => {
       jobsTableBody.innerHTML = '';
       noJobsMessage.style.display = 'none';
 
-      const user = AuthApi.getCachedUser();
+      const user = await AuthApi.getCurrentUser();
       if (!user || !user.company_id) {
         throw new Error('You must create a company before managing jobs');
       }
 
       const [jobs, jobTitles, allCategories] = await Promise.all([
-        JobsApi.getJobsForCurrentEmployer(user.user_id),
+        JobsApi.getJobsForCurrentEmployer(user.id),
         JobTitlesApi.getAllJobTitles(),
         CategoriesApi.getAllCategories(),
       ]);
