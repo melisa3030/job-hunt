@@ -20,9 +20,10 @@ export const CompaniesApi = {
         console.error('Server response:', response.status, data);
         throw new Error(data.message || 'Failed to get companies');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching companies:', error);
+      throw error;
     }
   },
 
@@ -42,9 +43,10 @@ export const CompaniesApi = {
         console.error('Server response:', response.status, data);
         throw new Error(data.message || 'Failed to get company by ID');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error(`Error fetching company with ID ${id}:`, error);
+      throw error;
     }
   },
 
@@ -64,7 +66,7 @@ export const CompaniesApi = {
         console.error('Server response:', response.status, data);
         throw new Error(data.message || 'Failed to get company by employer ID');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error(`Error fetching company with employer ID ${id}:`, error);
     }
@@ -87,7 +89,7 @@ export const CompaniesApi = {
           data.message || 'Failed to get company for current employer'
         );
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching company for current employer:', error);
     }
@@ -113,9 +115,7 @@ export const CompaniesApi = {
         throw new Error(data.message || 'Failed to create company');
       }
 
-      const result = await response.json();
-      console.log('Company creation result:', result);
-      return result;
+      return data;
     } catch (error) {
       console.error('Error creating company:', error);
     }
@@ -138,7 +138,7 @@ export const CompaniesApi = {
         console.error('Server response:', response.status, data);
         throw new Error(data.message || 'Failed to update company');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error(`Error updating company with ID ${id}:`, error);
     }
