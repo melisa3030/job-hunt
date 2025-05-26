@@ -1,97 +1,93 @@
-import { BASE_URL } from './constants/constants.js';
+import { UsersApi } from './api/usersApi.js';
 
-export const initSignupForm = () => {
-  const form = document.getElementById('signup-form');
-  const errorMessage = document.getElementById('signup_error');
-  const applicantBtn = document.getElementById('applicant-btn');
-  const employerBtn = document.getElementById('employer-btn');
+// ===========================
+// === Utility Functions
+// ===========================
 
-  // Default to applicant
-  let isEmployer = false;
+const showError = (errorMessage, message) => {
+  errorMessage.textContent = message;
+  errorMessage.style.display = 'block';
+};
 
+const hideError = (errorMessage) => {
+  errorMessage.style.display = 'none';
+  errorMessage.textContent = '';
+};
+
+const validateForm = (formData) => {
+  return (
+    formData.name && formData.username && formData.email && formData.password
+  );
+};
+
+const setupRoleSelection = (applicantBtn, employerBtn, state) => {
   applicantBtn.addEventListener('click', () => {
     applicantBtn.classList.add('active');
     employerBtn.classList.remove('active');
-    isEmployer = false;
+    state.isEmployer = false;
   });
 
   employerBtn.addEventListener('click', () => {
     employerBtn.classList.add('active');
     applicantBtn.classList.remove('active');
-    isEmployer = true;
+    state.isEmployer = true;
   });
+};
 
-  const showError = (message) => {
-    errorMessage.textContent = message;
-    errorMessage.style.display = 'block';
+// ===========================
+// === Form Submission
+// ===========================
+
+const submitSignupForm = async (form, errorMessage, state) => {
+  const formData = {
+    name: form.name.value.trim(),
+    username: form.username.value.trim(),
+    email: form.email.value.trim(),
+    password: form.password.value,
   };
 
-  const hideError = () => {
-    errorMessage.style.display = 'none';
-    errorMessage.textContent = '';
-  };
+  if (!validateForm(formData)) {
+    showError(errorMessage, 'All fields are required');
+    return;
+  }
 
-  form.addEventListener('submit', async (e) => {
+  try {
+    await UsersApi.createUser(formData, state.isEmployer);
+    // Show success message and redirect to login
+    form.innerHTML = /* HTML */ `
+      <div class="alert alert-success">
+        ${state.isEmployer ? 'Employer' : 'Applicant'} registration successful!
+        Redirecting to log in...
+      </div>
+    `;
+    setTimeout(() => {
+      window.history.pushState({}, '', '/login');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }, 1500);
+  } catch (error) {
+    console.error(error);
+    // User doesn't need to know the exact error message
+    showError(errorMessage, 'Signup failed');
+  }
+};
+
+// ===========================
+// === Initialization
+// ===========================
+
+export const initSignupForm = () => {
+  // === DOM Elements & State ===
+  const form = document.getElementById('signup-form');
+  const errorMessage = document.getElementById('signup_error');
+  const applicantBtn = document.getElementById('applicant-btn');
+  const employerBtn = document.getElementById('employer-btn');
+  const state = { isEmployer: false };
+
+  setupRoleSelection(applicantBtn, employerBtn, state);
+
+  form.addEventListener('submit', (e) => {
     e.preventDefault();
-    hideError();
-
-    const formData = {
-      name: form.name.value.trim(),
-      username: form.username.value.trim(),
-      email: form.email.value.trim(),
-      password: form.password.value,
-    };
-
-    // Basic validation
-    if (
-      !formData.name ||
-      !formData.username ||
-      !formData.email ||
-      !formData.password
-    ) {
-      showError('All fields are required');
-      return;
-    }
-
-    try {
-      // Choose endpoint based on account type
-      const endpoint = isEmployer
-        ? `${BASE_URL}/users/employer`
-        : `${BASE_URL}/users`;
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify(formData),
-      });
-
-      const responseText = await response.text();
-      console.log('Raw response:', responseText);
-
-      // Then try to parse it
-      const data = JSON.parse(responseText);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Signup failed');
-      }
-
-      // Show a success message before redirect
-      form.innerHTML = `
-        <div class="alert alert-success">
-            ${isEmployer ? 'Employer' : 'Applicant'} registration successful! Redirecting to log in...
-        </div>
-      `;
-
-      setTimeout(() => {
-        window.history.pushState({}, '', '/login'); // Updates URL to /login
-        window.dispatchEvent(new PopStateEvent('popstate')); // Triggers router to show login page
-      }, 1500);
-    } catch (error) {
-      console.error('Error:', error);
-      showError(error.message);
-    }
+    hideError(errorMessage);
+    submitSignupForm(form, errorMessage, state);
   });
 };
