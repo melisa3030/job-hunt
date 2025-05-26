@@ -1,0 +1,55 @@
+<div class="container-fluid mt-4">
+    <div id="alerts-container"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Manage Job Titles</h2>
+        <button id="add-title-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#title-modal">
+            Add Job Title
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="titles-table-body">
+                <!-- Job titles will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add/Edit Job Title -->
+<div class="modal fade" id="title-modal" tabindex="-1" aria-labelledby="title-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title-modal-label">Add Job Title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="title-form">
+                    <input type="hidden" id="title-id"/>
+                    <div class="mb-3">
+                        <label for="title-name" class="form-label">Job Title Name</label>
+                        <input type="text" class="form-control" id="title-name" required
+                               placeholder="Enter job title name"/>
+                        <div class="invalid-feedback">
+                            Please provide a job title name.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" id="save-title-btn" form="title-form" class="btn btn-primary">Save Title</button>
+            </div>
+        </div>
+    </div>
+</div>
