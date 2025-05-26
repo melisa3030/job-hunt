@@ -15,13 +15,16 @@ export const ApplicationsApi = {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(
+          data.message || `HTTP error! status: ${response.status}`
+        );
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching applications:', error);
       throw error;
@@ -39,12 +42,12 @@ export const ApplicationsApi = {
           },
         }
       );
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get applications');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get applications');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching applications:', error);
       throw error;
@@ -60,13 +63,16 @@ export const ApplicationsApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(
+          data.message || `HTTP error! status: ${response.status}`
+        );
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error(`Error fetching applications for job ${jobId}:`, error);
       throw error;
@@ -87,14 +93,15 @@ export const ApplicationsApi = {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
         throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
+          data.message || `HTTP error! status: ${response.status}`
         );
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error(
         `Error updating application status for ID ${applicationId}:`,

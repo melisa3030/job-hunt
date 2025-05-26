@@ -11,12 +11,12 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching jobs:', error);
       throw error;
@@ -32,12 +32,12 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching jobs for employer', error);
       throw error;
@@ -53,12 +53,12 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error(`Error fetching job with ID ${id}:`, error);
       throw error;
@@ -73,15 +73,14 @@ export const JobsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify(jobData),
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error creating job:', error);
       throw error;
@@ -98,12 +97,12 @@ export const JobsApi = {
         },
         body: JSON.stringify(jobData),
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error(`Error updating job with ID ${id}:`, error);
       throw error;
@@ -119,12 +118,12 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      return data;
     } catch (error) {
       console.error(`Error deleting job with ID ${id}:`, error);
       throw error;

@@ -11,13 +11,14 @@ export const TagsApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching tags:', error);
       throw error;
@@ -35,13 +36,14 @@ export const TagsApi = {
         body: JSON.stringify(tagData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      return data;
     } catch (error) {
       console.error('Error creating tag:', error);
       throw error;

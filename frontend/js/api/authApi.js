@@ -24,11 +24,12 @@ export const AuthApi = {
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch user data');
-      }
-
       const userData = await response.json();
+
+      if (!response.ok) {
+        console.error('Server response:', response.status, userData);
+        throw new Error(userData.message || 'Failed to fetch user data');
+      }
 
       // Store fresh user data in localStorage
       localStorage.setItem('user', JSON.stringify(userData));

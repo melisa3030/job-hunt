@@ -12,12 +12,12 @@ export const ReviewsApi = {
         },
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get reviews');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get reviews');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching reviews:', error);
       throw error;
@@ -34,12 +34,12 @@ export const ReviewsApi = {
         },
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch review');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch review');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching review:', error);
       throw error;
@@ -58,12 +58,12 @@ export const ReviewsApi = {
         body: JSON.stringify(data),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to update review');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to update review');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error updating review:', error);
       throw error;
@@ -80,12 +80,12 @@ export const ReviewsApi = {
         },
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to delete review');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to delete review');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error deleting review:', error);
       throw error;
