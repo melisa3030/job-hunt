@@ -32,4 +32,16 @@ class CompaniesDao extends BaseDao
       throw new PDOException("Database error in getByField(): " . $e->getMessage());
     }
   }
+
+  public function getCompanyByEmployerId($id)
+  {
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM companies WHERE employer_id = :id");
+      $stmt->bindParam(":id", $id);
+      $stmt->execute();
+      return $stmt->fetch();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getCompanyByEmployerId(): " . $e->getMessage());
+    }
+  }
 }
