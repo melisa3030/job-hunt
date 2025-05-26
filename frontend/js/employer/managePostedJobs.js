@@ -1,6 +1,6 @@
 import { AuthApi } from '../api/authApi.js';
 import { JobsApi } from '../api/jobsApi.js';
-import { CategoriesApi } from '../api/categoriesApi.js';
+import { JobCategoriesApi } from '../api/jobCategoriesApi.js';
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 
@@ -95,7 +95,7 @@ export const initManageEmployerJobs = async () => {
   async function loadFormOptions() {
     try {
       const titles = await JobTitlesApi.getAllJobTitles();
-      const categories = await CategoriesApi.getAllCategories();
+      const categories = await JobCategoriesApi.getAllJobCategories();
 
       jobTitleSelect.innerHTML = '<option value="">Select job title</option>';
       titles.forEach((title) => {
@@ -131,13 +131,21 @@ export const initManageEmployerJobs = async () => {
       const company = await CompaniesApi.getCompanyByEmployerId(user.id);
 
       if (!company) {
-        throw new Error('You must create a company before managing jobs');
+        alertsContainer.style.display = 'block';
+        alertsContainer.innerHTML = `
+          <div class="alert alert-warning">
+            You have not created a company yet. 
+            <a href="/employer/company" class="alert-link">Create a company</a> to manage jobs.
+          </div>
+        `;
+        loadingIndicator.style.display = 'none';
+        return;
       }
 
       const [jobs, jobTitles, allCategories] = await Promise.all([
         JobsApi.getJobsForCurrentEmployer(user.id),
         JobTitlesApi.getAllJobTitles(),
-        CategoriesApi.getAllCategories(),
+        JobCategoriesApi.getAllJobCategories(),
       ]);
 
       const titleMap = new Map(
@@ -214,7 +222,7 @@ export const initManageEmployerJobs = async () => {
         });
       }
     } catch (error) {
-      showError(error)
+      showError(error);
     } finally {
       loadingIndicator.style.display = 'none';
     }
