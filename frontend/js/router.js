@@ -5,12 +5,16 @@ import { renderCompanyTab } from './company.js';
 import { initSignupForm } from './signup.js';
 import { initLoginForm } from './login.js';
 import { AuthApi } from './api/authApi.js';
+
 import { initManageAdminUsers } from './admin/manageUsers.js';
 import { initManageAdminCompanies } from './admin/manageCompanies.js';
 import { initManageAdminJobs } from './admin/manageJobs.js';
-import { initManageEmployerJobs } from './employer/manageJobs.js';
+import { initManageEmployerJobs } from './employer/managePostedJobs.js';
 import { initManageEmployerApplications } from './employer/manageApplications.js';
 import { initManageEmployerCompany } from './employer/manageCompany.js';
+import { initManageAdminJobTitles } from './admin/manageJobTitles.js';
+import { initManageAdminPerks } from './admin/managePerks.js';
+import { initManageAdminCategories } from './admin/manageCategories.js';
 
 const urlPageTitle = 'Job Hunt App';
 
@@ -59,7 +63,7 @@ const urlRoutes = {
     description: 'Company profiles',
   },
   '/company/:id': {
-    template: '/views/company/company.html',
+    template: '/views/company/manageEmployerCompany.html',
     title: 'Company | ' + urlPageTitle,
     description: 'Company details',
   },
@@ -73,41 +77,55 @@ const urlRoutes = {
 
   // Admin routes
   '/admin/users': {
-    template: '/views/admin/users.html',
+    template: '/views/admin/manageUsers.html',
     title: 'Manage Users | ' + urlPageTitle,
     description: 'User Management',
   },
   '/admin/companies': {
-    template: '/views/admin/companies.html',
+    template: '/views/admin/manageCompanies.html',
     title: 'Manage Companies | ' + urlPageTitle,
     description: 'Company Management',
   },
   '/admin/jobs': {
-    template: '/views/admin/jobs.html',
+    template: '/views/admin/manageJobs.html',
     title: 'Manage Jobs | ' + urlPageTitle,
     description: 'Job Management',
   },
-
+  '/admin/job-titles': {
+    template: '/views/admin/manageJobTitles.html',
+    title: 'Manage Job Titles | ' + urlPageTitle,
+    description: 'Job Title Management',
+  },
+  '/admin/perks': {
+    template: '/views/admin/managePerks.html',
+    title: 'Manage Perks | ' + urlPageTitle,
+    description: 'Perk Management',
+  },
+  '/admin/categories': {
+    template: '/views/admin/manageCategories.html',
+    title: 'Manage Categories | ' + urlPageTitle,
+    description: 'Category Management',
+  },
   // Employer routes
   '/employer/jobs': {
-    template: '/views/employer/jobs.html',
+    template: '/views/employer/managePostedJobs.html',
     title: 'Posted Jobs | ' + urlPageTitle,
     description: 'Manage Posted Jobs',
   },
   '/employer/applications': {
-    template: '/views/employer/applications.html',
+    template: '/views/employer/manageApplications.html',
     title: 'Applications | ' + urlPageTitle,
     description: 'Manage Job Applications',
   },
   '/employer/company': {
-    template: '/views/employer/company.html',
+    template: '/views/employer/manageEmployerCompany.html',
     title: 'Manage Companies | ' + urlPageTitle,
     description: 'Company Management',
   },
 
   // Applicant routes
   '/my-applications': {
-    template: '/views/applicant/applications.html',
+    template: '/views/applicant/manageApplications.html',
     title: 'My Applications | ' + urlPageTitle,
     description: 'View My Job Applications',
   },
@@ -198,6 +216,9 @@ const urlLocationHandler = async () => {
   if (routeKey === '/admin/users') initManageAdminUsers();
   if (routeKey === '/admin/companies') initManageAdminCompanies();
   if (routeKey === '/admin/jobs') initManageAdminJobs();
+  if (routeKey === '/admin/job-titles') initManageAdminJobTitles();
+  if (routeKey === '/admin/perks') initManageAdminPerks();
+  if (routeKey === '/admin/categories') initManageAdminCategories();
 
   // Employer
   if (routeKey === '/employer/jobs') initManageEmployerJobs();
