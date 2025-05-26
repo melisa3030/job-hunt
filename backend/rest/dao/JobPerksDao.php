@@ -11,17 +11,25 @@ class JobPerksDao extends BaseDao
 
   public function getByJobId($jobId)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM job_perks WHERE job_id = :job_id");
-    $stmt->bindParam(':job_id', $jobId);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM job_perks WHERE job_id = :job_id");
+      $stmt->bindParam(':job_id', $jobId);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByJobId(): " . $e->getMessage());
+    }
   }
 
   public function getByPerkId($perkId)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM job_perks WHERE perk_id = :perk_id");
-    $stmt->bindParam(':perk_id', $perkId);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM job_perks WHERE perk_id = :perk_id");
+      $stmt->bindParam(':perk_id', $perkId);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByPerkId(): " . $e->getMessage());
+    }
   }
 }

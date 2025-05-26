@@ -11,10 +11,14 @@ class JobTitlesDao extends BaseDao
 
     public function getByName($name)
     {
-        $query = "SELECT * FROM job_titles WHERE name = :name";
-        $stmt = $this->connection->prepare($query);
-        $stmt->bindParam(':name', $name);
-        $stmt->execute();
-        return $stmt->fetch();
+        try {
+            $query = "SELECT * FROM job_titles WHERE name = :name";
+            $stmt = $this->connection->prepare($query);
+            $stmt->bindParam(':name', $name);
+            $stmt->execute();
+            return $stmt->fetch();
+        } catch (PDOException $e) {
+            throw new PDOException("Database error in getByName(): " . $e->getMessage());
+        }
     }
 }

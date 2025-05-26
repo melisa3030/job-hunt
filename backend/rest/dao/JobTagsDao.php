@@ -11,17 +11,25 @@ class JobTagsDao extends BaseDao
 
   public function getByJobId($jobId)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM job_tags WHERE job_id = :job_id");
-    $stmt->bindParam(':job_id', $jobId);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM job_tags WHERE job_id = :job_id");
+      $stmt->bindParam(':job_id', $jobId);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByJobId(): " . $e->getMessage());
+    }
   }
 
   public function getByTagId($tagId)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM job_tags WHERE tag_id = :tag_id");
-    $stmt->bindParam(':tag_id', $tagId);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM job_tags WHERE tag_id = :tag_id");
+      $stmt->bindParam(':tag_id', $tagId);
+      $stmt->execute();
+      return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByTagId(): " . $e->getMessage());
+    }
   }
 }

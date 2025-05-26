@@ -11,25 +11,25 @@ class CompaniesDao extends BaseDao
 
   public function getCompanyByName($name)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM companies WHERE name = :name");
-    $stmt->bindParam(":name", $name);
-    $stmt->execute();
-    return $stmt->fetch();
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM companies WHERE name = :name");
+      $stmt->bindParam(":name", $name);
+      $stmt->execute();
+      return $stmt->fetch();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getCompanyByName(): " . $e->getMessage());
+    }
   }
 
   public function getByField($field, $value)
   {
-    $stmt = $this->connection->prepare("SELECT * FROM companies WHERE $field = :value");
-    $stmt->bindParam(":value", $value);
-    $stmt->execute();
-    return $stmt->fetchAll();
-  }
-
-  public function getCompanyByEmployerId($id)
-  {
-    $stmt = $this->connection->prepare("SELECT * FROM companies WHERE employer_id = :id");
-    $stmt->bindParam(":id", $id);
-    $stmt->execute();
-    return $stmt->fetch();
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM companies WHERE $field = :value");
+      $stmt->bindParam(":value", $value);
+      $stmt->execute();
+      return $stmt->fetchAll();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByField(): " . $e->getMessage());
+    }
   }
 }

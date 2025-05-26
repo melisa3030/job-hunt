@@ -11,9 +11,13 @@ class ReviewsDao extends BaseDao
 
     public function getByField($field, $value)
     {
-        $stmt = $this->connection->prepare("SELECT * FROM {$this->table} WHERE {$field} = :value");
-        $stmt->bindParam(':value', $value);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $this->connection->prepare("SELECT * FROM {$this->table} WHERE {$field} = :value");
+            $stmt->bindParam(':value', $value);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            throw new PDOException("Database error in getByField(): " . $e->getMessage());
+        }
     }
 }
