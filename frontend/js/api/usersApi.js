@@ -12,12 +12,13 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to get users');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to get users');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error; // Rethrow to allow proper handling upstream
@@ -34,12 +35,13 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch user');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch user');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching user:', error);
       throw error;
@@ -56,12 +58,13 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch user');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch user');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching user:', error);
       throw error;
@@ -78,20 +81,23 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch users');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch users');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error;
     }
   },
 
-  async createUser(userData) {
+  async createUser(userData, isEmployer = false) {
     try {
+      userData.role = isEmployer ? 'EMPLOYER' : 'APPLICANT';
+
       const response = await fetch(`${BASE_URL}/users`, {
         method: 'POST',
         headers: {
@@ -102,12 +108,13 @@ export const UsersApi = {
         body: JSON.stringify(userData),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to create user');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to create user');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error creating user:', error);
       throw error;
@@ -128,14 +135,13 @@ export const UsersApi = {
         body: JSON.stringify(data),
       });
 
-      console.log(response);
+      const resData = await response.json();
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to update user');
+        console.error('Server response:', response.status, resData);
+        throw new Error(resData.message || 'Failed to update user');
       }
-      return response.json();
+      return resData;
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
@@ -152,12 +158,13 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to delete user');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to delete user');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error deleting user:', error);
       throw error;
@@ -173,12 +180,13 @@ export const UsersApi = {
         },
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch employers');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch employers');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching employers:', error);
       throw error;
@@ -194,12 +202,12 @@ export const UsersApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch applicant');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch applicant');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching applicant:', error);
       throw error;
@@ -215,12 +223,12 @@ export const UsersApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch applicants');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch applicants');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching applicants:', error);
       throw error;
@@ -236,12 +244,12 @@ export const UsersApi = {
           'Content-Type': 'application/json',
         },
       });
+      const data = await response.json();
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', response.status, errorText);
-        throw new Error('Failed to fetch applicants');
+        console.error('Server response:', response.status, data);
+        throw new Error(data.message || 'Failed to fetch applicants');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching applicants:', error);
       throw error;
