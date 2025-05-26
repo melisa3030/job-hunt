@@ -1,0 +1,55 @@
+<div class="container-fluid mt-4">
+    <div id="alerts-container"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Manage Perks</h2>
+        <button id="add-perk-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#perk-modal">
+            Add Perk
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Name</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="perks-table-body">
+                <!-- Job perks will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Add/Edit Job Perk -->
+<div class="modal fade" id="perk-modal" tabindex="-1" aria-labelledby="perk-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="perk-modal-label">Add Perk</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="perk-form">
+                    <input type="hidden" id="perk-id"/>
+                    <div class="mb-3">
+                        <label for="perk-name" class="form-label">Job Perk Name</label>
+                        <input type="text" class="form-control" id="perk-name" required
+                               placeholder="Enter job perk name"/>
+                        <div class="invalid-feedback">
+                            Please provide a job perk name.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" id="save-perk-btn" form="perk-form" class="btn btn-primary">Save Perk</button>
+            </div>
+        </div>
+    </div>
+</div>
