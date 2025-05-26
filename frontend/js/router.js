@@ -63,7 +63,7 @@ const urlRoutes = {
     description: 'Company profiles',
   },
   '/company/:id': {
-    template: '/views/company/manageEmployerCompany.html',
+    template: '/views/company/company.html',
     title: 'Company | ' + urlPageTitle,
     description: 'Company details',
   },
