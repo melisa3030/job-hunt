@@ -67,7 +67,7 @@ export const initManageEmployerApplications = async () => {
         <td>${getStatusBadge(app.status)}</td>
         <td>
           <button class="btn btn-sm btn-outline-primary view-application" data-id="${app.id}">
-            <i class="bi bi-eye"></i> View
+            View
           </button>
         </td>
       `;
