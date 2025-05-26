@@ -106,6 +106,26 @@
   </div>
 </div>
 
+<!-- Delete confirmation modal -->
+
+<div class="modal fade" id="delete-company-modal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Delete Company</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete your company? This action cannot be undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="confirm-delete-company-btn" type="button" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Company Creation Form Template -->
 <template id="company-form-template">
   <div class="card">
@@ -179,11 +199,15 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-start mb-4">
         <h5 class="card-title">Company Profile</h5>
-        <button id="edit-company-btn" class="btn btn-outline-primary btn-sm">
-          Edit
-        </button>
+        <div class="btn-group">
+          <button id="edit-company-btn" class="btn btn-outline-primary btn-sm">
+            Edit
+          </button>
+          <button id="delete-company-btn" class="btn btn-outline-danger btn-sm">
+            Delete
+          </button>
+        </div>
       </div>
-
       <div id="company-info">
         <div class="row mb-3">
           <div class="col-md-3 fw-bold">Company Name:</div>

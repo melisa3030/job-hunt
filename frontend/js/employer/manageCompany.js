@@ -1,8 +1,10 @@
 import { AuthApi } from '../api/authApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 
+// TODO: add delete company functionality
 export const initManageEmployerCompany = async () => {
   // --- DOM Elements & State ---
+  const deleteCompanyBtn = document.getElementById('delete-company-btn');
   const companyContainer = document.getElementById('company-container');
   const loadingIndicator = document.getElementById('loading-company');
   const formTemplate = document.getElementById('company-form-template');
