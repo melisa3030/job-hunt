@@ -1,10 +1,8 @@
 import { AuthApi } from '../api/authApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 
-// TODO: add delete company functionality
 export const initManageEmployerCompany = async () => {
   // --- DOM Elements & State ---
-  const deleteCompanyBtn = document.getElementById('delete-company-btn');
   const companyContainer = document.getElementById('company-container');
   const loadingIndicator = document.getElementById('loading-company');
   const formTemplate = document.getElementById('company-form-template');
@@ -12,12 +10,13 @@ export const initManageEmployerCompany = async () => {
 
   let currentCompany = null;
   let editCompanyModal = null;
+  let deleteCompanyModal = null;
 
   // ===========================
   // === Form Submission Handlers
   // ===========================
 
-  async function handleEditCompanySubmit(e) {
+  async function handleEditCompany(e) {
     e.preventDefault();
 
     const editFormError = document.getElementById('edit-form-error');
@@ -33,7 +32,6 @@ export const initManageEmployerCompany = async () => {
           .value.trim(),
       };
 
-      // Validate form data
       if (
         !companyData.name ||
         !companyData.country ||
@@ -45,21 +43,19 @@ export const initManageEmployerCompany = async () => {
 
       showLoading(true);
 
-      // Update company data
       const result = await CompaniesApi.updateCompany(
         currentCompany.id,
         companyData
       );
 
       if (result) {
-        // The API doesn't return the updated company object, so we need to fetch it again
         currentCompany = await CompaniesApi.getCompanyById(currentCompany.id);
 
-        // Close the modal first
         closeModal('edit-company-modal');
 
-        // Re-render the details section with the fresh data
         renderCompanyDetails();
+
+        await AuthApi.refreshCurrentUser();
 
         showSuccess('Company updated successfully');
       } else {
@@ -75,7 +71,42 @@ export const initManageEmployerCompany = async () => {
     }
   }
 
-  async function handleCompanySubmit(e) {
+  async function handleDeleteCompany() {
+    try {
+      showLoading(true);
+
+      const result = await CompaniesApi.deleteCompany(currentCompany.id);
+
+      if (result) {
+        currentCompany = null;
+
+        closeModal('delete-company-modal');
+
+        renderCompanyForm();
+
+        await AuthApi.refreshCurrentUser();
+
+        showSuccess('Company deleted successfully');
+      } else {
+        throw new Error('Failed to delete company');
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error);
+
+      const alertsContainer = document.getElementById('alerts-container');
+      if (alertsContainer) {
+        alertsContainer.innerHTML = `
+        <div class="alert alert-danger">
+          Failed to delete company: ${error.message}
+        </div>
+      `;
+      }
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function handleCreateCompany(e) {
     e.preventDefault();
 
     const formError = document.getElementById('company-form-error');
@@ -103,17 +134,13 @@ export const initManageEmployerCompany = async () => {
       showLoading(true);
       const result = await CompaniesApi.createCompany(companyData);
 
-      if (result && result.id) {
-        // Use the returned company directly
-        currentCompany = result;
-        renderCompanyDetails();
-        showSuccess('Company created successfully');
-      } else {
+      if (result) {
         const user = await AuthApi.getCurrentUser();
         if (user) {
           currentCompany = await CompaniesApi.getCompanyForCurrentEmployer(
             user.id
           );
+          await AuthApi.refreshCurrentUser();
           renderCompanyDetails();
           showSuccess('Company created successfully');
         } else {
@@ -135,8 +162,25 @@ export const initManageEmployerCompany = async () => {
   // ===========================
 
   function setupEventListeners() {
+    const confirmDeleteBtn = document.getElementById(
+      'confirm-delete-company-btn'
+    );
+
+    // Event delegation since these items might not exist initially
+    // This happens because we are using templates to render the form and details
+    // If company exists, we render details, otherwise we render the form
+
+    document.addEventListener('click', (e) => {
+      if (
+        e.target.id === 'delete-company-btn' ||
+        e.target.closest('#delete-company-btn')
+      ) {
+        e.preventDefault();
+        openDeleteModal();
+      }
+    });
+
     document.addEventListener('click', function (event) {
-      // Handle edit button click
       if (
         event.target.id === 'edit-company-btn' ||
         event.target.closest('#edit-company-btn')
@@ -145,16 +189,23 @@ export const initManageEmployerCompany = async () => {
       }
     });
 
-    // Setup form submission using event delegation
     document.addEventListener('submit', function (event) {
       if (event.target.id === 'edit-company-form') {
         event.preventDefault();
-        handleEditCompanySubmit(event);
+        handleEditCompany(event);
       } else if (event.target.id === 'company-form') {
         event.preventDefault();
-        handleCompanySubmit(event);
+        handleCreateCompany(event);
       }
     });
+
+    // Here we do not use event delegation because the confirm delete button exists outside the dynamic template
+    if (confirmDeleteBtn) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        closeModal('delete-company-modal');
+        await handleDeleteCompany();
+      });
+    }
   }
 
   // ===========================
@@ -199,12 +250,17 @@ export const initManageEmployerCompany = async () => {
     // Display company information
     updateCompanyDisplay();
 
-    // Initialize the Bootstrap modal after the template is rendered
+    // Initialize the Bootstrap modals after the template is rendered
     try {
-      const modalElement = document.getElementById('edit-company-modal');
-      editCompanyModal = new bootstrap.Modal(modalElement);
+      const editModalElement = document.getElementById('edit-company-modal');
+      editCompanyModal = new bootstrap.Modal(editModalElement);
+
+      const deleteModalElement = document.getElementById(
+        'delete-company-modal'
+      );
+      deleteCompanyModal = new bootstrap.Modal(deleteModalElement);
     } catch (error) {
-      console.error('Error initializing modal:', error);
+      console.error('Error initializing modals:', error);
     }
   };
 
@@ -214,7 +270,6 @@ export const initManageEmployerCompany = async () => {
 
   function openEditModal() {
     try {
-      // Make sure we have current company data
       if (!currentCompany) {
         console.error('Cannot open edit modal: No company data');
         return;
@@ -251,10 +306,37 @@ export const initManageEmployerCompany = async () => {
     }
   }
 
+  function openDeleteModal() {
+    try {
+      if (!currentCompany) {
+        console.error('Cannot open delete modal: No company data');
+        return;
+      }
+
+      // Show the delete confirmation modal
+      if (deleteCompanyModal) {
+        deleteCompanyModal.show();
+      } else {
+        // Try to initialize modal if it doesn't exist
+        const modalElement = document.getElementById('delete-company-modal');
+        if (modalElement) {
+          deleteCompanyModal = new bootstrap.Modal(modalElement);
+          deleteCompanyModal.show();
+        } else {
+          console.error('Delete modal element not found');
+        }
+      }
+    } catch (error) {
+      console.error('Error opening delete modal:', error);
+    }
+  }
+
   function closeModal(modalId) {
     try {
       if (modalId === 'edit-company-modal' && editCompanyModal) {
         editCompanyModal.hide();
+      } else if (modalId === 'delete-company-modal' && deleteCompanyModal) {
+        deleteCompanyModal.hide();
       } else {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -310,18 +392,13 @@ export const initManageEmployerCompany = async () => {
       showLoading(true);
 
       const user = await AuthApi.getCurrentUser();
-      console.log('Log company data for user:', user);
 
       if (user) {
-        try {
-          const company = await CompaniesApi.getCompanyByEmployerId(user.id);
-          if (company) {
-            currentCompany = company;
-            renderCompanyDetails();
-          } else {
-            renderCompanyForm();
-          }
-        } catch (err) {
+        const company = await CompaniesApi.getCompanyByEmployerId(user.id);
+        if (company) {
+          currentCompany = company;
+          renderCompanyDetails();
+        } else {
           renderCompanyForm();
         }
       }
