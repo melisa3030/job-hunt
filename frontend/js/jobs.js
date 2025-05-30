@@ -1,6 +1,7 @@
 import { JobsApi } from './api/jobsApi.js';
 import { JobTitlesApi } from './api/jobTitlesApi.js';
 import { JobCategoriesApi } from './api/jobCategoriesApi.js';
+import { BookmarksApi } from './api/bookmarksApi.js';
 import { PerksApi } from './api/perksApi.js';
 import { JobPerksApi } from './api/jobPerksApi.js';
 import { JobTagsApi } from './api/jobTagsApi.js';
@@ -11,6 +12,7 @@ import { debounceFilterInput } from './utils/debounceFilterInput.js';
 import { extractValidatedData } from './utils/apiResponseUtils.js';
 
 let allJobs = [];
+let bookmarkedJobIds = [];
 
 // lookup maps for quick access to related data
 let jobTitlesMap = new Map();
@@ -90,7 +92,27 @@ export async function renderJobsWithFilters() {
       </div>
     `;
 
-    // Fetch all necessary data in parallel
+    // Fetch all necessary data in parallel (including bookmarks for authenticated users)
+    const apiCalls = [
+      JobsApi.getAllJobs(),
+      JobTitlesApi.getAllJobTitles(),
+      JobCategoriesApi.getAllJobCategories(),
+      PerksApi.getAllPerks(),
+      JobTagsApi.getAllJobTags(),
+      TagsApi.getAllTags(),
+      CompaniesApi.getAllCompanies(),
+      JobPerksApi.getJobPerks(),
+    ];
+
+    // Add bookmarks API call if user is authenticated as APPLICANT
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.role === 'APPLICANT') {
+      apiCalls.push(BookmarksApi.getBookmarkedJobsForCurrentUser());
+    }
+
+    const responses = await Promise.all(apiCalls);
+
+    // Extract responses
     const [
       jobsResponse,
       jobTitlesResponse,
@@ -100,16 +122,8 @@ export async function renderJobsWithFilters() {
       tagsResponse,
       companiesResponse,
       jobPerksResponse,
-    ] = await Promise.all([
-      JobsApi.getAllJobs(),
-      JobTitlesApi.getAllJobTitles(),
-      JobCategoriesApi.getAllJobCategories(),
-      PerksApi.getAllPerks(),
-      JobTagsApi.getAllJobTags(),
-      TagsApi.getAllTags(),
-      CompaniesApi.getAllCompanies(),
-      JobPerksApi.getJobPerks(),
-    ]);
+      bookmarksResponse, // This will be undefined if user is not APPLICANT
+    ] = responses;
 
     // Validate all API responses and extract data using utility
     const jobs = extractValidatedData(jobsResponse, 'jobs');
@@ -120,6 +134,19 @@ export async function renderJobsWithFilters() {
     const tags = extractValidatedData(tagsResponse, 'tags');
     const companies = extractValidatedData(companiesResponse, 'companies');
     const jobPerks = extractValidatedData(jobPerksResponse, 'job perks');
+
+    // Extract bookmarked job IDs if available
+    if (
+      bookmarksResponse &&
+      bookmarksResponse.success &&
+      bookmarksResponse.data
+    ) {
+      bookmarkedJobIds = bookmarksResponse.data.map(
+        (bookmark) => bookmark.job_id
+      );
+    } else {
+      bookmarkedJobIds = [];
+    }
 
     allJobs = jobs;
 
@@ -222,7 +249,12 @@ function displayJobs(jobsToDisplay) {
       // Get perks for this job from the jobPerksMap
       processedJob.perks = jobPerksMap.get(job.id) || [];
 
-      const jobCard = createJobCard(processedJob, processedJob.job_title);
+      // Pass bookmarked job IDs to createJobCard
+      const jobCard = createJobCard(
+        processedJob,
+        processedJob.job_title,
+        bookmarkedJobIds
+      );
       jobsListElement.appendChild(jobCard);
     });
 }
