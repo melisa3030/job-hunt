@@ -1,3 +1,4 @@
+/* global bootstrap */
 import { JobCategoriesApi } from '../api/jobCategoriesApi.js';
 
 export const initManageAdminCategories = async () => {
