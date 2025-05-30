@@ -261,7 +261,29 @@ export const initManageEmployerJobs = async () => {
           const row = document.createElement('tr');
           const postedDate = new Date(job.created_at).toLocaleDateString();
           const expiresDate = new Date(job.expires_at).toLocaleDateString();
-          const isExpired = new Date(job.expires_at) < new Date();
+
+          // Check if job expires today, is expired, or is still active
+          const now = new Date();
+          const today = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate()
+          );
+          const jobExpiryDate = new Date(job.expires_at);
+          const expiryDateOnly = new Date(
+            jobExpiryDate.getFullYear(),
+            jobExpiryDate.getMonth(),
+            jobExpiryDate.getDate()
+          );
+
+          let badgeClass;
+          if (expiryDateOnly < today) {
+            badgeClass = 'bg-danger'; // Expired (red)
+          } else if (expiryDateOnly.getTime() === today.getTime()) {
+            badgeClass = 'bg-warning'; // Expires today (yellow)
+          } else {
+            badgeClass = 'bg-success'; // Active (green)
+          }
 
           row.innerHTML = `
                       <td>${job.title}</td>
@@ -270,7 +292,7 @@ export const initManageEmployerJobs = async () => {
                       <td>${job.city}, ${job.country}</td>
                       <td>${postedDate}</td>
                       <td>
-                        <span class="badge ${isExpired ? 'bg-danger' : 'bg-success'}">${expiresDate}</span>
+                        <span class="badge ${badgeClass}">${expiresDate}</span>
                       </td>
                       <td>
                         <div class="btn-group btn-group-sm">
