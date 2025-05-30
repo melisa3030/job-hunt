@@ -1,220 +1,167 @@
-// companies.js
 import { CompaniesApi } from './api/companiesApi.js';
 import { JobsApi } from './api/jobsApi.js';
 import { ReviewsApi } from './api/reviewsApi.js';
 import { createCompanyCard } from './components/companyCard.js';
-import { debounceFilterInput } from './utils/debounceFilterInput.js';
+import { extractValidatedData } from './utils/apiResponseUtils.js';
 
+// ===========================
+// === State Variables
+// ===========================
 let allCompanies = [];
 let allJobs = [];
 let allReviews = [];
-let filteredCompanies = [];
-let sortingCriteria = 'reviews'; // Default sorting by number of reviews
-let sortingDirection = 'desc'; // Default sort direction (descending)
 
-// Update sort toggle button text/icon
-function updateSortToggleText(button) {
-  if (!button) return;
-  button.textContent = sortingDirection === 'desc' ? 'Desc' : 'Asc';
-}
-
-// Filter companies by name
-function filterCompaniesByName() {
-  const searchInput = document.querySelector('.companies__search-input');
-  const searchValue = searchInput?.value.toLowerCase().trim() || '';
-
-  if (searchValue === '') {
-    // If search is empty, show all companies
-    filteredCompanies = [...allCompanies];
-  } else {
-    // Filter companies by name
-    filteredCompanies = allCompanies.filter((company) =>
-      company.name.toLowerCase().includes(searchValue)
-    );
-  }
-
-  sortAndDisplayCompanies();
-}
+// ===========================
+// === Display Functions
+// ===========================
 
 // Sort and display companies based on current criteria and direction
 function sortAndDisplayCompanies() {
   const companiesListElement = document.querySelector('.companies__list');
   companiesListElement.innerHTML = '';
 
-  if (!filteredCompanies || filteredCompanies.length === 0) {
+  if (!allCompanies || allCompanies.length === 0) {
     companiesListElement.innerHTML =
       '<div class="companies__empty">No companies match your search criteria.</div>';
     return;
   }
 
   // Create a new array to avoid modifying the original
-  const sortedCompanies = [...filteredCompanies];
+  const sortedCompanies = [...allCompanies];
 
   // Sort companies based on the selected criteria and direction
-  if (sortingCriteria === 'reviews') {
-    // Sort by number of reviews
-    sortedCompanies.sort((a, b) => {
-      const aReviewsCount = allReviews.filter(
-        (review) => review.company_id === a.id
-      ).length;
-      const bReviewsCount = allReviews.filter(
-        (review) => review.company_id === b.id
-      ).length;
-
-      return sortingDirection === 'desc'
-        ? bReviewsCount - aReviewsCount // Descending
-        : aReviewsCount - bReviewsCount; // Ascending
-    });
-  } else if (sortingCriteria === 'jobs') {
-    // Sort by number of jobs
-    sortedCompanies.sort((a, b) => {
-      const aJobsCount = allJobs.filter(
-        (job) => job.company_id === a.id
-      ).length;
-      const bJobsCount = allJobs.filter(
-        (job) => job.company_id === b.id
-      ).length;
-
-      return sortingDirection === 'desc'
-        ? bJobsCount - aJobsCount // Descending
-        : aJobsCount - bJobsCount; // Ascending
-    });
-  }
-
-  // Display the sorted companies
-  sortedCompanies.forEach((company) => {
-    // Calculate job count
-    const companyJobs = allJobs.filter(
-      (job) => job.company_id === company.id
+  sortedCompanies.sort((a, b) => {
+    // Sort by number of reviews as default
+    const aReviewsCount = allReviews.filter(
+      (review) => review && review.company_id === a.id
+    ).length;
+    const bReviewsCount = allReviews.filter(
+      (review) => review && review.company_id === b.id
     ).length;
 
-    // Calculate reviews data
-    const companyReviews = allReviews.filter(
-      (review) => review.company_id === company.id
-    );
-    const reviewsData = {
-      count: companyReviews.length,
-      averageRating:
-        companyReviews.length > 0
-          ? companyReviews.reduce((acc, review) => acc + review.rating, 0) /
-            companyReviews.length
-          : 0,
-    };
-
-    const companyCard = createCompanyCard(company, companyJobs, reviewsData);
-    companiesListElement.appendChild(companyCard);
+    return bReviewsCount - aReviewsCount; // Descending order
   });
+
+  // Display the sorted companies
+  sortedCompanies
+    .filter((company) => company && company.id) // Filter out invalid companies
+    .forEach((company) => {
+      // Calculate job count with validation
+      const companyJobs = allJobs.filter(
+        (job) => job && job.company_id === company.id
+      ).length;
+
+      // Calculate reviews data with validation
+      const companyReviews = allReviews.filter(
+        (review) => review && review.company_id === company.id && review.rating
+      );
+      const reviewsData = {
+        count: companyReviews.length,
+        averageRating:
+          companyReviews.length > 0
+            ? companyReviews.reduce((acc, review) => acc + review.rating, 0) /
+              companyReviews.length
+            : 0,
+      };
+
+      const companyCard = createCompanyCard(company, companyJobs, reviewsData);
+      companiesListElement.appendChild(companyCard);
+    });
 }
 
+// ===========================
+// === Data Loading
+// ===========================
+
 export async function renderCompanies() {
-  const mainContainer = document.querySelector('.companies');
-  const companiesListElement = document.querySelector('.companies__list');
-  const searchInput = document.querySelector('.companies__search-input');
-  const searchButton = document.querySelector('.companies__search-btn');
-  const sortSelect = document.querySelector('.companies__sort-select');
+  const companiesContainer = document.querySelector('.companies__list');
 
-  // Create sort order toggle button
-  let sortOrderToggle = document.getElementById('sort-order-toggle');
-  const sortContainer = document.querySelector('.companies__sort');
-  sortOrderToggle = document.createElement('button');
-  sortOrderToggle.id = 'sort-order-toggle';
-  sortOrderToggle.className = 'btn btn-outline-secondary ms-2';
-  sortOrderToggle.innerHTML = 'Desc';
-  sortContainer?.appendChild(sortOrderToggle);
-
-  if (!companiesListElement || !mainContainer) {
-    console.error('Required elements not found in the DOM.');
+  if (!companiesContainer) {
+    console.error('Companies container not found');
     return;
   }
 
   try {
-    // Show spinner while loading data
-    const spinnerElement = document.createElement('div');
-    spinnerElement.className =
-      'd-flex justify-content-center align-items-center my-3';
-    spinnerElement.innerHTML = `
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+    // Show loading state
+    companiesContainer.innerHTML = `
+      <div class="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading companies...</span>
+        </div>
       </div>
     `;
-    mainContainer.insertBefore(spinnerElement, companiesListElement);
 
     // Fetch all necessary data in parallel
-    const [companies, jobs, reviews] = await Promise.all([
-      CompaniesApi.getAllCompanies(),
-      JobsApi.getAllJobs(),
-      ReviewsApi.getAllReviews(),
-    ]);
+    const [companiesResponse, jobsResponse, reviewsResponse] =
+      await Promise.all([
+        CompaniesApi.getAllCompanies(),
+        JobsApi.getAllJobs(),
+        ReviewsApi.getAllReviews(),
+      ]);
 
-    // Remove spinner and show list
-    spinnerElement.remove();
-    companiesListElement.style.display = '';
+    // Validate all API responses and extract data
+    allCompanies = extractValidatedData(companiesResponse, 'companies');
+    allJobs = extractValidatedData(jobsResponse, 'jobs');
+    allReviews = extractValidatedData(reviewsResponse, 'reviews');
 
-    if (!companies || companies.length === 0) {
-      companiesListElement.innerHTML =
-        '<div class="companies__empty">No companies found.</div>';
-      return;
-    }
+    // Process companies with additional data
+    const processedCompanies = processCompaniesData();
 
-    // Store data for filtering and sorting
-    allCompanies = companies;
-    allJobs = jobs;
-    allReviews = reviews;
-    filteredCompanies = [...allCompanies];
-
-    // Setup event listeners for search
-    // Real-time search as user types
-    if (searchInput) {
-      searchInput.addEventListener(
-        'input',
-        debounceFilterInput(filterCompaniesByName, 300)
-      );
-    }
-
-    // Set up search button event (for users who prefer clicking the button)
-    if (searchButton) {
-      searchButton.addEventListener('click', (e) => {
-        e.preventDefault();
-        filterCompaniesByName();
-      });
-    }
-
-    // Set up sort select event
-    if (sortSelect) {
-      // Initial sort criteria value
-      sortingCriteria = sortSelect.value;
-
-      // Event listener for changes to sorting
-      sortSelect.addEventListener('change', () => {
-        sortingCriteria = sortSelect.value;
-        sortAndDisplayCompanies();
-      });
-    }
-
-    // Set up sort order toggle event
-    if (sortOrderToggle) {
-      // Set initial button text based on sort direction
-      updateSortToggleText(sortOrderToggle);
-
-      // Add event listener to toggle sort order
-      sortOrderToggle.addEventListener('click', () => {
-        sortingDirection = sortingDirection === 'desc' ? 'asc' : 'desc';
-        updateSortToggleText(sortOrderToggle);
-        sortAndDisplayCompanies();
-      });
-    }
-    sortAndDisplayCompanies();
+    // Render companies
+    displayCompanies(processedCompanies);
   } catch (error) {
-    console.error('Failed to fetch data:', error);
-    // Remove spinner if it exists
-    const existingSpinner = mainContainer
-      .querySelector('.spinner-border')
-      ?.closest('div');
-    if (existingSpinner) {
-      existingSpinner.remove();
-    }
-    companiesListElement.style.display = '';
-    companiesListElement.innerHTML =
-      '<div class="companies__error">Failed to load companies. Please try again later.</div>';
+    console.error('Error loading companies:', error);
+    companiesContainer.innerHTML = `
+      <div class="alert alert-danger">
+        Failed to load companies. Please try again later.
+      </div>
+    `;
   }
+}
+
+function processCompaniesData() {
+  return allCompanies
+    .filter((company) => company && company.id && company.name)
+    .map((company) => {
+      // Calculate job count for this company
+      const jobCount = allJobs.filter(
+        (job) => job && job.company_id === company.id
+      ).length;
+
+      // Calculate average rating for this company
+      const companyReviews = allReviews.filter(
+        (review) => review && review.company_id === company.id && review.rating
+      );
+
+      const averageRating =
+        companyReviews.length > 0
+          ? companyReviews.reduce((acc, review) => acc + review.rating, 0) /
+            companyReviews.length
+          : 0;
+
+      return {
+        ...company,
+        jobCount,
+        averageRating: Math.round(averageRating * 10) / 10,
+        reviewCount: companyReviews.length,
+      };
+    });
+}
+
+function displayCompanies(companies) {
+  const companiesContainer = document.querySelector('.companies__list');
+
+  companiesContainer.innerHTML = '';
+
+  if (!companies || companies.length === 0) {
+    companiesContainer.innerHTML = `
+      <div class="companies__empty">No companies found.</div>
+    `;
+    return;
+  }
+
+  companies.forEach((company) => {
+    const companyCard = createCompanyCard(company);
+    companiesContainer.appendChild(companyCard);
+  });
 }
