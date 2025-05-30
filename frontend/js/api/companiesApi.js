@@ -1,7 +1,6 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
-
-// TODO: Update all other API functions to use the same error handling pattern
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const CompaniesApi = {
   async getAllCompanies() {
@@ -16,14 +15,22 @@ export const CompaniesApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get companies');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to fetch companies'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching companies:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -39,14 +46,22 @@ export const CompaniesApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get company by ID');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to get company by ID'
+          : null,
+      };
     } catch (error) {
       console.error(`Error fetching company with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -62,13 +77,22 @@ export const CompaniesApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get company by employer ID');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to get company by employer ID'
+          : null,
+      };
     } catch (error) {
       console.error(`Error fetching company with employer ID ${id}:`, error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -81,17 +105,25 @@ export const CompaniesApi = {
           'Content-Type': 'application/json',
         },
       });
+
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || 'Failed to get company for current employer'
-        );
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to get company for current employer'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching company for current employer:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -110,42 +142,92 @@ export const CompaniesApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to create company');
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to create company'
+          : null,
+      };
     } catch (error) {
       console.error('Error creating company:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
-  async updateCompany(id, companyData) {
+
+  async createCompanyForEmployer(companyData) {
     try {
-      const response = await fetch(`${BASE_URL}/companies/${id}`, {
-        method: 'PUT',
+      const response = await fetch(`${BASE_URL}/company_for_employer`, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify(companyData),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to update company');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to create company'
+          : null,
+      };
     } catch (error) {
-      console.error(`Error updating company with ID ${id}:`, error);
+      console.error(`Error creating company:`, error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
-  async deleteCompany(id) {
+
+  async updateCompany(companyId, companyData) {
     try {
-      const response = await fetch(`${BASE_URL}/companies/${id}`, {
+      const response = await fetch(`${BASE_URL}/companies/${companyId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(companyData),
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to update company'
+          : null,
+      };
+    } catch (error) {
+      console.error('Error updating company:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
+  async deleteCompany(companyId) {
+    try {
+      const response = await fetch(`${BASE_URL}/companies/${companyId}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${AuthApi.getToken()}`,
@@ -155,14 +237,22 @@ export const CompaniesApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to delete');
-      }
+      logServerResponse(response, data);
 
-      return true;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to delete company'
+          : null,
+      };
     } catch (error) {
-      console.error(`Error deleting company with ID ${id}:`, error);
+      console.error('Error deleting company:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

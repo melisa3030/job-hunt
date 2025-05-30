@@ -1,5 +1,6 @@
 import { AuthApi } from './authApi.js';
 import { BASE_URL } from '../constants/constants.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const ApplicationsApi = {
   async getApplicationsByEmployerId(employerId) {
@@ -17,19 +18,25 @@ export const ApplicationsApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching applications:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
+
   async getApplicationsForCompanyByCurrentEmployer() {
     try {
       const response = await fetch(
@@ -43,16 +50,26 @@ export const ApplicationsApi = {
         }
       );
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get applications');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to get applications'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching applications:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
+
   async getApplicationsByJobId(jobId) {
     try {
       const response = await fetch(`${BASE_URL}/applications/job/${jobId}`, {
@@ -65,17 +82,22 @@ export const ApplicationsApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(`Error fetching applications for job ${jobId}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -95,19 +117,25 @@ export const ApplicationsApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(
         `Error updating application status for ID ${applicationId}:`,
         error
       );
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

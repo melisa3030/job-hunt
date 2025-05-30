@@ -1,5 +1,6 @@
 import { AuthApi } from './authApi.js';
 import { BASE_URL } from '../constants/constants.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const TagsApi = {
   async getAllTags() {
@@ -13,15 +14,22 @@ export const TagsApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching tags:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -38,15 +46,22 @@ export const TagsApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error creating tag:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

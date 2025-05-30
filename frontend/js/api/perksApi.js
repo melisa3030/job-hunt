@@ -1,5 +1,6 @@
 import { AuthApi } from './authApi.js';
 import { BASE_URL } from '../constants/constants.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const PerksApi = {
   async getAllPerks() {
@@ -13,17 +14,22 @@ export const PerksApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching perks:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -40,17 +46,22 @@ export const PerksApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error creating perk:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -67,17 +78,22 @@ export const PerksApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error updating perk:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -92,17 +108,22 @@ export const PerksApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      logServerResponse(response, data);
 
-      return data;
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching job perks:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -116,18 +137,24 @@ export const PerksApi = {
         },
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
+      const data = response.status !== 204 ? await response.json() : null;
 
-      return true; // Return true on successful deletion
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data || true : null,
+        error: !response.ok
+          ? data?.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error deleting perk:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

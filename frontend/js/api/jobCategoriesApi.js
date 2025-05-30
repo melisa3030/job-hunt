@@ -1,6 +1,6 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
-
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 export const JobCategoriesApi = {
   async getAllJobCategories() {
     try {
@@ -12,16 +12,23 @@ export const JobCategoriesApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching job categories:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -35,18 +42,26 @@ export const JobCategoriesApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(`Error fetching job category with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
+
   async createCategory(categoryData) {
     try {
       const response = await fetch(`${BASE_URL}/job_categories`, {
@@ -58,18 +73,26 @@ export const JobCategoriesApi = {
         body: JSON.stringify(categoryData),
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(
-          data.message || `HTTP error! status: ${response.status}`
-        );
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error creating job category:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
+
   async updateCategory(categoryId, categoryData) {
     try {
       const response = await fetch(`${BASE_URL}/job_categories/${categoryId}`, {
@@ -81,15 +104,26 @@ export const JobCategoriesApi = {
         body: JSON.stringify(categoryData),
       });
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.message || 'Failed to update category');
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to update category'
+          : null,
+      };
     } catch (error) {
       console.error(
         `Error updating job category with ID ${categoryId}:`,
         error
       );
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -102,18 +136,27 @@ export const JobCategoriesApi = {
           'Content-Type': 'application/json',
         },
       });
-      const data = await response.json();
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to delete category');
-      }
-      return data;
+      const data = response.status !== 204 ? await response.json() : null;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || 'Failed to delete category'
+          : null,
+      };
     } catch (error) {
       console.error(
         `Error deleting job category with ID ${categoryId}:`,
         error
       );
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

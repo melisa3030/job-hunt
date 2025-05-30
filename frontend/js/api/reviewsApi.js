@@ -1,5 +1,6 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const ReviewsApi = {
   async getAllReviews() {
@@ -13,14 +14,21 @@ export const ReviewsApi = {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get reviews');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to get reviews' : null,
+      };
     } catch (error) {
       console.error('Error fetching reviews:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -35,14 +43,21 @@ export const ReviewsApi = {
       });
 
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch review');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to fetch review' : null,
+      };
     } catch (error) {
       console.error('Error fetching review:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -54,19 +69,27 @@ export const ReviewsApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify(data),
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to update review');
-      }
-      return data;
+      const resData = await response.json();
+
+      logServerResponse(response, resData);
+
+      return {
+        success: response.ok,
+        data: response.ok ? resData : null,
+        error: !response.ok
+          ? resData.message || 'Failed to update review'
+          : null,
+      };
     } catch (error) {
       console.error('Error updating review:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -80,15 +103,22 @@ export const ReviewsApi = {
         },
       });
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to delete review');
-      }
-      return data;
+      const data = response.status !== 204 ? await response.json() : null;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data?.message || 'Failed to delete review' : null,
+      };
     } catch (error) {
       console.error('Error deleting review:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

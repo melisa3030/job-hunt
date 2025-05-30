@@ -1,5 +1,6 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const JobsApi = {
   async getAllJobs() {
@@ -12,14 +13,23 @@ export const JobsApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching jobs:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -33,14 +43,23 @@ export const JobsApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching jobs for employer', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -54,14 +73,23 @@ export const JobsApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(`Error fetching job with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -76,14 +104,23 @@ export const JobsApi = {
         body: JSON.stringify(jobData),
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error('Error creating job:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -98,14 +135,23 @@ export const JobsApi = {
         body: JSON.stringify(jobData),
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(`Error updating job with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -118,15 +164,24 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
-      const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
-      }
-      return data;
+      const data = response.status !== 204 ? await response.json() : null;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data?.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
     } catch (error) {
       console.error(`Error deleting job with ID ${id}:`, error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };

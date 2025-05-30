@@ -1,5 +1,6 @@
 import { BASE_URL } from '../constants/constants.js';
 import { AuthApi } from './authApi.js';
+import { logServerResponse } from '../utils/logging/logServerResponse.js';
 
 export const UsersApi = {
   async getAllUsers() {
@@ -14,14 +15,20 @@ export const UsersApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to get users');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to get users' : null,
+      };
     } catch (error) {
       console.error('Error fetching users:', error);
-      throw error; // Rethrow to allow proper handling upstream
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -37,14 +44,20 @@ export const UsersApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch user');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to fetch user' : null,
+      };
     } catch (error) {
       console.error('Error fetching user:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -60,14 +73,20 @@ export const UsersApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch user');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to fetch user' : null,
+      };
     } catch (error) {
       console.error('Error fetching user:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -83,14 +102,20 @@ export const UsersApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch users');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to fetch users' : null,
+      };
     } catch (error) {
       console.error('Error fetching users:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -104,20 +129,25 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify(userData),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to create user');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to create user' : null,
+      };
     } catch (error) {
       console.error('Error creating user:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -131,20 +161,25 @@ export const UsersApi = {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
-
         body: JSON.stringify(data),
       });
 
       const resData = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, resData);
-        throw new Error(resData.message || 'Failed to update user');
-      }
-      return resData;
+      logServerResponse(response, resData);
+
+      return {
+        success: response.ok,
+        data: response.ok ? resData : null,
+        error: !response.ok ? resData.message || 'Failed to update user' : null,
+      };
     } catch (error) {
       console.error('Error updating user:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -158,18 +193,25 @@ export const UsersApi = {
         },
       });
 
-      const data = await response.json();
+      const data = response.status !== 204 ? await response.json() : null;
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to delete user');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data?.message || 'Failed to delete user' : null,
+      };
     } catch (error) {
       console.error('Error deleting user:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
+
   async getAllEmployers() {
     try {
       const response = await fetch(`${BASE_URL}/users/employers`, {
@@ -182,14 +224,22 @@ export const UsersApi = {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch employers');
-      }
-      return data;
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to fetch employers'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching employers:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -203,14 +253,23 @@ export const UsersApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch applicant');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to fetch applicant'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching applicant:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -224,14 +283,23 @@ export const UsersApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch applicants');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to fetch applicants'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching applicants:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 
@@ -245,14 +313,23 @@ export const UsersApi = {
         },
       });
       const data = await response.json();
-      if (!response.ok) {
-        console.error('Server response:', response.status, data);
-        throw new Error(data.message || 'Failed to fetch applicants');
-      }
-      return data;
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to fetch applicants'
+          : null,
+      };
     } catch (error) {
       console.error('Error fetching applicants:', error);
-      throw error;
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
     }
   },
 };
