@@ -1,4 +1,10 @@
 export function logServerResponse(response, data) {
-  console.log('Response status:', response.status);
-  console.log('Server response:', data);
+  // log a bit more robustly
+  console.group('Server Response for ' + response.url);
+  console.log('Status:', response.status);
+  console.log('Status Text:', response.statusText);
+  console.log('Response URL:', response.url);
+  console.log('Response Headers:', response.headers);
+  console.log('Response Data:', data);
+  console.groupEnd();
 }
