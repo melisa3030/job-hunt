@@ -66,6 +66,7 @@ class CompaniesService
 
   public function createCompany($data)
   {
+    // Returning the user object directly
     $user = Flight::get('user');
     if (!$user) {
       throw new Exception("User not authenticated", 401);
@@ -102,10 +103,71 @@ class CompaniesService
     }
 
     $userService = Flight::userService();
-    $userId = $user->id;
+    $employerId = $user->id;
     $userData = ['company_id' => $company['id']];
-    $userService->updateUser($userId, $userData, $user);
+    $userService->updateUser($employerId, $userData, $user);
 
+
+    return ["message" => "Company created successfully"];
+  }
+
+  public function createCompanyForUser($data)
+  {
+    // Get the authenticated user (should be ADMIN)
+    $authenticatedUser = Flight::get('user');
+    if (!$authenticatedUser) {
+      throw new Exception("User not authenticated", 401);
+    }
+
+    $authenticatedUserRole = Roles::from($authenticatedUser->role);
+    if ($authenticatedUserRole !== Roles::ADMIN) {
+      throw new Exception("Forbidden: Only admin can create a company for another user", 403);
+    }
+
+    $requiredFields = ['name', 'country', 'city', 'description', "employer_id"];
+    validateBody($requiredFields, $data);
+
+    $employerId = $data['employer_id'] ?? null;
+    if (!$employerId) {
+      throw new Exception("User ID is required", 400);
+    }
+
+    $employer = Flight::userService()->getUserById($employerId);
+    error_log("Employer details: " . print_r($employer, true));
+    if (!$employer) {
+      throw new Exception("User not found", 404);
+    }
+
+    // Check if the target user is an employer - access as array element, not object property
+    if ($employer['role'] !== Roles::EMPLOYER->value) {
+      throw new Exception("Company can only be created for an employer", 400);
+    }
+
+    $existingCompany = $this->dao->getByField('employer_id', $employerId);
+    if ($existingCompany) {
+      throw new Exception("This user already has a company", 400);
+    }
+
+    $data['employer_id'] = $employerId;
+
+    $company = $this->dao->getByField('name', $data['name']);
+    if ($company) {
+      throw new Exception("Company with this name already exists", 400);
+    }
+
+    if (!$this->dao->insert($data)) {
+      throw new Exception("Error creating company", 500);
+    }
+
+    // Get the created company and update the target user's company_id
+    $company = $this->dao->getCompanyByName($data['name']);
+    if (!$company) {
+      throw new Exception("Error retrieving created company", 500);
+    }
+
+    $userService = Flight::userService();
+    $userData = ['company_id' => $company['id']];
+    $userService->updateUser($employerId, $userData, $authenticatedUser);
 
     return ["message" => "Company created successfully"];
   }

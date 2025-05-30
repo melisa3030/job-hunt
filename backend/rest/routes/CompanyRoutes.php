@@ -74,6 +74,21 @@ Flight::route('POST /companies', function () {
   }
 });
 
+Flight::route('POST /company_for_employer', function () {
+  try {
+    Flight::authMiddleware()->authorizeRole(Roles::ADMIN);
+    $data = Flight::request()->data->getData();
+    $result = Flight::companiesService()->createCompanyForUser($data);
+    Flight::json($result, 201);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
+
 Flight::route('PUT /companies/@id', function ($id) {
   try {
     Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
