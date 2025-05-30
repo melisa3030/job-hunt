@@ -8,6 +8,10 @@ import { JobCategoriesApi } from './api/jobCategoriesApi.js';
 import { PerksApi } from './api/perksApi.js';
 import { JobTagsApi } from './api/jobTagsApi.js';
 import { TagsApi } from './api/tagsApi.js';
+import {
+  extractValidatedData,
+  extractValidatedSingleData,
+} from './utils/apiResponseUtils.js';
 
 export const renderCompanyTab = async (id, tab) => {
   const contentArea = document.getElementById('company-tab-content');
@@ -23,22 +27,30 @@ export const renderCompanyTab = async (id, tab) => {
     `;
 
     // Fetch company data and reviews
-    const [company, reviews] = await Promise.all([
+    const [companyResponse, reviewsResponse] = await Promise.all([
       CompaniesApi.getCompanyById(id),
       ReviewsApi.getAllReviews(),
     ]);
 
-    // Filter reviews for this company
+    // Validate API responses using utilities
+    const company = extractValidatedSingleData(companyResponse, 'company data');
+    if (!company) {
+      throw new Error('Failed to load company data');
+    }
+
+    const reviews = extractValidatedData(reviewsResponse, 'reviews');
+
+    // Filter reviews for this company with validation
     const companyReviews = reviews.filter(
-      (review) => review.company_id === parseInt(id)
+      (review) => review && review.company_id === parseInt(id) && review.rating
     );
 
     // Update company header information
     const companyNameElement = document.querySelector('.company__name');
     const companyRatingElement = document.querySelector('.company__rating');
 
-    if (companyNameElement && companyRatingElement) {
-      companyNameElement.textContent = company.name;
+    if (companyNameElement && companyRatingElement && company) {
+      companyNameElement.textContent = company.name || 'Unknown Company';
 
       const averageRating =
         companyReviews.length > 0
@@ -81,14 +93,17 @@ export const renderCompanyTab = async (id, tab) => {
 
 function renderAboutTab(company) {
   const aboutContent = document.querySelector('.company-about');
-  if (aboutContent) {
+  if (aboutContent && company) {
     aboutContent.innerHTML = /* HTML */ `
       <div class="company-details">
         <p class="company-description">
           ${company.description || 'No description available.'}
         </p>
         <div class="company-info">
-          <p><strong>Location:</strong> ${company.city}, ${company.country}</p>
+          <p>
+            <strong>Location:</strong> ${company.city || 'N/A'},
+            ${company.country || 'N/A'}
+          </p>
         </div>
       </div>
     `;
@@ -98,7 +113,7 @@ function renderAboutTab(company) {
 function renderReviewsTab(reviews) {
   const reviewsContent = document.querySelector('.company-reviews');
   if (reviewsContent) {
-    if (reviews.length === 0) {
+    if (!reviews || reviews.length === 0) {
       reviewsContent.innerHTML = '<p class="no-reviews">No reviews yet.</p>';
       return;
     }
@@ -106,10 +121,12 @@ function renderReviewsTab(reviews) {
     const reviewsList = document.createElement('div');
     reviewsList.className = 'reviews__list';
 
-    reviews.forEach((review) => {
-      const reviewCard = createReviewCard(review);
-      reviewsList.appendChild(reviewCard);
-    });
+    reviews
+      .filter((review) => review && review.rating) // Filter out invalid reviews
+      .forEach((review) => {
+        const reviewCard = createReviewCard(review);
+        reviewsList.appendChild(reviewCard);
+      });
 
     reviewsContent.innerHTML = '';
     reviewsContent.appendChild(reviewsList);
@@ -121,20 +138,36 @@ async function renderJobsTab(companyId) {
   if (jobsContent) {
     try {
       // Fetch all necessary data in parallel
-      const [jobs, jobTitles, categories, perks, jobTags, tags, companies] =
-        await Promise.all([
-          JobsApi.getAllJobs(),
-          JobTitlesApi.getAllJobTitles(),
-          JobCategoriesApi.getAllJobCategories(),
-          PerksApi.getAllPerks(),
-          JobTagsApi.getAllJobTags(),
-          TagsApi.getAllTags(),
-          CompaniesApi.getAllCompanies(),
-        ]);
+      const [
+        jobsResponse,
+        jobTitlesResponse,
+        categoriesResponse,
+        perksResponse,
+        jobTagsResponse,
+        tagsResponse,
+        companiesResponse,
+      ] = await Promise.all([
+        JobsApi.getAllJobs(),
+        JobTitlesApi.getAllJobTitles(),
+        JobCategoriesApi.getAllJobCategories(),
+        PerksApi.getAllPerks(),
+        JobTagsApi.getAllJobTags(),
+        TagsApi.getAllTags(),
+        CompaniesApi.getAllCompanies(),
+      ]);
 
-      // Filter jobs for this company
+      // Validate all API responses and extract data using utility
+      const jobs = extractValidatedData(jobsResponse, 'jobs');
+      const jobTitles = extractValidatedData(jobTitlesResponse, 'job titles');
+      const categories = extractValidatedData(categoriesResponse, 'categories');
+      const perks = extractValidatedData(perksResponse, 'perks');
+      const jobTags = extractValidatedData(jobTagsResponse, 'job tags');
+      const tags = extractValidatedData(tagsResponse, 'tags');
+      const companies = extractValidatedData(companiesResponse, 'companies');
+
+      // Filter jobs for this company with validation
       const companyJobs = jobs.filter(
-        (job) => job.company_id === parseInt(companyId)
+        (job) => job && job.company_id === parseInt(companyId)
       );
 
       if (companyJobs.length === 0) {
@@ -146,39 +179,64 @@ async function renderJobsTab(companyId) {
       const jobsList = document.createElement('div');
       jobsList.className = 'jobs-list company-jobs-list'; // Add specific class for company jobs
 
-      // Create maps for quick lookups
-      const jobTitlesMap = new Map(jobTitles.map((title) => [title.id, title]));
+      // Create maps for quick lookups with validation
+      const jobTitlesMap = new Map(
+        jobTitles
+          .filter((title) => title && title.id && title.name)
+          .map((title) => [title.id, title])
+      );
       const categoriesMap = new Map(
-        categories.map((category) => [category.id, category])
+        categories
+          .filter((category) => category && category.id && category.name)
+          .map((category) => [category.id, category])
       );
-      const perksMap = new Map(perks.map((perk) => [perk.id, perk]));
-      const tagsMap = new Map(tags.map((tag) => [tag.id, tag]));
+      const perksMap = new Map(
+        perks
+          .filter((perk) => perk && perk.id && perk.name)
+          .map((perk) => [perk.id, perk])
+      );
+      const tagsMap = new Map(
+        tags
+          .filter((tag) => tag && tag.id && tag.name)
+          .map((tag) => [tag.id, tag])
+      );
       const companiesMap = new Map(
-        companies.map((company) => [company.id, company])
+        companies
+          .filter((company) => company && company.id && company.name)
+          .map((company) => [company.id, company])
       );
 
-      // Create a map of job tags
+      // Create a map of job tags with validation
       const jobTagsMap = new Map();
-      jobTags.forEach((jobTag) => {
-        if (!jobTagsMap.has(jobTag.job_id)) {
-          jobTagsMap.set(jobTag.job_id, []);
-        }
-        jobTagsMap.get(jobTag.job_id).push(tagsMap.get(jobTag.tag_id));
-      });
+      jobTags
+        .filter((jobTag) => jobTag && jobTag.job_id && jobTag.tag_id)
+        .forEach((jobTag) => {
+          if (!jobTagsMap.has(jobTag.job_id)) {
+            jobTagsMap.set(jobTag.job_id, []);
+          }
+          const tag = tagsMap.get(jobTag.tag_id);
+          if (tag) {
+            jobTagsMap.get(jobTag.job_id).push(tag);
+          }
+        });
 
-      // Process and render each job
-      companyJobs.forEach((job) => {
-        job.job_title = jobTitlesMap.get(job.job_title_id);
-        job.category = categoriesMap.get(job.category_id);
-        if (job.perks) {
-          job.perks = job.perks.map((perk_id) => perksMap.get(perk_id));
-        }
-        job.tags = jobTagsMap.get(job.id) || [];
-        job.company = companiesMap.get(job.company_id);
+      // Process and render each job with validation
+      companyJobs
+        .filter((job) => job && job.id) // Filter out invalid jobs
+        .forEach((job) => {
+          job.job_title = jobTitlesMap.get(job.job_title_id);
+          job.category = categoriesMap.get(job.category_id);
+          if (job.perks && Array.isArray(job.perks)) {
+            job.perks = job.perks
+              .map((perk_id) => perksMap.get(perk_id))
+              .filter((perk) => perk); // Filter out undefined perks
+          }
+          job.tags = jobTagsMap.get(job.id) || [];
+          job.company = companiesMap.get(job.company_id);
 
-        const jobCard = createJobCard(job, job.job_title);
-        jobsList.appendChild(jobCard);
-      });
+          const jobCard = createJobCard(job, job.job_title);
+          jobsList.appendChild(jobCard);
+        });
 
       jobsContent.innerHTML = '';
       jobsContent.appendChild(jobsList);
