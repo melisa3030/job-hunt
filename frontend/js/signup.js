@@ -52,22 +52,32 @@ const submitSignupForm = async (form, errorMessage, state) => {
   }
 
   try {
-    await UsersApi.createUser(formData, state.isEmployer);
-    // Show success message and redirect to login
-    form.innerHTML = /* HTML */ `
-      <div class="alert alert-success">
-        ${state.isEmployer ? 'Employer' : 'Applicant'} registration successful!
-        Redirecting to log in...
-      </div>
-    `;
-    setTimeout(() => {
-      window.history.pushState({}, '', '/login');
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }, 1500);
+    const result = await UsersApi.createUser(formData, state.isEmployer);
+
+    // Check if API call was successful
+    if (result && result.success) {
+      // Show success message and redirect to login
+      form.innerHTML = /* HTML */ `
+        <div class="alert alert-success">
+          ${state.isEmployer ? 'Employer' : 'Applicant'} registration
+          successful! Redirecting to log in...
+        </div>
+      `;
+      setTimeout(() => {
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }, 1500);
+    } else {
+      // Handle API error response
+      const errorMsg = result?.error || 'Signup failed. Please try again.';
+      showError(errorMessage, errorMsg);
+    }
   } catch (error) {
-    console.error(error);
-    // User doesn't need to know the exact error message
-    showError(errorMessage, 'Signup failed');
+    console.error('Signup error:', error);
+    // Handle unexpected errors
+    const errorMsg =
+      error.message || 'An unexpected error occurred during signup.';
+    showError(errorMessage, errorMsg);
   }
 };
 
