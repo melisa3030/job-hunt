@@ -107,6 +107,7 @@ class UserService
         return ["message" => "User created successfully"];
     }
 
+    // TODO: if changing role from employer to applicant, check if the user is associated with a company
     public function updateUser($id, $data, $user)
     {
         $userRole = Roles::from($user->role);
