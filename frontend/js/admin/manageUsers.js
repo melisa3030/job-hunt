@@ -1,6 +1,10 @@
+/* global bootstrap */
 import { UsersApi } from '../api/usersApi.js';
 
 export const initManageAdminUsers = () => {
+  // ===========================
+  // === DOM Elements & State
+  // ===========================
   const usersList = document.getElementById('usersList');
   const loadingMessage = document.getElementById('loadingMessage');
   const noUsersMessage = document.getElementById('noUsersMessage');
@@ -36,222 +40,71 @@ export const initManageAdminUsers = () => {
 
   let currentPage = 1;
   const itemsPerPage = 10;
-
   let currentUsers = [];
   let filteredUsers = [];
 
-  // Event listeners
+  // ===========================
+  // === Event Listeners Setup
+  // ===========================
+  function setupEventListeners() {
+    searchBtn.addEventListener('click', filterUsers);
 
-  searchBtn.addEventListener('click', function () {
-    filterUsers();
-  });
-
-  searchInput.addEventListener('keyup', function (event) {
-    if (event.key === 'Enter') {
-      filterUsers();
-    }
-  });
-
-  createUserBtn.addEventListener('click', function () {
-    openCreateUserModal();
-  });
-
-  saveNewUser.addEventListener('click', function () {
-    if (createUserForm.checkValidity()) {
-      createUser();
-    } else {
-      createUserForm.reportValidity();
-    }
-  });
-
-  saveUserChanges.addEventListener('click', function () {
-    if (editUserForm.checkValidity()) {
-      updateUser();
-    } else {
-      editUserForm.reportValidity();
-    }
-  });
-
-  confirmDeleteUser.addEventListener('click', function () {
-    const userId = confirmDeleteUser.getAttribute('data-user-id');
-    deleteUser(userId);
-  });
-
-  // CRUD operations
-
-  async function createUser() {
-    const userData = {
-      name: createName.value,
-      username: createUsername.value,
-      email: createEmail.value,
-      password: createPassword.value,
-      role: createRole.value,
-    };
-
-    try {
-      showLoading(true);
-
-      const response = await UsersApi.createUser(userData);
-      console.log(response);
-
-      if (response && response.message) {
-        const modal = bootstrap.Modal.getInstance(createUserModal);
-        modal.hide();
-
-        // Reload all users from the server to latest data
-        await loadUsers();
-
-        showSuccess(response.message || 'User created successfully!');
-      } else {
-        throw new Error('Failed to create user');
+    searchInput.addEventListener('keyup', function (event) {
+      if (event.key === 'Enter') {
+        filterUsers();
       }
-    } catch (error) {
-      console.error('Error creating user:', error);
-      showError('Failed to create user. Please try again.');
-    } finally {
-      showLoading(false);
-    }
+    });
+
+    createUserBtn.addEventListener('click', openCreateUserModal);
+    saveNewUser.addEventListener('click', function () {
+      if (createUserForm.checkValidity()) {
+        createUser();
+      } else {
+        createUserForm.reportValidity();
+      }
+    });
+
+    saveUserChanges.addEventListener('click', function () {
+      if (editUserForm.checkValidity()) {
+        updateUser();
+      } else {
+        editUserForm.reportValidity();
+      }
+    });
+
+    confirmDeleteUser.addEventListener('click', function () {
+      const userId = confirmDeleteUser.getAttribute('data-user-id');
+      deleteUser(userId);
+    });
   }
 
+  // ===========================
+  // === Data Loading & Display
+  // ===========================
   async function loadUsers() {
     showLoading(true);
 
     try {
-      const users = await UsersApi.getAllUsers();
-      if (users) {
-        currentUsers = users;
+      const response = await UsersApi.getAllUsers();
+
+      if (response && response.success) {
+        currentUsers = response.data || [];
         filteredUsers = [...currentUsers];
         displayUsers(currentPage);
         setupPagination();
       } else {
-        throw new Error('Failed to fetch users data');
+        throw new Error(response?.error || 'Failed to fetch users data');
       }
     } catch (error) {
       console.error('Error loading users:', error);
-      showError('Failed to load users. Please try again later.');
+      showError(
+        error.message || 'Failed to load users. Please try again later.'
+      );
     } finally {
       showLoading(false);
     }
   }
 
-  async function deleteUser(userId) {
-    try {
-      await UsersApi.deleteUser(userId);
-
-      currentUsers = currentUsers.filter(
-        (user) => user.id.toString() !== userId.toString()
-      );
-      filteredUsers = filteredUsers.filter(
-        (user) => user.id.toString() !== userId.toString()
-      );
-
-      try {
-        const modal = bootstrap.Modal.getInstance(deleteUserModal);
-        if (modal) {
-          modal.hide();
-        } else {
-          // Manual closing
-          deleteUserModal.classList.remove('show');
-          deleteUserModal.style.display = 'none';
-          document.body.classList.remove('modal-open');
-
-          // Remove backdrop
-          const backdrop = document.querySelector('.modal-backdrop');
-          if (backdrop) {
-            backdrop.remove();
-          }
-        }
-      } catch (error) {
-        console.error('Error closing modal:', error);
-      }
-
-      displayUsers(currentPage);
-      setupPagination();
-
-      showSuccess('User deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      showError('Failed to delete user. Please try again.');
-    }
-  }
-
-  async function updateUser() {
-    const userId = editUserId.value;
-
-    const userData = {
-      name: editName.value,
-      email: editEmail.value,
-    };
-
-    if (editRole.value) {
-      userData.role = editRole.value;
-    }
-
-    try {
-      await UsersApi.updateUser(userId, userData);
-
-      // Update the local user data
-      const userIndex = currentUsers.findIndex(
-        (user) => user.id.toString() === userId.toString()
-      );
-      if (userIndex !== -1) {
-        // Update the user in our array
-        currentUsers[userIndex] = {
-          ...currentUsers[userIndex],
-          ...userData,
-        };
-
-        // Update filtered users if needed
-        const filteredIndex = filteredUsers.findIndex(
-          (user) => user.id.toString() === userId.toString()
-        );
-        if (filteredIndex !== -1) {
-          filteredUsers[filteredIndex] = {
-            ...filteredUsers[filteredIndex],
-            ...userData,
-          };
-        }
-      }
-
-      // Close modal
-      const modal = bootstrap.Modal.getInstance(editUserModal);
-      modal.hide();
-
-      // Update display
-      displayUsers(currentPage);
-
-      showSuccess('User updated successfully!');
-    } catch (error) {
-      console.error('Error updating user:', error);
-      showError('Failed to update user. Please try again.');
-    }
-  }
-
-  // Filter users based on search
-  async function filterUsers() {
-    const searchValue = searchInput.value.trim().toLowerCase();
-    const searchBy = searchType.value;
-
-    if (searchValue === '') {
-      filteredUsers = [...currentUsers];
-    } else {
-      // Client-side filtering
-      filteredUsers = currentUsers.filter((user) => {
-        if (searchBy === 'name') {
-          return user.name.toLowerCase().includes(searchValue);
-        } else if (searchBy === 'id') {
-          return user.id.toString().includes(searchValue);
-        }
-        return false;
-      });
-    }
-
-    currentPage = 1;
-    displayUsers(currentPage);
-    setupPagination();
-  }
-
-  // Display users for the current page
   function displayUsers(page) {
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = Math.min(startIndex + itemsPerPage, filteredUsers.length);
@@ -287,6 +140,7 @@ export const initManageAdminUsers = () => {
       usersList.appendChild(row);
     });
 
+    // Add event listeners to action buttons
     document.querySelectorAll('.edit-user').forEach((button) => {
       button.addEventListener('click', function () {
         const userId = this.getAttribute('data-user-id');
@@ -303,7 +157,171 @@ export const initManageAdminUsers = () => {
     });
   }
 
-  // Set up pagination
+  // ===========================
+  // === CRUD Operations
+  // ===========================
+  async function createUser() {
+    const userData = {
+      name: createName.value,
+      username: createUsername.value,
+      email: createEmail.value,
+      password: createPassword.value,
+      role: createRole.value,
+    };
+
+    try {
+      showLoading(true);
+
+      const response = await UsersApi.createUser(userData);
+
+      if (response && response.success) {
+        const modal = bootstrap.Modal.getInstance(createUserModal);
+        modal.hide();
+
+        await loadUsers();
+        showSuccess('User created successfully!');
+      } else {
+        const errorMessage = response?.error || 'Failed to create user';
+        showError(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error creating user:', error);
+      const errorMessage =
+        error.message || 'An unexpected error occurred while creating the user';
+      showError(errorMessage);
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function updateUser() {
+    const userId = editUserId.value;
+    const userData = {
+      name: editName.value,
+      email: editEmail.value,
+    };
+
+    if (editRole.value) {
+      userData.role = editRole.value;
+    }
+
+    try {
+      const response = await UsersApi.updateUser(userId, userData);
+
+      if (response && response.success) {
+        // Update local data
+        const userIndex = currentUsers.findIndex(
+          (user) => user.id.toString() === userId.toString()
+        );
+        if (userIndex !== -1) {
+          currentUsers[userIndex] = {
+            ...currentUsers[userIndex],
+            ...userData,
+          };
+
+          const filteredIndex = filteredUsers.findIndex(
+            (user) => user.id.toString() === userId.toString()
+          );
+          if (filteredIndex !== -1) {
+            filteredUsers[filteredIndex] = {
+              ...filteredUsers[filteredIndex],
+              ...userData,
+            };
+          }
+        }
+
+        const modal = bootstrap.Modal.getInstance(editUserModal);
+        modal.hide();
+
+        displayUsers(currentPage);
+        showSuccess('User updated successfully!');
+      } else {
+        const errorMessage = response?.error || 'Failed to update user';
+        showError(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      const errorMessage =
+        error.message || 'An unexpected error occurred while updating the user';
+      showError(errorMessage);
+    }
+  }
+
+  async function deleteUser(userId) {
+    try {
+      const response = await UsersApi.deleteUser(userId);
+
+      if (response && response.success) {
+        currentUsers = currentUsers.filter(
+          (user) => user.id.toString() !== userId.toString()
+        );
+        filteredUsers = filteredUsers.filter(
+          (user) => user.id.toString() !== userId.toString()
+        );
+
+        try {
+          const modal = bootstrap.Modal.getInstance(deleteUserModal);
+          if (modal) {
+            modal.hide();
+          } else {
+            // Manual closing
+            deleteUserModal.classList.remove('show');
+            deleteUserModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+
+            // Remove backdrop
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+              backdrop.remove();
+            }
+          }
+        } catch (error) {
+          console.error('Error closing modal:', error);
+        }
+
+        displayUsers(currentPage);
+        setupPagination();
+        showSuccess('User deleted successfully!');
+      } else {
+        const errorMessage = response?.error || 'Failed to delete user';
+        showError(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      const errorMessage =
+        error.message || 'An unexpected error occurred while deleting the user';
+      showError(errorMessage);
+    }
+  }
+
+  // ===========================
+  // === Search & Filtering
+  // ===========================
+  async function filterUsers() {
+    const searchValue = searchInput.value.trim().toLowerCase();
+    const searchBy = searchType.value;
+
+    if (searchValue === '') {
+      filteredUsers = [...currentUsers];
+    } else {
+      filteredUsers = currentUsers.filter((user) => {
+        if (searchBy === 'name') {
+          return user.name.toLowerCase().includes(searchValue);
+        } else if (searchBy === 'id') {
+          return user.id.toString().includes(searchValue);
+        }
+        return false;
+      });
+    }
+
+    currentPage = 1;
+    displayUsers(currentPage);
+    setupPagination();
+  }
+
+  // ===========================
+  // === Pagination
+  // ===========================
   function setupPagination() {
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     pagination.innerHTML = '';
@@ -358,7 +376,9 @@ export const initManageAdminUsers = () => {
     });
   }
 
-  // Modals
+  // ===========================
+  // === Modal Functions
+  // ===========================
   function openCreateUserModal() {
     // Reset the form
     createUserForm.reset();
@@ -420,7 +440,7 @@ export const initManageAdminUsers = () => {
       }
     } catch (error) {
       console.error('Error opening edit modal:', error);
-      showError('Could not load user details. ');
+      showError('Could not load user details.');
     }
   }
 
@@ -447,8 +467,9 @@ export const initManageAdminUsers = () => {
     }
   }
 
-  // Helper functions
-
+  // ===========================
+  // === Utility Functions
+  // ===========================
   function showLoading(isLoading) {
     if (isLoading) {
       loadingMessage.classList.remove('d-none');
@@ -510,6 +531,9 @@ export const initManageAdminUsers = () => {
     }
   }
 
-  // Initialize the page
+  // ===========================
+  // === Initialization
+  // ===========================
+  setupEventListeners();
   loadUsers();
 };
