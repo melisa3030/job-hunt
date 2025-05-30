@@ -47,6 +47,7 @@ class UserService
         if (!$user) {
             throw new Exception("User not found", 404);
         }
+        return $user;
     }
 
     public function getUserByName($name)
