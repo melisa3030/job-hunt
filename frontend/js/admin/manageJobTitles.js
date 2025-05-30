@@ -1,3 +1,4 @@
+/* global bootstrap */
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
 
 export const initManageAdminJobTitles = async () => {
@@ -20,63 +21,33 @@ export const initManageAdminJobTitles = async () => {
   let titleToDelete = null;
 
   // ===========================
-  // === Utility Functions
+  // === Event Listeners Setup
   // ===========================
+  function setupEventListeners() {
+    addTitleBtn.addEventListener('click', () => {
+      resetForm();
+      titleModal.show();
+    });
 
-  function showSuccess(message) {
-    alertsContainer.innerHTML = '';
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-success alert-dismissible fade show';
-    alert.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    alertsContainer.appendChild(alert);
-    setTimeout(() => {
-      alert.classList.remove('show');
-      setTimeout(() => alert.remove(), 300);
-    }, 5000);
-  }
-
-  function showError(message) {
-    alertsContainer.innerHTML = '';
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-danger alert-dismissible fade show';
-    alert.innerHTML = `
-      ${message}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    alertsContainer.appendChild(alert);
-    setTimeout(() => {
-      alert.classList.remove('show');
-      setTimeout(() => alert.remove(), 300);
-    }, 5000);
+    titleForm.addEventListener('submit', saveJobTitle);
   }
 
   // ===========================
-  // === Form Handlers
+  // === Data Loading & Display
   // ===========================
-
-  function resetForm() {
-    titleForm.reset();
-    titleIdInput.value = '';
-    modalTitle.textContent = 'Add Job Title';
-    titleForm.classList.remove('was-validated');
-  }
-
-  // ===========================
-  // === Data Loading
-  // ===========================
-
   async function loadJobTitles() {
     try {
       titlesTableBody.innerHTML =
         '<tr><td colspan="2" class="text-center">Loading...</td></tr>';
 
-      const titles = await JobTitlesApi.getAllJobTitles();
-      currentTitles = titles;
+      const response = await JobTitlesApi.getAllJobTitles();
 
-      renderJobTitles(titles);
+      if (response && response.success) {
+        currentTitles = response.data || [];
+        renderJobTitles(currentTitles);
+      } else {
+        throw new Error(response?.error || 'Failed to load job titles');
+      }
     } catch (error) {
       console.error('Error loading job titles:', error);
       showError('Failed to load job titles. Please try again.');
@@ -124,8 +95,79 @@ export const initManageAdminJobTitles = async () => {
   }
 
   // ===========================
-  // === Job Title Actions
+  // === CRUD Operations
   // ===========================
+  async function saveJobTitle(event) {
+    event.preventDefault();
+
+    if (!titleForm.checkValidity()) {
+      event.stopPropagation();
+      titleForm.classList.add('was-validated');
+      return;
+    }
+
+    try {
+      const titleData = {
+        name: titleNameInput.value.trim(),
+      };
+
+      const titleId = titleIdInput.value;
+      let response;
+
+      if (titleId) {
+        response = await JobTitlesApi.updateJobTitle(titleId, titleData);
+      } else {
+        response = await JobTitlesApi.createJobTitle(titleData);
+      }
+
+      if (response && response.success) {
+        showSuccess(
+          titleId
+            ? 'Job title updated successfully'
+            : 'Job title created successfully'
+        );
+        titleModal.hide();
+        await loadJobTitles();
+      } else {
+        throw new Error(response?.error || 'Failed to save job title');
+      }
+    } catch (error) {
+      console.error('Error saving job title:', error);
+      showError(`Failed to save job title: ${error.message}`);
+    }
+  }
+
+  async function deleteJobTitle() {
+    if (!titleToDelete) return;
+
+    try {
+      const response = await JobTitlesApi.deleteJobTitle(titleToDelete);
+
+      if (response && response.success) {
+        showSuccess('Job title deleted successfully');
+        await loadJobTitles();
+      } else {
+        throw new Error(response?.error || 'Failed to delete job title');
+      }
+    } catch (error) {
+      console.error('Error deleting job title:', error);
+      showError(
+        'Failed to delete job title. It may be in use by existing jobs.'
+      );
+    }
+
+    titleToDelete = null;
+  }
+
+  // ===========================
+  // === Modal & Form Functions
+  // ===========================
+  function resetForm() {
+    titleForm.reset();
+    titleIdInput.value = '';
+    modalTitle.textContent = 'Add Job Title';
+    titleForm.classList.remove('was-validated');
+  }
 
   function editJobTitle(titleId) {
     const title = currentTitles.find(
@@ -142,7 +184,6 @@ export const initManageAdminJobTitles = async () => {
   }
 
   function confirmDeleteJobTitle(titleId, titleName) {
-    // Create a delete confirmation modal dynamically if it doesn't exist
     let deleteModal = document.getElementById('delete-title-modal');
 
     if (!deleteModal) {
@@ -184,73 +225,42 @@ export const initManageAdminJobTitles = async () => {
     new bootstrap.Modal(deleteModal).show();
   }
 
-  async function deleteJobTitle() {
-    if (!titleToDelete) return;
-
-    try {
-      await JobTitlesApi.deleteJobTitle(titleToDelete);
-      showSuccess('Job title deleted successfully');
-      await loadJobTitles();
-    } catch (error) {
-      console.error('Error deleting job title:', error);
-      showError(
-        'Failed to delete job title. It may be in use by existing jobs.'
-      );
-    }
-
-    titleToDelete = null;
+  // ===========================
+  // === Utility Functions
+  // ===========================
+  function showSuccess(message) {
+    alertsContainer.innerHTML = '';
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-success alert-dismissible fade show';
+    alert.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertsContainer.appendChild(alert);
+    setTimeout(() => {
+      alert.classList.remove('show');
+      setTimeout(() => alert.remove(), 300);
+    }, 5000);
   }
 
-  async function saveJobTitle(event) {
-    event.preventDefault();
-
-    if (!titleForm.checkValidity()) {
-      event.stopPropagation();
-      titleForm.classList.add('was-validated');
-      return;
-    }
-
-    try {
-      const titleData = {
-        name: titleNameInput.value.trim(),
-      };
-
-      const titleId = titleIdInput.value;
-
-      if (titleId) {
-        await JobTitlesApi.updateJobTitle(titleId, titleData);
-        showSuccess('Job title updated successfully');
-      } else {
-        // Pass the titleData correctly to createJobTitle
-        await JobTitlesApi.createJobTitle(titleData);
-        showSuccess('Job title created successfully');
-      }
-
-      titleModal.hide();
-      await loadJobTitles();
-    } catch (error) {
-      console.error('Error saving job title:', error);
-      showError(`Failed to save job title: ${error.message}`);
-    }
-  }
-
-  // ===========================
-  // === Event Listeners
-  // ===========================
-
-  function setupEventListeners() {
-    addTitleBtn.addEventListener('click', () => {
-      resetForm();
-      titleModal.show();
-    });
-
-    titleForm.addEventListener('submit', saveJobTitle);
+  function showError(message) {
+    alertsContainer.innerHTML = '';
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-danger alert-dismissible fade show';
+    alert.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertsContainer.appendChild(alert);
+    setTimeout(() => {
+      alert.classList.remove('show');
+      setTimeout(() => alert.remove(), 300);
+    }, 5000);
   }
 
   // ===========================
   // === Initialization
   // ===========================
-
   await loadJobTitles();
   setupEventListeners();
 };
