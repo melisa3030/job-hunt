@@ -144,15 +144,21 @@ export async function renderReviews() {
     mainContainer.insertBefore(spinnerElement, reviewsListElement);
 
     // Fetch all necessary data in parallel
-    const [reviews, companies, jobTitles] = await Promise.all([
-      ReviewsApi.getAllReviews(),
-      CompaniesApi.getAllCompanies(),
-      JobTitlesApi.getAllJobTitles(),
-    ]);
+    const [reviewsResponse, companiesResponse, jobTitlesResponse] =
+      await Promise.all([
+        ReviewsApi.getAllReviews(),
+        CompaniesApi.getAllCompanies(),
+        JobTitlesApi.getAllJobTitles(),
+      ]);
 
     // Remove spinner and show list
     spinnerElement.remove();
     reviewsListElement.style.display = '';
+
+    // Validate API responses and extract data
+    const reviews = extractValidatedData(reviewsResponse, 'reviews');
+    const companies = extractValidatedData(companiesResponse, 'companies');
+    const jobTitles = extractValidatedData(jobTitlesResponse, 'job titles');
 
     if (!reviews || reviews.length === 0) {
       reviewsListElement.innerHTML =
@@ -164,9 +170,17 @@ export async function renderReviews() {
     allReviews = reviews;
     filteredReviews = [...allReviews];
 
-    // Create maps for quick lookups
-    jobTitlesMap = new Map(jobTitles.map((title) => [title.id, title]));
-    companiesMap = new Map(companies.map((company) => [company.id, company]));
+    // Create maps for quick lookups with validation
+    jobTitlesMap = new Map(
+      jobTitles
+        .filter((title) => title && title.id && title.name)
+        .map((title) => [title.id, title])
+    );
+    companiesMap = new Map(
+      companies
+        .filter((company) => company && company.id && company.name)
+        .map((company) => [company.id, company])
+    );
 
     // Display reviews (all reviews initially)
     displayReviews(filteredReviews);
@@ -185,5 +199,28 @@ export async function renderReviews() {
     reviewsListElement.style.display = '';
     reviewsListElement.innerHTML =
       '<div class="reviews__error">Failed to load reviews. Please try again later.</div>';
+  }
+}
+
+// Helper function to extract and validate API response data
+function extractValidatedData(response, dataType) {
+  if (!response || !response.success) {
+    console.warn(`Failed to load ${dataType}:`, response?.error);
+    return [];
+  }
+
+  if (!response.data) {
+    console.warn(`No data found for ${dataType}`);
+    return [];
+  }
+
+  // Handle different response structures
+  if (Array.isArray(response.data)) {
+    return response.data;
+  } else if (response.data.data && Array.isArray(response.data.data)) {
+    return response.data.data;
+  } else {
+    console.warn(`Unexpected data structure for ${dataType}:`, response.data);
+    return [];
   }
 }
