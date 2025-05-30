@@ -55,3 +55,14 @@ Flight::route('POST /bookmarked_jobs', function () {
     Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
+
+Flight::route('DELETE /bookmarked_jobs', function () {
+  try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT]);
+    $data = Flight::request()->data->getData();
+    $result = Flight::bookmarkedJobsService()->deleteBookmarkedJob($data);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    Flight::json(['error' => $e->getMessage()], $e->getCode() ?: 500);
+  }
+});
