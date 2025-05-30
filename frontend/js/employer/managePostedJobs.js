@@ -1,3 +1,4 @@
+/* global bootstrap */
 import { AuthApi } from '../api/authApi.js';
 import { JobsApi } from '../api/jobsApi.js';
 import { JobCategoriesApi } from '../api/jobCategoriesApi.js';
@@ -94,23 +95,50 @@ export const initManageEmployerJobs = async () => {
 
   async function loadFormOptions() {
     try {
-      const titles = await JobTitlesApi.getAllJobTitles();
-      const categories = await JobCategoriesApi.getAllJobCategories();
+      const titlesResponse = await JobTitlesApi.getAllJobTitles();
+      const categoriesResponse = await JobCategoriesApi.getAllJobCategories();
+
+      // Validate API responses
+      if (!titlesResponse || !titlesResponse.success || !titlesResponse.data) {
+        throw new Error('Failed to load job titles');
+      }
+      if (
+        !categoriesResponse ||
+        !categoriesResponse.success ||
+        !categoriesResponse.data
+      ) {
+        throw new Error('Failed to load job categories');
+      }
+
+      const titles = Array.isArray(titlesResponse.data)
+        ? titlesResponse.data
+        : Array.isArray(titlesResponse.data.data)
+          ? titlesResponse.data.data
+          : [];
+      const categories = Array.isArray(categoriesResponse.data)
+        ? categoriesResponse.data
+        : Array.isArray(categoriesResponse.data.data)
+          ? categoriesResponse.data.data
+          : [];
 
       jobTitleSelect.innerHTML = '<option value="">Select job title</option>';
       titles.forEach((title) => {
-        const option = document.createElement('option');
-        option.value = title.id;
-        option.textContent = title.name;
-        jobTitleSelect.appendChild(option);
+        if (title && title.id && title.name) {
+          const option = document.createElement('option');
+          option.value = title.id;
+          option.textContent = title.name;
+          jobTitleSelect.appendChild(option);
+        }
       });
 
       jobCategorySelect.innerHTML = '<option value="">Select category</option>';
       categories.forEach((category) => {
-        const option = document.createElement('option');
-        option.value = category.id;
-        option.textContent = category.name;
-        jobCategorySelect.appendChild(option);
+        if (category && category.id && category.name) {
+          const option = document.createElement('option');
+          option.value = category.id;
+          option.textContent = category.name;
+          jobCategorySelect.appendChild(option);
+        }
       });
     } catch (error) {
       console.error('Error loading form options:', error);
@@ -128,9 +156,15 @@ export const initManageEmployerJobs = async () => {
 
       const user = await AuthApi.getCurrentUser();
 
-      const company = await CompaniesApi.getCompanyByEmployerId(user.id);
+      const companyResponse = await CompaniesApi.getCompanyByEmployerId(
+        user.id
+      );
 
-      if (!company) {
+      if (
+        !companyResponse ||
+        !companyResponse.success ||
+        !companyResponse.data
+      ) {
         alertsContainer.style.display = 'block';
         alertsContainer.innerHTML = `
           <div class="alert alert-warning">
@@ -142,24 +176,62 @@ export const initManageEmployerJobs = async () => {
         return;
       }
 
-      const [jobs, jobTitles, allCategories] = await Promise.all([
-        JobsApi.getJobsForCurrentEmployer(user.id),
-        JobTitlesApi.getAllJobTitles(),
-        JobCategoriesApi.getAllJobCategories(),
-      ]);
+      const [jobsResponse, jobTitlesResponse, categoriesResponse] =
+        await Promise.all([
+          JobsApi.getJobsForCurrentEmployer(user.id),
+          JobTitlesApi.getAllJobTitles(),
+          JobCategoriesApi.getAllJobCategories(),
+        ]);
+
+      // Validate all API responses
+      if (!jobsResponse || !jobsResponse.success) {
+        throw new Error(jobsResponse?.error || 'Failed to load jobs');
+      }
+      if (!jobTitlesResponse || !jobTitlesResponse.success) {
+        throw new Error(
+          jobTitlesResponse?.error || 'Failed to load job titles'
+        );
+      }
+      if (!categoriesResponse || !categoriesResponse.success) {
+        throw new Error(
+          categoriesResponse?.error || 'Failed to load categories'
+        );
+      }
+
+      const jobs = Array.isArray(jobsResponse.data)
+        ? jobsResponse.data
+        : Array.isArray(jobsResponse.data?.data)
+          ? jobsResponse.data.data
+          : [];
+      const jobTitles = Array.isArray(jobTitlesResponse.data)
+        ? jobTitlesResponse.data
+        : Array.isArray(jobTitlesResponse.data?.data)
+          ? jobTitlesResponse.data.data
+          : [];
+      const allCategories = Array.isArray(categoriesResponse.data)
+        ? categoriesResponse.data
+        : Array.isArray(categoriesResponse.data?.data)
+          ? categoriesResponse.data.data
+          : [];
 
       const titleMap = new Map(
-        jobTitles.map((title) => [title.id, title.name])
+        jobTitles
+          .filter((title) => title && title.id && title.name)
+          .map((title) => [title.id, title.name])
       );
       const categoryMap = new Map(
-        allCategories.map((category) => [category.id, category.name])
+        allCategories
+          .filter((category) => category && category.id && category.name)
+          .map((category) => [category.id, category.name])
       );
 
-      currentJobs = jobs.map((job) => ({
-        ...job,
-        title: titleMap.get(job.job_title_id) || 'Unknown Title',
-        category_name: categoryMap.get(job.category_id) || 'Unknown Category',
-      }));
+      currentJobs = jobs
+        .filter((job) => job && job.id)
+        .map((job) => ({
+          ...job,
+          title: titleMap.get(job.job_title_id) || 'Unknown Title',
+          category_name: categoryMap.get(job.category_id) || 'Unknown Category',
+        }));
 
       let filteredJobs = [...currentJobs];
 
@@ -222,7 +294,7 @@ export const initManageEmployerJobs = async () => {
         });
       }
     } catch (error) {
-      showError(error);
+      showError(error.message || 'Failed to load jobs');
     } finally {
       loadingIndicator.style.display = 'none';
     }
@@ -260,10 +332,15 @@ export const initManageEmployerJobs = async () => {
   async function deleteJob() {
     if (!jobToDelete) return;
     try {
-      await JobsApi.deleteJob(jobToDelete);
-      deleteModal.hide();
-      await loadJobs(searchInput.value, statusFilter.value);
-      showSuccess('Job deleted successfully!');
+      const result = await JobsApi.deleteJob(jobToDelete);
+
+      if (result && result.success) {
+        deleteModal.hide();
+        await loadJobs(searchInput.value, statusFilter.value);
+        showSuccess('Job deleted successfully!');
+      } else {
+        throw new Error(result?.error || 'Failed to delete job');
+      }
     } catch (error) {
       console.error('Error deleting job:', error);
       deleteModal.hide();
@@ -309,15 +386,22 @@ export const initManageEmployerJobs = async () => {
       };
 
       const jobId = jobIdInput.value;
+      let result;
+
       if (jobId) {
-        await JobsApi.updateJob(jobId, jobData);
+        result = await JobsApi.updateJob(jobId, jobData);
       } else {
-        await JobsApi.createJob(jobData);
+        result = await JobsApi.createJob(jobData);
       }
-      jobModal.hide();
-      await loadJobs(searchInput.value, statusFilter.value);
-      const action = jobId ? 'updated' : 'created';
-      showSuccess(`Job successfully ${action}!`);
+
+      if (result && result.success) {
+        jobModal.hide();
+        await loadJobs(searchInput.value, statusFilter.value);
+        const action = jobId ? 'updated' : 'created';
+        showSuccess(`Job successfully ${action}!`);
+      } else {
+        throw new Error(result?.error || 'Failed to save job');
+      }
     } catch (error) {
       console.error('Error saving job:', error);
       formError.textContent =

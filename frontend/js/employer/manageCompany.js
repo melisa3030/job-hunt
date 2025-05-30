@@ -1,8 +1,12 @@
+/* global bootstrap */
 import { AuthApi } from '../api/authApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 
 export const initManageEmployerCompany = async () => {
-  // --- DOM Elements & State ---
+  // ===========================
+  // === DOM Elements & State
+  // ===========================
+
   const companyContainer = document.getElementById('company-container');
   const loadingIndicator = document.getElementById('loading-company');
   const formTemplate = document.getElementById('company-form-template');
@@ -48,18 +52,27 @@ export const initManageEmployerCompany = async () => {
         companyData
       );
 
-      if (result) {
-        currentCompany = await CompaniesApi.getCompanyById(currentCompany.id);
+      if (result && result.success) {
+        const companyResponse = await CompaniesApi.getCompanyById(
+          currentCompany.id
+        );
+
+        if (
+          companyResponse &&
+          companyResponse.success &&
+          companyResponse.data
+        ) {
+          currentCompany = companyResponse.data;
+        } else {
+          throw new Error('Failed to retrieve updated company data');
+        }
 
         closeModal('edit-company-modal');
-
         renderCompanyDetails();
-
         await AuthApi.refreshCurrentUser();
-
         showSuccess('Company updated successfully');
       } else {
-        throw new Error('Failed to update company');
+        throw new Error(result?.error || 'Failed to update company');
       }
     } catch (error) {
       console.error('Error updating company:', error);
@@ -77,18 +90,14 @@ export const initManageEmployerCompany = async () => {
 
       const result = await CompaniesApi.deleteCompany(currentCompany.id);
 
-      if (result) {
+      if (result && result.success) {
         currentCompany = null;
-
         closeModal('delete-company-modal');
-
         renderCompanyForm();
-
         await AuthApi.refreshCurrentUser();
-
         showSuccess('Company deleted successfully');
       } else {
-        throw new Error('Failed to delete company');
+        throw new Error(result?.error || 'Failed to delete company');
       }
     } catch (error) {
       console.error('Error deleting company:', error);
@@ -134,18 +143,29 @@ export const initManageEmployerCompany = async () => {
       showLoading(true);
       const result = await CompaniesApi.createCompany(companyData);
 
-      if (result) {
+      if (result && result.success) {
         const user = await AuthApi.getCurrentUser();
         if (user) {
-          currentCompany = await CompaniesApi.getCompanyForCurrentEmployer(
-            user.id
-          );
-          await AuthApi.refreshCurrentUser();
-          renderCompanyDetails();
-          showSuccess('Company created successfully');
+          const companyResponse =
+            await CompaniesApi.getCompanyForCurrentEmployer();
+
+          if (
+            companyResponse &&
+            companyResponse.success &&
+            companyResponse.data
+          ) {
+            currentCompany = companyResponse.data;
+            await AuthApi.refreshCurrentUser();
+            renderCompanyDetails();
+            showSuccess('Company created successfully');
+          } else {
+            throw new Error('Failed to retrieve company details');
+          }
         } else {
-          throw new Error('Failed to retrieve company details');
+          throw new Error('Failed to get current user');
         }
+      } else {
+        throw new Error(result?.error || 'Failed to create company');
       }
     } catch (error) {
       console.error('Error creating company:', error);
@@ -394,13 +414,23 @@ export const initManageEmployerCompany = async () => {
       const user = await AuthApi.getCurrentUser();
 
       if (user) {
-        const company = await CompaniesApi.getCompanyByEmployerId(user.id);
-        if (company) {
-          currentCompany = company;
+        const companyResponse = await CompaniesApi.getCompanyByEmployerId(
+          user.id
+        );
+
+        if (
+          companyResponse &&
+          companyResponse.success &&
+          companyResponse.data
+        ) {
+          currentCompany = companyResponse.data;
           renderCompanyDetails();
         } else {
+          // No company found or error occurred
           renderCompanyForm();
         }
+      } else {
+        throw new Error('No user found');
       }
     } catch (error) {
       console.error('Error loading company data:', error);

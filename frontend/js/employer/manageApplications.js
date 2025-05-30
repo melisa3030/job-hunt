@@ -1,3 +1,4 @@
+/* global bootstrap */
 import { AuthApi } from '../api/authApi.js';
 import { JobsApi } from '../api/jobsApi.js';
 import { ApplicationsApi } from '../api/applicationsApi.js';
@@ -92,23 +93,57 @@ export const initManageEmployerApplications = async () => {
       }
 
       // Fetch data in parallel
-      const [applications, jobTitles, jobs] = await Promise.all([
-        ApplicationsApi.getApplicationsForCompanyByCurrentEmployer(),
-        jobTitlesData.loaded
-          ? Promise.resolve(jobTitlesData.items)
-          : JobTitlesApi.getAllJobTitles(),
-        jobsData.loaded
-          ? Promise.resolve(jobsData.items)
-          : JobsApi.getJobsForCurrentEmployer(),
-      ]);
+      const [applicationsResponse, jobTitlesResponse, jobsResponse] =
+        await Promise.all([
+          ApplicationsApi.getApplicationsForCompanyByCurrentEmployer(),
+          jobTitlesData.loaded
+            ? Promise.resolve({ success: true, data: jobTitlesData.items })
+            : JobTitlesApi.getAllJobTitles(),
+          jobsData.loaded
+            ? Promise.resolve({ success: true, data: jobsData.items })
+            : JobsApi.getJobsForCurrentEmployer(),
+        ]);
+
+      // Validate API responses
+      if (!applicationsResponse || !applicationsResponse.success) {
+        throw new Error(
+          applicationsResponse?.error || 'Failed to load applications'
+        );
+      }
+      if (!jobTitlesResponse || !jobTitlesResponse.success) {
+        throw new Error(
+          jobTitlesResponse?.error || 'Failed to load job titles'
+        );
+      }
+      if (!jobsResponse || !jobsResponse.success) {
+        throw new Error(jobsResponse?.error || 'Failed to load jobs');
+      }
+
+      const applications = Array.isArray(applicationsResponse.data)
+        ? applicationsResponse.data
+        : Array.isArray(applicationsResponse.data?.data)
+          ? applicationsResponse.data.data
+          : [];
+      const jobTitles = Array.isArray(jobTitlesResponse.data)
+        ? jobTitlesResponse.data
+        : Array.isArray(jobTitlesResponse.data?.data)
+          ? jobTitlesResponse.data.data
+          : [];
+      const jobs = Array.isArray(jobsResponse.data)
+        ? jobsResponse.data
+        : Array.isArray(jobsResponse.data?.data)
+          ? jobsResponse.data.data
+          : [];
 
       // Cache job data for future use
       if (!jobTitlesData.loaded) {
         jobTitlesData = {
           loaded: true,
-          items: jobTitles,
+          items: jobTitles.filter((title) => title && title.id && title.name),
           map: new Map(
-            jobTitles.map((title) => [title.id.toString(), title.name])
+            jobTitles
+              .filter((title) => title && title.id && title.name)
+              .map((title) => [title.id.toString(), title.name])
           ),
         };
       }
@@ -116,37 +151,50 @@ export const initManageEmployerApplications = async () => {
       if (!jobsData.loaded) {
         jobsData = {
           loaded: true,
-          items: jobs,
-          map: new Map(jobs.map((job) => [job.id.toString(), job])),
+          items: jobs.filter((job) => job && job.id),
+          map: new Map(
+            jobs
+              .filter((job) => job && job.id)
+              .map((job) => [job.id.toString(), job])
+          ),
         };
       }
 
       // Enrich applications with job and applicant details
       const enrichedApplications = await Promise.all(
-        applications.map(async (app) => {
-          try {
-            // Get job details
-            const job = jobsData.map.get(app.job_id.toString());
-            const jobTitle = job
-              ? jobTitlesData.map.get(job.job_title_id.toString())
-              : null;
-            const applicant = await UsersApi.getApplicantById(app.applicant_id);
+        applications
+          .filter((app) => app && app.id && app.job_id && app.applicant_id)
+          .map(async (app) => {
+            try {
+              // Get job details
+              const job = jobsData.map.get(app.job_id.toString());
+              const jobTitle = job
+                ? jobTitlesData.map.get(job.job_title_id?.toString())
+                : null;
 
-            return {
-              ...app,
-              job_title: jobTitle || 'Unknown Position',
-              applicant_name: applicant?.name || 'Unknown Applicant',
-              applicant_email: applicant?.email || 'No email',
-            };
-          } catch (error) {
-            return {
-              ...app,
-              job_title: 'Data unavailable',
-              applicant_name: 'Data unavailable',
-              applicant_email: 'Data unavailable',
-            };
-          }
-        })
+              const applicantResponse = await UsersApi.getApplicantById(
+                app.applicant_id
+              );
+              const applicant = applicantResponse?.success
+                ? applicantResponse.data
+                : null;
+
+              return {
+                ...app,
+                job_title: jobTitle || 'Unknown Position',
+                applicant_name: applicant?.name || 'Unknown Applicant',
+                applicant_email: applicant?.email || 'No email',
+              };
+            } catch (error) {
+              console.warn('Error enriching application data:', error);
+              return {
+                ...app,
+                job_title: 'Data unavailable',
+                applicant_name: 'Data unavailable',
+                applicant_email: 'Data unavailable',
+              };
+            }
+          })
       );
 
       // Store applications and apply filters
@@ -196,10 +244,15 @@ export const initManageEmployerApplications = async () => {
       applicationStatus.value = application.status;
 
       // Get additional details
-      const applicant = await UsersApi.getApplicantById(
+      const applicantResponse = await UsersApi.getApplicantById(
         application.applicant_id
       );
-      const job = await JobsApi.getJobById(application.job_id);
+      const jobResponse = await JobsApi.getJobById(application.job_id);
+
+      const applicant = applicantResponse?.success
+        ? applicantResponse.data
+        : null;
+      const job = jobResponse?.success ? jobResponse.data : null;
 
       // Update modal content
       applicantDetails.innerHTML = `
@@ -238,12 +291,17 @@ export const initManageEmployerApplications = async () => {
       }
 
       // Update status and reload
-      await ApplicationsApi.updateApplicationStatus(
+      const result = await ApplicationsApi.updateApplicationStatus(
         currentApplicationId,
         newStatus
       );
-      applicationModal.hide();
-      await loadApplications(searchInput.value, statusFilter.value);
+
+      if (result && result.success) {
+        applicationModal.hide();
+        await loadApplications(searchInput.value, statusFilter.value);
+      } else {
+        throw new Error(result?.error || 'Failed to update status');
+      }
     } catch (error) {
       console.error('Error updating application status:', error);
       statusError.textContent =
