@@ -1,3 +1,5 @@
+/* global bootstrap */
+
 import { JobsApi } from '../api/jobsApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
