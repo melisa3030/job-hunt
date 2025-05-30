@@ -1,6 +1,7 @@
 /* global bootstrap */
 import { CompaniesApi } from '../api/companiesApi.js';
 import { UsersApi } from '../api/usersApi.js';
+import { extractValidatedData } from '../utils/apiResponseUtils.js';
 
 export async function initManageAdminCompanies() {
   // ===========================
@@ -87,47 +88,26 @@ export async function initManageAdminCompanies() {
   }
 
   function processEmployersData(employersResponse) {
-    if (
-      employersResponse &&
-      employersResponse.success &&
-      employersResponse.data
-    ) {
-      if (Array.isArray(employersResponse.data)) {
-        employersResponse.data.forEach((employer) => {
-          employers.set(employer.id, employer);
-        });
-      } else if (
-        employersResponse.data.data &&
-        Array.isArray(employersResponse.data.data)
-      ) {
-        employersResponse.data.data.forEach((employer) => {
-          employers.set(employer.id, employer);
-        });
-      }
-    } else {
-      console.warn('No employers data available or in unexpected format');
-    }
+    const employersData = extractValidatedData(employersResponse, 'employers');
+    employersData
+      .filter(
+        (employer) =>
+          employer && employer.id && typeof employer.id !== 'undefined'
+      )
+      .forEach((employer) => {
+        employers.set(employer.id, employer);
+      });
   }
 
   function processCompaniesData(companiesResponse) {
-    if (
-      companiesResponse &&
-      companiesResponse.success &&
-      companiesResponse.data
-    ) {
-      if (Array.isArray(companiesResponse.data)) {
-        currentCompanies = companiesResponse.data;
-      } else if (
-        companiesResponse.data.data &&
-        Array.isArray(companiesResponse.data.data)
-      ) {
-        currentCompanies = companiesResponse.data.data;
-      } else {
-        currentCompanies = [];
+    const companiesData = extractValidatedData(companiesResponse, 'companies');
+    currentCompanies = companiesData.filter((company) => {
+      if (!company || typeof company.id === 'undefined' || !company.name) {
+        console.warn('Invalid company data:', company);
+        return false;
       }
-    } else {
-      currentCompanies = [];
-    }
+      return true;
+    });
   }
 
   function populateEmployerSelect() {
