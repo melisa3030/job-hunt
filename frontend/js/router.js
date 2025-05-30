@@ -125,14 +125,19 @@ const urlRoutes = {
 
   // Applicant routes
   '/my-applications': {
-    template: '/views/applicant/manageApplications.html',
+    template: '/views/applicant/myApplications.html',
     title: 'My Applications | ' + urlPageTitle,
     description: 'View My Job Applications',
   },
-  '/bookmarks': {
-    template: '/views/applicant/bookmarks.html',
-    title: 'Saved Jobs | ' + urlPageTitle,
-    description: 'View Saved Jobs',
+  '/my-reviews': {
+    template: '/views/applicant/myReviews.html',
+    title: 'My Reviews | ' + urlPageTitle,
+    description: 'View My Company Reviews',
+  },
+  '/my-bookmarks': {
+    template: '/views/applicant/myBookmarks.html',
+    title: 'Bookmarked Jobs | ' + urlPageTitle,
+    description: 'View bookmarked Jobs',
   },
 };
 

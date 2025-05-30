@@ -28,7 +28,8 @@ async function Navbar() {
       APPLICANT: [
         `<li><a class="dropdown-item" href="/profile" data-link>Profile</a></li>`,
         `<li><a class="dropdown-item" href="/my-applications" data-link>My Applications</a></li>`,
-        `<li><a class="dropdown-item" href="/bookmarks" data-link>Saved Jobs</a></li>`,
+        `<li><a class="dropdown-item" href="/my-reviews" data-link>My Reviews</a></li>`,
+        `<li><a class="dropdown-item" href="/my-bookmarks" data-link>My Bookmarks</a></li>`,
       ],
     };
 
