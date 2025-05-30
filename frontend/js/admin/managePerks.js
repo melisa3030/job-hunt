@@ -1,3 +1,4 @@
+/* global bootstrap */
 import { PerksApi } from '../api/perksApi.js';
 
 export const initManageAdminPerks = async () => {
