@@ -8,6 +8,7 @@ import { TagsApi } from './api/tagsApi.js';
 import { createJobCard } from './components/jobCard.js';
 import { CompaniesApi } from './api/companiesApi.js';
 import { debounceFilterInput } from './utils/debounceFilterInput.js';
+import { extractValidatedData } from './utils/apiResponseUtils.js';
 
 let allJobs = [];
 
@@ -91,14 +92,14 @@ export async function renderJobsWithFilters() {
 
     // Fetch all necessary data in parallel
     const [
-      jobs,
-      jobTitles,
-      categories,
-      perks,
-      jobTags,
-      tags,
-      companies,
-      jobPerks,
+      jobsResponse,
+      jobTitlesResponse,
+      categoriesResponse,
+      perksResponse,
+      jobTagsResponse,
+      tagsResponse,
+      companiesResponse,
+      jobPerksResponse,
     ] = await Promise.all([
       JobsApi.getAllJobs(),
       JobTitlesApi.getAllJobTitles(),
@@ -110,31 +111,72 @@ export async function renderJobsWithFilters() {
       JobPerksApi.getJobPerks(),
     ]);
 
-    allJobs = jobs || [];
+    // Validate all API responses and extract data using utility
+    const jobs = extractValidatedData(jobsResponse, 'jobs');
+    const jobTitles = extractValidatedData(jobTitlesResponse, 'job titles');
+    const categories = extractValidatedData(categoriesResponse, 'categories');
+    const perks = extractValidatedData(perksResponse, 'perks');
+    const jobTags = extractValidatedData(jobTagsResponse, 'job tags');
+    const tags = extractValidatedData(tagsResponse, 'tags');
+    const companies = extractValidatedData(companiesResponse, 'companies');
+    const jobPerks = extractValidatedData(jobPerksResponse, 'job perks');
 
-    jobTitlesMap = new Map(jobTitles.map((title) => [title.id, title]));
-    categoriesMap = new Map(
-      categories.map((category) => [category.id, category])
+    allJobs = jobs;
+
+    // Build lookup maps with validation
+    jobTitlesMap = new Map(
+      jobTitles
+        .filter((title) => title && title.id && title.name)
+        .map((title) => [title.id, title])
     );
-    perksMap = new Map(perks.map((perk) => [perk.id, perk]));
-    tagsMap = new Map(tags.map((tag) => [tag.id, tag]));
-    companiesMap = new Map(companies.map((company) => [company.id, company]));
+    categoriesMap = new Map(
+      categories
+        .filter((category) => category && category.id && category.name)
+        .map((category) => [category.id, category])
+    );
+    perksMap = new Map(
+      perks
+        .filter((perk) => perk && perk.id && perk.name)
+        .map((perk) => [perk.id, perk])
+    );
+    tagsMap = new Map(
+      tags
+        .filter((tag) => tag && tag.id && tag.name)
+        .map((tag) => [tag.id, tag])
+    );
+    companiesMap = new Map(
+      companies
+        .filter((company) => company && company.id && company.name)
+        .map((company) => [company.id, company])
+    );
 
+    // Build job tags map with validation
     jobTagsMap = new Map();
-    jobTags.forEach((jobTag) => {
-      if (!jobTagsMap.has(jobTag.job_id)) {
-        jobTagsMap.set(jobTag.job_id, []);
-      }
-      jobTagsMap.get(jobTag.job_id).push(tagsMap.get(jobTag.tag_id));
-    });
+    jobTags
+      .filter((jobTag) => jobTag && jobTag.job_id && jobTag.tag_id)
+      .forEach((jobTag) => {
+        if (!jobTagsMap.has(jobTag.job_id)) {
+          jobTagsMap.set(jobTag.job_id, []);
+        }
+        const tag = tagsMap.get(jobTag.tag_id);
+        if (tag) {
+          jobTagsMap.get(jobTag.job_id).push(tag);
+        }
+      });
 
+    // Build job perks map with validation
     jobPerksMap = new Map();
-    jobPerks.forEach((jobPerk) => {
-      if (!jobPerksMap.has(jobPerk.job_id)) {
-        jobPerksMap.set(jobPerk.job_id, []);
-      }
-      jobPerksMap.get(jobPerk.job_id).push(perksMap.get(jobPerk.perk_id));
-    });
+    jobPerks
+      .filter((jobPerk) => jobPerk && jobPerk.job_id && jobPerk.perk_id)
+      .forEach((jobPerk) => {
+        if (!jobPerksMap.has(jobPerk.job_id)) {
+          jobPerksMap.set(jobPerk.job_id, []);
+        }
+        const perk = perksMap.get(jobPerk.perk_id);
+        if (perk) {
+          jobPerksMap.get(jobPerk.job_id).push(perk);
+        }
+      });
 
     // Display all jobs initially
     displayJobs(allJobs);
@@ -165,22 +207,24 @@ function displayJobs(jobsToDisplay) {
   }
 
   // Process and render each job
-  jobsToDisplay.forEach((job) => {
-    // Create a new job object to avoid modifying the original
-    const processedJob = { ...job };
+  jobsToDisplay
+    .filter((job) => job && job.id) // Filter out invalid jobs
+    .forEach((job) => {
+      // Create a new job object to avoid modifying the original
+      const processedJob = { ...job };
 
-    // Enhance job with related data
-    processedJob.job_title = jobTitlesMap.get(job.job_title_id);
-    processedJob.category = categoriesMap.get(job.category_id);
-    processedJob.tags = jobTagsMap.get(job.id) || [];
-    processedJob.company = companiesMap.get(job.company_id);
+      // Enhance job with related data
+      processedJob.job_title = jobTitlesMap.get(job.job_title_id);
+      processedJob.category = categoriesMap.get(job.category_id);
+      processedJob.tags = jobTagsMap.get(job.id) || [];
+      processedJob.company = companiesMap.get(job.company_id);
 
-    // Get perks for this job from the jobPerksMap
-    processedJob.perks = jobPerksMap.get(job.id) || [];
+      // Get perks for this job from the jobPerksMap
+      processedJob.perks = jobPerksMap.get(job.id) || [];
 
-    const jobCard = createJobCard(processedJob, processedJob.job_title);
-    jobsListElement.appendChild(jobCard);
-  });
+      const jobCard = createJobCard(processedJob, processedJob.job_title);
+      jobsListElement.appendChild(jobCard);
+    });
 }
 
 // Apply all active filters and update the displayed jobs
