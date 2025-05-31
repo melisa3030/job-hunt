@@ -30,6 +30,7 @@ export const initManageAdminUsers = () => {
   const editUserId = document.getElementById('editUserId');
   const editName = document.getElementById('editName');
   const editEmail = document.getElementById('editEmail');
+  const editPassword = document.getElementById('editPassword');
   const editRole = document.getElementById('editRole');
   const saveUserChanges = document.getElementById('saveUserChanges');
 
@@ -200,6 +201,11 @@ export const initManageAdminUsers = () => {
       name: editName.value,
       email: editEmail.value,
     };
+
+    // Only include password if admin provided a new one
+    if (editPassword.value.trim() !== '') {
+      userData.password = editPassword.value;
+    }
 
     if (editRole.value) {
       userData.role = editRole.value;
@@ -390,7 +396,7 @@ export const initManageAdminUsers = () => {
       // Try Bootstrap 5 Modal constructor first
       const bsModal = new bootstrap.Modal(createUserModal);
       bsModal.show();
-    } catch (error) {
+    } catch {
       // Fallback to showing manually
       createUserModal.classList.add('show');
       createUserModal.style.display = 'block';
@@ -416,13 +422,15 @@ export const initManageAdminUsers = () => {
         editUserId.value = user.id;
         editName.value = user.name;
         editEmail.value = user.email;
+        // Admin should not be able to see the user password
+        editPassword.value = ''; // Clear password field
         editRole.value = user.role || 'APPLICANT';
 
         try {
           // Try Bootstrap 5 Modal constructor first
           const bsModal = new bootstrap.Modal(editUserModal);
           bsModal.show();
-        } catch (error) {
+        } catch {
           // Fallback to showing manually
           editUserModal.classList.add('show');
           editUserModal.style.display = 'block';
@@ -452,7 +460,7 @@ export const initManageAdminUsers = () => {
       // Try Bootstrap 5 Modal constructor first
       const bsModal = new bootstrap.Modal(deleteUserModal);
       bsModal.show();
-    } catch (error) {
+    } catch {
       // Fallback to showing manually
       deleteUserModal.classList.add('show');
       deleteUserModal.style.display = 'block';
