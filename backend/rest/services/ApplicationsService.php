@@ -93,6 +93,12 @@ class ApplicationsService
     $userExists = Flight::userService()->getUserById($user->id);
     $jobExists = Flight::jobsService()->getJobById($job_id);
 
+    // if user already applied for this job, return an error
+    $existingApplication = $this->applicationsDao->getByJobIdAndApplicantId($job_id, $user->id);
+    if ($existingApplication) {
+      throw new Exception("You have already applied for this job", 400);
+    }
+
     if (!$userExists) {
       throw new Exception("User not found", 404);
     }
