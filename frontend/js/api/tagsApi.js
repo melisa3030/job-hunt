@@ -64,4 +64,67 @@ export const TagsApi = {
       };
     }
   },
+
+  async updateTag(tagId, tagData) {
+    try {
+      const response = await fetch(`${BASE_URL}/tags/${tagId}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tagData),
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
+  async deleteTag(tagId) {
+    try {
+      const response = await fetch(`${BASE_URL}/tags/${tagId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data || true : null,
+        error: !response.ok
+          ? data?.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
 };
