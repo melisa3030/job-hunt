@@ -44,3 +44,18 @@ Flight::route('POST /job_tags', function () {
     Flight::jsonHalt(["message" => $e->getMessage()], $code);
   }
 });
+
+Flight::route('DELETE /job_tags', function () {
+  try {
+    Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
+    $data = Flight::request()->data->getData();
+    $result = Flight::jobTagsService()->deleteJobTag($data);
+    Flight::json($result, 200);
+  } catch (Exception $e) {
+    $code = $e->getCode();
+    if ($code < 100 || $code > 599) {
+      $code = 500;
+    }
+    Flight::jsonHalt(["message" => $e->getMessage()], $code);
+  }
+});
