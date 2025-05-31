@@ -60,12 +60,14 @@ class TagsService
       throw new Exception("Tag not found", 404);
     }
 
-    if ($this->tagAlreadyExists($data['name'])) {
-      throw new Exception("Tag already exists", 409);
-    }
-
     $requiredFields = ['name'];
     validateBody($requiredFields, $data);
+
+    // Check if another tag with the same name exists (excluding current tag)
+    $existingTag = $this->dao->getByName($data['name']);
+    if ($existingTag && $existingTag['id'] != $id) {
+      throw new Exception("Tag already exists", 409);
+    }
 
     if (!$this->dao->update($id, $data)) {
       throw new Exception("Error updating tag", 500);
