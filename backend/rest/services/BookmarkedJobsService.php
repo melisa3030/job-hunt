@@ -16,15 +16,10 @@ class BookmarkedJobsService
   {
     return $this->bookmarkedJobsDao->getAll();
   }
-
   public function getBookmarkedJobsByUserId($user_id)
   {
     $bookmarkedJobs = $this->bookmarkedJobsDao->getByUserId($user_id);
-    if ($bookmarkedJobs) {
-      return $bookmarkedJobs;
-    } else {
-      throw new Exception("No bookmarked jobs found for user", 404);
-    }
+    return $bookmarkedJobs ? $bookmarkedJobs : [];
   }
 
   public function getBookmarkedJobsByJobIdAndUserId($user_id, $job_id)

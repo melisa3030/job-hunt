@@ -32,37 +32,21 @@ class ReviewsService
             throw new Exception('Review not found', 404);
         }
     }
-
     public function getByCompanyId($company_id)
     {
         $reviews = $this->dao->getByField('company_id', $company_id);
-        if ($reviews) {
-            return $reviews;
-        } else {
-            throw new Exception('No reviews found for this company', 404);
-        }
+        return $reviews ? $reviews : [];
     }
-
     public function getByJobTitleId($job_title_id)
     {
         $reviews = $this->dao->getByField('job_title_id', $job_title_id);
-        if ($reviews) {
-            return $reviews;
-        } else {
-            throw new Exception('No reviews found for this job title', 404);
-        }
+        return $reviews ? $reviews : [];
     }
-
     public function getByUserId($user_id)
     {
         $reviews = $this->dao->getByField('user_id', $user_id);
-        if ($reviews) {
-            return $reviews;
-        } else {
-            throw new Exception('No reviews found for this user', 404);
-        }
+        return $reviews ? $reviews : [];
     }
-
     public function getReviewsForAuthUser()
     {
         $user = Flight::get('user');
@@ -70,11 +54,7 @@ class ReviewsService
             throw new Exception('User not authenticated or session expired', 401);
         }
         $reviews = $this->dao->getByField('user_id', $user->id);
-        if ($reviews) {
-            return $reviews;
-        } else {
-            throw new Exception('No reviews found for this user', 404);
-        }
+        return $reviews ? $reviews : [];
     }
 
     public function createReview($data)
@@ -232,8 +212,12 @@ class ReviewsService
             }
         }
 
-        if (isset($data['anonymous']) && !is_bool($data['anonymous'])) {
-            throw new Exception('Invalid value for anonymous. Must be a boolean.', 400);
+        // Convert anonymous to boolean, accepting string "0" and "1" as valid values
+        if (is_string($data['anonymous'])) {
+            $data['anonymous'] = filter_var($data['anonymous'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($data['anonymous'] === null) {
+                throw new Exception('Invalid value for anonymous. Must be true/false, 1/0, or "1"/"0"', 400);
+            }
         }
 
         if (!$this->dao->update($id, $data)) {

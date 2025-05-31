@@ -27,15 +27,10 @@ class JobsService
             throw new Exception("Job not found", 404);
         }
     }
-
     public function getJobsByEmployerId($id)
     {
         $jobs = $this->dao->getByField('posted_by', $id);
-        if ($jobs) {
-            return $jobs;
-        } else {
-            throw new Exception("No jobs found for this employer", 404);
-        }
+        return $jobs ? $jobs : [];
     }
 
     public function getJobsForAuthUser()
