@@ -17,6 +17,10 @@ import { initManageAdminPerks } from './admin/managePerks.js';
 import { initManageAdminTags } from './admin/manageTags.js';
 import { initManageAdminCategories } from './admin/manageCategories.js';
 
+import { initMyApplications } from './applicant/myApplications.js';
+import { initMyBookmarks } from './applicant/myBookmarks.js';
+import { initMyReviews } from './applicant/myReviews.js';
+
 const urlPageTitle = 'Job Hunt App';
 
 const urlRoutes = {
@@ -236,6 +240,11 @@ const urlLocationHandler = async () => {
   if (routeKey === '/employer/jobs') initManageEmployerJobs();
   if (routeKey === '/employer/applications') initManageEmployerApplications();
   if (routeKey === '/employer/company') initManageEmployerCompany();
+
+  // Applicant
+  if (routeKey === '/my-applications') initMyApplications();
+  if (routeKey === '/my-bookmarks') initMyBookmarks();
+  if (routeKey === '/my-reviews') initMyReviews();
 };
 
 // Handle client-side navigation
