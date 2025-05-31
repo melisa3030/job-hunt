@@ -16,6 +16,9 @@ export async function initManageAdminJobTitles() {
   const titleIdInput = document.getElementById('title-id');
   const titleNameInput = document.getElementById('title-name');
   const modalTitle = document.getElementById('title-modal-label');
+  const deleteModal = new bootstrap.Modal(
+    document.getElementById('delete-title-modal')
+  );
 
   let currentTitles = [];
 
@@ -148,6 +151,7 @@ export async function initManageAdminJobTitles() {
 
       if (response && response.success) {
         showSuccess('Job title deleted successfully');
+        deleteModal.hide();
         await loadJobTitles();
       } else {
         throw new Error(response?.error || 'Failed to delete job title');
@@ -185,8 +189,7 @@ export async function initManageAdminJobTitles() {
   }
 
   function openDeleteModal(titleId, titleName) {
-    const deleteModal = document.getElementById('delete-title-modal');
-    const modalBody = deleteModal.querySelector('.modal-body p');
+    const modalBody = deleteModal._element.querySelector('.modal-body p');
 
     if (modalBody) {
       modalBody.textContent = `Are you sure you want to delete the job title "${titleName}"?`;
@@ -195,13 +198,13 @@ export async function initManageAdminJobTitles() {
     document.getElementById('title-id-to-delete').value = titleId;
 
     try {
-      const bsModal = new bootstrap.Modal(deleteModal);
-      bsModal.show();
+      deleteModal.show();
     } catch (error) {
       console.error('Error showing delete modal:', error);
       // Fallback to manually showing the modal
-      deleteModal.classList.add('show');
-      deleteModal.style.display = 'block';
+      const modalElement = document.getElementById('delete-title-modal');
+      modalElement.classList.add('show');
+      modalElement.style.display = 'block';
       document.body.classList.add('modal-open');
 
       // Create backdrop
