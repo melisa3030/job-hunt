@@ -32,4 +32,16 @@ class JobTagsDao extends BaseDao
       throw new PDOException("Database error in getByTagId(): " . $e->getMessage());
     }
   }
+
+  public function deleteByJobAndTag($jobId, $tagId)
+  {
+    try {
+      $stmt = $this->connection->prepare("DELETE FROM job_tags WHERE job_id = :job_id AND tag_id = :tag_id");
+      $stmt->bindParam(':job_id', $jobId);
+      $stmt->bindParam(':tag_id', $tagId);
+      return $stmt->execute();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in deleteByJobAndTag(): " . $e->getMessage());
+    }
+  }
 }
