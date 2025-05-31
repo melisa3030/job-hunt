@@ -107,7 +107,6 @@ class UserService
         return ["message" => "User created successfully"];
     }
 
-    // TODO: if changing role from employer to applicant, check if the user is associated with a company
     public function updateUser($id, $data, $user)
     {
         $userRole = Roles::from($user->role);
@@ -131,6 +130,11 @@ class UserService
 
         if (!$hasRequiredField) {
             throw new Exception("Update requires at least one of these fields: " . implode(", ", $requiredFields), 400);
+        }
+
+        $company = Flight::companiesService()->getCompanyByEmployerId($id);
+        if ($company && isset($data['role']) && $data['role'] !== Roles::EMPLOYER->value) {
+            throw new Exception("Cannot change role to non-employer while associated with a company", 400);
         }
 
         if (isset($data['username'])) {
