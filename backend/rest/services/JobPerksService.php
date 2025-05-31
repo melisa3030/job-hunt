@@ -64,4 +64,22 @@ class JobPerksService
       throw new Exception("Error creating job perk", 500);
     }
   }
+
+  public function deleteJobPerk($data)
+  {
+    validateBody(['job_id', 'perk_id'], $data);
+
+    $job_id = $data['job_id'];
+    $perk_id = $data['perk_id'];
+
+    try {
+      if ($this->jobPerksDao->deleteByJobAndPerk($job_id, $perk_id)) {
+        return ["message" => "Job perk deleted successfully"];
+      } else {
+        throw new Exception("Job perk association not found", 404);
+      }
+    } catch (Exception $e) {
+      throw new Exception("Error deleting job perk: " . $e->getMessage(), 500);
+    }
+  }
 }

@@ -32,4 +32,16 @@ class JobPerksDao extends BaseDao
       throw new PDOException("Database error in getByPerkId(): " . $e->getMessage());
     }
   }
+
+  public function deleteByJobAndPerk($jobId, $perkId)
+  {
+    try {
+      $stmt = $this->connection->prepare("DELETE FROM job_perks WHERE job_id = :job_id AND perk_id = :perk_id");
+      $stmt->bindParam(':job_id', $jobId);
+      $stmt->bindParam(':perk_id', $perkId);
+      return $stmt->execute();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in deleteByJobAndPerk(): " . $e->getMessage());
+    }
+  }
 }
