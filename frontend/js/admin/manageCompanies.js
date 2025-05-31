@@ -426,7 +426,7 @@ export async function initManageAdminCompanies() {
     try {
       const bsModal = new bootstrap.Modal(companyModal);
       bsModal.show();
-    } catch (error) {
+    } catch {
       // Fallback to showing manually
       companyModal.classList.add('show');
       companyModal.style.display = 'block';
