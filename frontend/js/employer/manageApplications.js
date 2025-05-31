@@ -1,9 +1,8 @@
-/* global bootstrap */
 import { ApplicationsApi } from '../api/applicationsApi.js';
 import { AuthApi } from '../api/authApi.js';
 import { extractValidatedData } from '../utils/apiResponseUtils.js';
 
-export const initManageEmployerApplications = async () => {
+export async function initManageEmployerApplications() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -236,4 +235,4 @@ export const initManageEmployerApplications = async () => {
   // ===========================
   setupEventListeners();
   await loadApplications();
-};
+}
