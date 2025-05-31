@@ -8,11 +8,13 @@ import { JobTagsApi } from './api/jobTagsApi.js';
 import { TagsApi } from './api/tagsApi.js';
 import { createJobCard } from './components/jobCard.js';
 import { CompaniesApi } from './api/companiesApi.js';
+import { ApplicationsApi } from './api/applicationsApi.js';
 import { debounceFilterInput } from './utils/debounceFilterInput.js';
 import { extractValidatedData } from './utils/apiResponseUtils.js';
 
 let allJobs = [];
 let bookmarkedJobIds = [];
+let appliedJobIds = [];
 
 // lookup maps for quick access to related data
 let jobTitlesMap = new Map();
@@ -104,10 +106,11 @@ export async function renderJobsWithFilters() {
       JobPerksApi.getJobPerks(),
     ];
 
-    // Add bookmarks API call if user is authenticated as APPLICANT
+    // Add bookmarks and applications API calls if user is authenticated as APPLICANT
     const user = JSON.parse(localStorage.getItem('user'));
     if (user && user.role === 'APPLICANT') {
       apiCalls.push(BookmarksApi.getBookmarkedJobsForCurrentUser());
+      apiCalls.push(ApplicationsApi.getApplicationsByCurrentUser());
     }
 
     const responses = await Promise.all(apiCalls);
@@ -123,6 +126,7 @@ export async function renderJobsWithFilters() {
       companiesResponse,
       jobPerksResponse,
       bookmarksResponse, // This will be undefined if user is not APPLICANT
+      applicationsResponse, // This will be undefined if user is not APPLICANT
     ] = responses;
 
     // Validate all API responses and extract data using utility
@@ -146,6 +150,19 @@ export async function renderJobsWithFilters() {
       );
     } else {
       bookmarkedJobIds = [];
+    }
+
+    // Extract applied job IDs if available
+    if (
+      applicationsResponse &&
+      applicationsResponse.success &&
+      applicationsResponse.data
+    ) {
+      appliedJobIds = applicationsResponse.data.map(
+        (application) => application.job_id
+      );
+    } else {
+      appliedJobIds = [];
     }
 
     allJobs = jobs;
@@ -249,11 +266,12 @@ function displayJobs(jobsToDisplay) {
       // Get perks for this job from the jobPerksMap
       processedJob.perks = jobPerksMap.get(job.id) || [];
 
-      // Pass bookmarked job IDs to createJobCard
+      // Pass bookmarked and applied job IDs to createJobCard
       const jobCard = createJobCard(
         processedJob,
         processedJob.job_title,
-        bookmarkedJobIds
+        bookmarkedJobIds,
+        appliedJobIds
       );
       jobsListElement.appendChild(jobCard);
     });
