@@ -1,1 +1,126 @@
-<h1>My Bookmarks</h1>
+<div class="container-fluid mt-4">
+  <!-- Alerts Container -->
+  <div id="alerts-container"></div>
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">My Bookmarked Jobs</h1>
+  </div>
+
+  <!-- Search and Filter Controls -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input
+              type="text"
+              id="bookmark-search"
+              class="form-control"
+              placeholder="Search by job title or company..."
+            />
+            <button
+              class="btn btn-outline-secondary"
+              type="button"
+              id="search-btn"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <select id="category-filter" class="form-select">
+            <option value="">All Categories</option>
+            <!-- Categories will be loaded dynamically -->
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select id="work-type-filter" class="form-select">
+            <option value="">All Work Types</option>
+            <option value="REMOTE">Remote</option>
+            <option value="HYBRID">Hybrid</option>
+            <option value="ON_SITE">On Site</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bookmarks Table -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <!-- Loading Indicator -->
+      <div
+        id="loading-bookmarks"
+        class="text-center py-4"
+        style="display: none"
+      >
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-2">Loading bookmarks...</div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Job Title</th>
+              <th>Company</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Work Type</th>
+              <th>Salary</th>
+              <th>Bookmarked</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookmarks-table-body">
+            <!-- Bookmarks will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Remove Bookmark Confirmation Modal -->
+  <div
+    class="modal fade"
+    id="remove-bookmark-modal"
+    tabindex="-1"
+    aria-labelledby="remove-bookmark-modal-label"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="remove-bookmark-modal-label">
+            Remove Bookmark
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to remove this job from your bookmarks?</p>
+          <input type="hidden" id="job-id-to-remove" />
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="button" id="confirm-remove-btn" class="btn btn-danger">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
