@@ -2,9 +2,7 @@
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Posted Jobs</h2>
-    <button id="add-job-btn" class="btn btn-primary">
-      Add New Job
-    </button>
+    <button id="add-job-btn" class="btn btn-primary">Add New Job</button>
   </div>
 
   <!-- Alerts container for success and error messages -->
@@ -38,22 +36,24 @@
   </div>
 
   <div id="jobs-table-container">
-    <table class="table table-striped table-hover">
-      <thead>
-      <tr>
-        <th>Title</th>
-        <th>Category</th>
-        <th>Experience</th>
-        <th>Location</th>
-        <th>Posted Date</th>
-        <th>Expires</th>
-        <th>Actions</th>
-      </tr>
-      </thead>
-      <tbody id="jobs-table-body">
-      <!-- Jobs will be loaded here -->
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Experience</th>
+            <th>Location</th>
+            <th>Posted Date</th>
+            <th>Expires</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-table-body">
+          <!-- Jobs will be loaded here -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <div
@@ -97,7 +97,7 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="job-title" class="form-label"
-              >Job Title <span class="text-danger">*</span></label
+                >Job Title <span class="text-danger">*</span></label
               >
               <select id="job-title" class="form-select" required>
                 <option value="">Select job title</option>
@@ -106,7 +106,7 @@
             </div>
             <div class="col-md-6">
               <label for="job-category" class="form-label"
-              >Category <span class="text-danger">*</span></label
+                >Category <span class="text-danger">*</span></label
               >
               <select id="job-category" class="form-select" required>
                 <option value="">Select category</option>
@@ -118,7 +118,7 @@
           <div class="row mb-3">
             <div class="col-md-6">
               <label for="job-country" class="form-label"
-              >Country <span class="text-danger">*</span></label
+                >Country <span class="text-danger">*</span></label
               >
               <input
                 type="text"
@@ -129,7 +129,7 @@
             </div>
             <div class="col-md-6">
               <label for="job-city" class="form-label"
-              >City <span class="text-danger">*</span></label
+                >City <span class="text-danger">*</span></label
               >
               <input type="text" class="form-control" id="job-city" required />
             </div>
@@ -138,7 +138,7 @@
           <div class="row mb-3">
             <div class="col-md-4">
               <label for="job-work-type" class="form-label"
-              >Work Type <span class="text-danger">*</span></label
+                >Work Type <span class="text-danger">*</span></label
               >
               <select id="job-work-type" class="form-select" required>
                 <option value="">Select work type</option>
@@ -149,7 +149,7 @@
             </div>
             <div class="col-md-4">
               <label for="job-experience" class="form-label"
-              >Experience Level <span class="text-danger">*</span></label
+                >Experience Level <span class="text-danger">*</span></label
               >
               <select id="job-experience" class="form-select" required>
                 <option value="">Select experience level</option>
@@ -160,7 +160,7 @@
             </div>
             <div class="col-md-4">
               <label for="job-salary" class="form-label"
-              >Salary <span class="text-danger">*</span></label
+                >Salary <span class="text-danger">*</span></label
               >
               <div class="input-group">
                 <span class="input-group-text">$</span>
@@ -178,14 +178,14 @@
 
           <div class="mb-3">
             <label for="job-expires" class="form-label"
-            >Expires At <span class="text-danger">*</span></label
+              >Expires At <span class="text-danger">*</span></label
             >
             <input type="date" class="form-control" id="job-expires" required />
           </div>
 
           <div class="mb-3">
             <label for="job-description" class="form-label"
-            >Description <span class="text-danger">*</span></label
+              >Description <span class="text-danger">*</span></label
             >
             <textarea
               class="form-control"
@@ -193,6 +193,22 @@
               rows="5"
               required
             ></textarea>
+          </div>
+
+          <!-- Perks Section -->
+          <div class="mb-3">
+            <label class="form-label">Job Perks</label>
+            <div id="perks-container" class="border rounded p-3">
+              <div class="text-muted">Loading perks...</div>
+            </div>
+          </div>
+
+          <!-- Tags Section -->
+          <div class="mb-3">
+            <label class="form-label">Job Tags</label>
+            <div id="tags-container" class="border rounded p-3">
+              <div class="text-muted">Loading tags...</div>
+            </div>
           </div>
 
           <div
