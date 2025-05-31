@@ -1,7 +1,7 @@
 /* global bootstrap */
 import { TagsApi } from '../api/tagsApi.js';
 
-export const initManageAdminTags = async () => {
+export async function initManageAdminTags() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -223,10 +223,9 @@ export const initManageAdminTags = async () => {
       setTimeout(() => alert.remove(), 300);
     }, 5000);
   }
-
   // ===========================
   // === Initialization
   // ===========================
   await loadTags();
   setupEventListeners();
-};
+}

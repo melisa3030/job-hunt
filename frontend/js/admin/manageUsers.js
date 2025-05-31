@@ -1,7 +1,7 @@
 /* global bootstrap */
 import { UsersApi } from '../api/usersApi.js';
 
-export const initManageAdminUsers = () => {
+export async function initManageAdminUsers() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -538,10 +538,9 @@ export const initManageAdminUsers = () => {
         return 'bg-success';
     }
   }
-
   // ===========================
   // === Initialization
   // ===========================
   setupEventListeners();
-  loadUsers();
-};
+  await loadUsers();
+}

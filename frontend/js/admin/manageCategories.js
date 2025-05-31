@@ -1,7 +1,7 @@
 /* global bootstrap */
 import { JobCategoriesApi } from '../api/jobCategoriesApi.js';
 
-export const initManageAdminCategories = async () => {
+export async function initManageAdminCategories() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -15,9 +15,11 @@ export const initManageAdminCategories = async () => {
   const categoryIdInput = document.getElementById('category-id');
   const categoryNameInput = document.getElementById('category-name');
   const modalTitle = document.getElementById('category-modal-label');
+  const deleteModal = new bootstrap.Modal(
+    document.getElementById('delete-category-modal')
+  );
 
   let currentCategories = [];
-  let categoryToDelete = null;
 
   // ===========================
   // === Event Listeners Setup
@@ -25,6 +27,10 @@ export const initManageAdminCategories = async () => {
   function setupEventListeners() {
     addCategoryBtn.addEventListener('click', handleAddCategory);
     categoryForm.addEventListener('submit', handleFormSubmit);
+
+    // Add delete confirmation event listener
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    confirmDeleteBtn.addEventListener('click', confirmDeleteCategory);
   }
 
   // ===========================
@@ -119,11 +125,11 @@ export const initManageAdminCategories = async () => {
     }
   }
 
-  async function deleteCategory() {
-    if (!categoryToDelete) return;
+  async function deleteCategory(categoryId) {
+    if (!categoryId) return;
 
     try {
-      const response = await JobCategoriesApi.deleteCategory(categoryToDelete);
+      const response = await JobCategoriesApi.deleteCategory(categoryId);
 
       if (response && response.success) {
         showSuccess('Category deleted successfully');
@@ -135,7 +141,12 @@ export const initManageAdminCategories = async () => {
       console.error('Error deleting category:', error);
       showError('Failed to delete category.');
     }
-    categoryToDelete = null;
+  }
+
+  async function confirmDeleteCategory() {
+    const categoryId = document.getElementById('category-id-to-delete').value;
+    await deleteCategory(categoryId);
+    deleteModal.hide();
   }
 
   // ===========================
@@ -148,38 +159,30 @@ export const initManageAdminCategories = async () => {
     categoryForm.classList.remove('was-validated');
   }
 
-  function createDeleteModal() {
-    const modalHtml = `
-      <div class="modal fade" id="delete-category-modal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Delete Category</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <p>Are you sure you want to delete the category "<span id="category-to-delete"></span>"?</p>
-              <p class="text-danger">This action cannot be undone.</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" id="confirm-delete-category" class="btn btn-danger">Delete</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  function openDeleteModal(categoryId, categoryName) {
+    const modalBody = deleteModal._element.querySelector('.modal-body p');
 
-    const deleteModal = document.getElementById('delete-category-modal');
-    document
-      .getElementById('confirm-delete-category')
-      .addEventListener('click', async () => {
-        await deleteCategory();
-        bootstrap.Modal.getInstance(deleteModal).hide();
-      });
+    if (modalBody) {
+      modalBody.textContent = `Are you sure you want to delete the category "${categoryName}"?`;
+    }
 
-    return deleteModal;
+    document.getElementById('category-id-to-delete').value = categoryId;
+
+    try {
+      deleteModal.show();
+    } catch (error) {
+      console.error('Error showing delete modal:', error);
+      // Fallback to manually showing the modal
+      const modalElement = document.getElementById('delete-category-modal');
+      modalElement.classList.add('show');
+      modalElement.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      // Create backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
   }
 
   function handleAddCategory() {
@@ -201,14 +204,7 @@ export const initManageAdminCategories = async () => {
   }
 
   function handleDeleteCategory(categoryId, categoryName) {
-    let deleteModal = document.getElementById('delete-category-modal');
-    if (!deleteModal) {
-      deleteModal = createDeleteModal();
-    }
-
-    document.getElementById('category-to-delete').textContent = categoryName;
-    categoryToDelete = categoryId;
-    new bootstrap.Modal(deleteModal).show();
+    openDeleteModal(categoryId, categoryName);
   }
 
   async function handleFormSubmit(event) {
@@ -263,4 +259,4 @@ export const initManageAdminCategories = async () => {
   // ===========================
   await loadCategories();
   setupEventListeners();
-};
+}

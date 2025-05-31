@@ -1,7 +1,7 @@
 /* global bootstrap */
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
 
-export const initManageAdminJobTitles = async () => {
+export async function initManageAdminJobTitles() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -18,7 +18,6 @@ export const initManageAdminJobTitles = async () => {
   const modalTitle = document.getElementById('title-modal-label');
 
   let currentTitles = [];
-  let titleToDelete = null;
 
   // ===========================
   // === Event Listeners Setup
@@ -30,6 +29,9 @@ export const initManageAdminJobTitles = async () => {
     });
 
     titleForm.addEventListener('submit', saveJobTitle);
+
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    confirmDeleteBtn.addEventListener('click', confirmDeleteJobTitle);
   }
 
   // ===========================
@@ -89,7 +91,7 @@ export const initManageAdminJobTitles = async () => {
 
     document.querySelectorAll('.delete-btn').forEach((btn) => {
       btn.addEventListener('click', () =>
-        confirmDeleteJobTitle(btn.dataset.id, btn.dataset.name)
+        openDeleteModal(btn.dataset.id, btn.dataset.name)
       );
     });
   }
@@ -137,11 +139,12 @@ export const initManageAdminJobTitles = async () => {
     }
   }
 
-  async function deleteJobTitle() {
-    if (!titleToDelete) return;
+  async function confirmDeleteJobTitle() {
+    const titleId = document.getElementById('title-id-to-delete').value;
+    if (!titleId) return;
 
     try {
-      const response = await JobTitlesApi.deleteJobTitle(titleToDelete);
+      const response = await JobTitlesApi.deleteJobTitle(titleId);
 
       if (response && response.success) {
         showSuccess('Job title deleted successfully');
@@ -155,8 +158,6 @@ export const initManageAdminJobTitles = async () => {
         'Failed to delete job title. It may be in use by existing jobs.'
       );
     }
-
-    titleToDelete = null;
   }
 
   // ===========================
@@ -183,46 +184,31 @@ export const initManageAdminJobTitles = async () => {
     titleModal.show();
   }
 
-  function confirmDeleteJobTitle(titleId, titleName) {
-    let deleteModal = document.getElementById('delete-title-modal');
+  function openDeleteModal(titleId, titleName) {
+    const deleteModal = document.getElementById('delete-title-modal');
+    const modalBody = deleteModal.querySelector('.modal-body p');
 
-    if (!deleteModal) {
-      const modalHtml = `
-        <div class="modal fade" id="delete-title-modal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Delete Job Title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to delete the job title "<span id="title-to-delete"></span>"?</p>
-                <p class="text-danger">This action cannot be undone.</p>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirm-delete-title" class="btn btn-danger">Delete</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-      deleteModal = document.getElementById('delete-title-modal');
-
-      document
-        .getElementById('confirm-delete-title')
-        .addEventListener('click', async () => {
-          await deleteJobTitle();
-          bootstrap.Modal.getInstance(deleteModal).hide();
-        });
+    if (modalBody) {
+      modalBody.textContent = `Are you sure you want to delete the job title "${titleName}"?`;
     }
 
-    document.getElementById('title-to-delete').textContent = titleName;
-    titleToDelete = titleId;
+    document.getElementById('title-id-to-delete').value = titleId;
 
-    new bootstrap.Modal(deleteModal).show();
+    try {
+      const bsModal = new bootstrap.Modal(deleteModal);
+      bsModal.show();
+    } catch (error) {
+      console.error('Error showing delete modal:', error);
+      // Fallback to manually showing the modal
+      deleteModal.classList.add('show');
+      deleteModal.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      // Create backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
   }
 
   // ===========================
@@ -263,4 +249,4 @@ export const initManageAdminJobTitles = async () => {
   // ===========================
   await loadJobTitles();
   setupEventListeners();
-};
+}

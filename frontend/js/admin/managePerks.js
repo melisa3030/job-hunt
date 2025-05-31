@@ -1,7 +1,7 @@
 /* global bootstrap */
 import { PerksApi } from '../api/perksApi.js';
 
-export const initManageAdminPerks = async () => {
+export async function initManageAdminPerks() {
   // ===========================
   // === DOM Elements & State
   // ===========================
@@ -16,7 +16,6 @@ export const initManageAdminPerks = async () => {
   const modalTitle = document.getElementById('perk-modal-label');
 
   let currentPerks = [];
-  let perkToDelete = null;
 
   // ===========================
   // === Event Listeners Setup
@@ -28,6 +27,9 @@ export const initManageAdminPerks = async () => {
     });
 
     perkForm.addEventListener('submit', savePerk);
+
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+    confirmDeleteBtn.addEventListener('click', confirmDeletePerk);
   }
 
   // ===========================
@@ -87,7 +89,7 @@ export const initManageAdminPerks = async () => {
 
     document.querySelectorAll('.delete-btn').forEach((btn) => {
       btn.addEventListener('click', () =>
-        confirmDeletePerk(btn.dataset.id, btn.dataset.name)
+        openDeleteModal(btn.dataset.id, btn.dataset.name)
       );
     });
   }
@@ -135,11 +137,12 @@ export const initManageAdminPerks = async () => {
     }
   }
 
-  async function deletePerk() {
-    if (!perkToDelete) return;
+  async function confirmDeletePerk() {
+    const perkId = document.getElementById('perk-id-to-delete').value;
+    if (!perkId) return;
 
     try {
-      const response = await PerksApi.deletePerk(perkToDelete);
+      const response = await PerksApi.deletePerk(perkId);
 
       if (response && response.success) {
         showSuccess('Job perk deleted successfully');
@@ -153,8 +156,6 @@ export const initManageAdminPerks = async () => {
         'Failed to delete job perk. It may be in use by existing jobs.'
       );
     }
-
-    perkToDelete = null;
   }
 
   // ===========================
@@ -181,46 +182,31 @@ export const initManageAdminPerks = async () => {
     perkModal.show();
   }
 
-  function confirmDeletePerk(perkId, perkName) {
-    let deleteModal = document.getElementById('delete-perk-modal');
+  function openDeleteModal(perkId, perkName) {
+    const deleteModal = document.getElementById('delete-perk-modal');
+    const modalBody = deleteModal.querySelector('.modal-body p');
 
-    if (!deleteModal) {
-      const modalHtml = `
-        <div class="modal fade" id="delete-perk-modal" tabindex="-1" aria-hidden="true">
-          <div class="modal-dialog">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Delete Job Perk</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-              </div>
-              <div class="modal-body">
-                <p>Are you sure you want to delete the job perk "<span id="perk-to-delete"></span>"?</p>
-                <p class="text-danger">This action cannot be undone.</p>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" id="confirm-delete-perk" class="btn btn-danger">Delete</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.body.insertAdjacentHTML('beforeend', modalHtml);
-      deleteModal = document.getElementById('delete-perk-modal');
-
-      document
-        .getElementById('confirm-delete-perk')
-        .addEventListener('click', async () => {
-          await deletePerk();
-          bootstrap.Modal.getInstance(deleteModal).hide();
-        });
+    if (modalBody) {
+      modalBody.textContent = `Are you sure you want to delete the perk "${perkName}"?`;
     }
 
-    document.getElementById('perk-to-delete').textContent = perkName;
-    perkToDelete = perkId;
+    document.getElementById('perk-id-to-delete').value = perkId;
 
-    new bootstrap.Modal(deleteModal).show();
+    try {
+      const bsModal = new bootstrap.Modal(deleteModal);
+      bsModal.show();
+    } catch (error) {
+      console.error('Error showing delete modal:', error);
+      // Fallback to manually showing the modal
+      deleteModal.classList.add('show');
+      deleteModal.style.display = 'block';
+      document.body.classList.add('modal-open');
+
+      // Create backdrop
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop fade show';
+      document.body.appendChild(backdrop);
+    }
   }
 
   // ===========================
@@ -261,4 +247,4 @@ export const initManageAdminPerks = async () => {
   // ===========================
   await loadPerks();
   setupEventListeners();
-};
+}
