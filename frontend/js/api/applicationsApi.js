@@ -100,6 +100,39 @@ export const ApplicationsApi = {
       };
     }
   },
+  async getApplicationsByCurrentUser() {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/applications_for_current_auth_user`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${AuthApi.getToken()}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to get applications'
+          : null,
+      };
+    } catch (error) {
+      console.error('Error fetching applications for current user:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
 
   async updateApplicationStatus(applicationId, status) {
     try {
