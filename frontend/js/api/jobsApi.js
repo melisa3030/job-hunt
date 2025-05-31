@@ -164,7 +164,7 @@ export const JobsApi = {
           'Content-Type': 'application/json',
         },
       });
-      const data = response.status !== 204 ? await response.json() : null;
+      const data = await response.json();
 
       logServerResponse(response, data);
 
