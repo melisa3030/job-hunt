@@ -56,10 +56,36 @@ class JobTagsService
       throw new Exception("Tag not found", 404);
     }
 
-    if ($this->jobTagsDao->insert($data)) {
-      return ["message" => "Job tag created successfully"];
-    } else {
-      throw new Exception("Error creating job tag", 500);
+    try {
+      $result = $this->jobTagsDao->insert($data);
+
+      // For tables without auto-increment, check if result is not false
+      // The insert method should return true/false for success/failure
+      if ($result !== false) {
+        return ["message" => "Job tag created successfully"];
+      } else {
+        throw new Exception("Failed to insert job tag into database", 500);
+      }
+    } catch (Exception $e) {
+      throw new Exception("Error creating job tag: " . $e->getMessage(), 500);
+    }
+  }
+
+  public function deleteJobTag($data)
+  {
+    validateBody(['job_id', 'tag_id'], $data);
+
+    $job_id = $data['job_id'];
+    $tag_id = $data['tag_id'];
+
+    try {
+      if ($this->jobTagsDao->deleteByJobAndTag($job_id, $tag_id)) {
+        return ["message" => "Job tag deleted successfully"];
+      } else {
+        throw new Exception("Job tag association not found", 404);
+      }
+    } catch (Exception $e) {
+      throw new Exception("Error deleting job tag: " . $e->getMessage(), 500);
     }
   }
 }
