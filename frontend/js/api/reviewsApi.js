@@ -32,6 +32,67 @@ export const ReviewsApi = {
     }
   },
 
+  async getReviewsByCurrentUser() {
+    try {
+      const response = await fetch(`${BASE_URL}/reviews_for_auth_user`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || 'Failed to get user reviews'
+          : null,
+      };
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
+  async createReview(reviewData) {
+    try {
+      const response = await fetch(`${BASE_URL}/reviews`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to create review' : null,
+      };
+    } catch (error) {
+      console.error('Error creating review:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
   async getReviewById(id) {
     try {
       const response = await fetch(`${BASE_URL}/reviews/${id}`, {
@@ -63,6 +124,10 @@ export const ReviewsApi = {
 
   async updateReview(id, data) {
     try {
+      if (data.anonymous !== undefined) {
+        data.anonymous = Number(data.anonymous);
+      }
+
       const response = await fetch(`${BASE_URL}/reviews/${id}`, {
         method: 'PUT',
         headers: {
