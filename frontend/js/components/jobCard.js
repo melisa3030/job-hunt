@@ -1,6 +1,7 @@
 /* global bootstrap */
 
 import { BookmarksApi } from '../api/bookmarksApi.js';
+import { ApplicationsApi } from '../api/applicationsApi.js';
 
 const createToast = (message, type = 'success') => {
   // Create toast container if it doesn't exist
@@ -95,12 +96,18 @@ const updateBookmarkArrays = (jobId, bookmarkedJobIds, isAdding) => {
 };
 
 // Main function to create job card
-export const createJobCard = (job, jobTitle, bookmarkedJobIds = []) => {
+export const createJobCard = (
+  job,
+  jobTitle,
+  bookmarkedJobIds = [],
+  appliedJobIds = []
+) => {
   const jobItem = document.createElement('div');
   jobItem.className = 'jobs__item';
   jobItem.dataset.id = job.id;
 
   const isBookmarked = bookmarkedJobIds.includes(job.id);
+  const isApplied = appliedJobIds.includes(job.id);
 
   // Build job card HTML
   jobItem.innerHTML = /* HTML */ `
@@ -140,25 +147,44 @@ export const createJobCard = (job, jobTitle, bookmarkedJobIds = []) => {
     `
       : ''}
 
-    <button class="jobs__bookmark-btn" data-bookmarked="${isBookmarked}">
-      <img
-        src="/static/${isBookmarked ? 'bookmark-filled.svg' : 'bookmark.svg'}"
-        alt="${isBookmarked ? 'Bookmarked' : 'Bookmark'}"
-      />
-    </button>
+    <div class="jobs__actions">
+      <button class="jobs__bookmark-btn" data-bookmarked="${isBookmarked}">
+        <img
+          src="/static/${isBookmarked ? 'bookmark-filled.svg' : 'bookmark.svg'}"
+          alt="${isBookmarked ? 'Bookmarked' : 'Bookmark'}"
+        />
+      </button>
+      <button
+        class="jobs__apply-btn btn ${isApplied ? 'btn-success' : 'btn-primary'}"
+        ${isApplied ? 'disabled' : ''}
+      >
+        ${isApplied ? 'Applied ✓' : 'Apply Now'}
+      </button>
+    </div>
   `;
 
   // Handle bookmark functionality
   const user = JSON.parse(localStorage.getItem('user'));
   const bookmarkBtn = jobItem.querySelector('.jobs__bookmark-btn');
+  const applyBtn = jobItem.querySelector('.jobs__apply-btn');
 
+  // Only show bookmark button for applicants
   if (user?.role === 'APPLICANT') {
     bookmarkBtn.addEventListener('click', handleBookmarkClick);
   } else {
     bookmarkBtn.style.display = 'none';
   }
 
-  // Bookmark click handler
+  // Only show apply button for applicants
+  if (user?.role === 'APPLICANT') {
+    // Only add event listener if the user hasn't applied yet
+    if (!isApplied) {
+      applyBtn.addEventListener('click', handleApplyClick);
+    }
+  } else {
+    applyBtn.style.display = 'none';
+  }
+
   async function handleBookmarkClick(e) {
     e.stopPropagation();
 
@@ -170,7 +196,7 @@ export const createJobCard = (job, jobTitle, bookmarkedJobIds = []) => {
       bookmarkBtn.disabled = true;
       updateBookmarkIcon(img, false, true);
 
-      // Perform bookmark operation
+      // Update to use the correct parameters for deleteBookmark
       const result = currentlyBookmarked
         ? await BookmarksApi.deleteBookmark(job.id)
         : await BookmarksApi.createBookmark(job.id);
@@ -207,6 +233,50 @@ export const createJobCard = (job, jobTitle, bookmarkedJobIds = []) => {
       updateBookmarkIcon(newImg, currentlyBookmarked);
     } finally {
       bookmarkBtn.disabled = false;
+    }
+  }
+
+  async function handleApplyClick(e) {
+    e.stopPropagation();
+
+    try {
+      // Disable button to prevent double submission
+      applyBtn.disabled = true;
+      applyBtn.innerHTML = `
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        Applying...
+      `;
+
+      // Call API to apply for the job
+      const result = await ApplicationsApi.createApplication({
+        job_id: job.id,
+      });
+
+      if (result.success) {
+        // Show success message and update button
+        showSuccessToast(
+          result.data?.message || 'Application submitted successfully!'
+        );
+        applyBtn.classList.remove('btn-primary');
+        applyBtn.classList.add('btn-success');
+        applyBtn.innerHTML = 'Applied ✓';
+        applyBtn.disabled = true;
+
+        // Add to applied jobs array if it exists
+        if (appliedJobIds && !appliedJobIds.includes(job.id)) {
+          appliedJobIds.push(job.id);
+        }
+      } else {
+        // Handle error
+        applyBtn.disabled = false;
+        applyBtn.innerHTML = 'Apply Now';
+        showErrorToast(result.error || 'Failed to submit application');
+      }
+    } catch (error) {
+      console.error('Apply operation error:', error);
+      applyBtn.disabled = false;
+      applyBtn.innerHTML = 'Apply Now';
+      showErrorToast('An unexpected error occurred');
     }
   }
 
