@@ -92,15 +92,15 @@ export const JobPerksApi = {
       };
     }
   },
-
   async deleteJobPerk(jobId, perkId) {
     try {
-      const response = await fetch(`${BASE_URL}/job_perks/${jobId}/${perkId}`, {
+      const response = await fetch(`${BASE_URL}/job_perks`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ job_id: jobId, perk_id: perkId }),
       });
       const data = await response.json();
 

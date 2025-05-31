@@ -91,15 +91,15 @@ export const JobTagsApi = {
       };
     }
   },
-
   async deleteJobTag(jobId, tagId) {
     try {
-      const response = await fetch(`${BASE_URL}/job_tags/${jobId}/${tagId}`, {
+      const response = await fetch(`${BASE_URL}/job_tags`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${AuthApi.getToken()}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ job_id: jobId, tag_id: tagId }),
       });
       const data = await response.json();
 
