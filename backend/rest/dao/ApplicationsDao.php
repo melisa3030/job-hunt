@@ -52,4 +52,17 @@ class ApplicationsDao extends BaseDao
       throw new PDOException("Database error in getByJobIds(): " . $e->getMessage());
     }
   }
+
+  public function getByJobIdAndApplicantId($jobId, $applicantId)
+  {
+    try {
+      $stmt = $this->connection->prepare("SELECT * FROM applications WHERE job_id = :job_id AND applicant_id = :applicant_id");
+      $stmt->bindParam(':job_id', $jobId);
+      $stmt->bindParam(':applicant_id', $applicantId);
+      $stmt->execute();
+      return $stmt->fetch();
+    } catch (PDOException $e) {
+      throw new PDOException("Database error in getByJobIdAndApplicantId(): " . $e->getMessage());
+    }
+  }
 }
