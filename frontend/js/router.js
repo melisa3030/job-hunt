@@ -14,6 +14,7 @@ import { initManageEmployerApplications } from './employer/manageApplications.js
 import { initManageEmployerCompany } from './employer/manageCompany.js';
 import { initManageAdminJobTitles } from './admin/manageJobTitles.js';
 import { initManageAdminPerks } from './admin/managePerks.js';
+import { initManageAdminTags } from './admin/manageTags.js';
 import { initManageAdminCategories } from './admin/manageCategories.js';
 
 const urlPageTitle = 'Job Hunt App';
@@ -105,6 +106,11 @@ const urlRoutes = {
     template: '/views/admin/manageCategories.html',
     title: 'Manage Categories | ' + urlPageTitle,
     description: 'Category Management',
+  },
+  '/admin/tags': {
+    template: '/views/admin/manageTags.html',
+    title: 'Manage Tags | ' + urlPageTitle,
+    description: 'Tag Management',
   },
   // Employer routes
   '/employer/jobs': {
@@ -224,6 +230,7 @@ const urlLocationHandler = async () => {
   if (routeKey === '/admin/job-titles') initManageAdminJobTitles();
   if (routeKey === '/admin/perks') initManageAdminPerks();
   if (routeKey === '/admin/categories') initManageAdminCategories();
+  if (routeKey === '/admin/tags') initManageAdminTags();
 
   // Employer
   if (routeKey === '/employer/jobs') initManageEmployerJobs();

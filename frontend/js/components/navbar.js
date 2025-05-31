@@ -17,6 +17,7 @@ async function Navbar() {
         `<li><a class="dropdown-item" href="/admin/jobs" data-link>Manage Jobs</a></li>`,
         `<li><a class="dropdown-item" href="/admin/job-titles" data-link>Manage Job Titles</a></li>`,
         `<li><a class="dropdown-item" href="/admin/perks" data-link>Manage Perks</a></li>`,
+        `<li><a class="dropdown-item" href="/admin/tags" data-link>Manage Tags</a></li>`,
         `<li><a class="dropdown-item" href="/admin/categories" data-link>Manage Categories</a></li>`,
       ],
       EMPLOYER: [
