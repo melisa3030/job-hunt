@@ -127,4 +127,67 @@ export const TagsApi = {
       };
     }
   },
+
+  async getTagByName(name) {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/tags?name=${encodeURIComponent(name)}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
+    } catch (error) {
+      console.error('Error fetching tag by name:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
+  async getTagById(tagId) {
+    try {
+      const response = await fetch(`${BASE_URL}/tags/${tagId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok
+          ? data.message || `HTTP error! status: ${response.status}`
+          : null,
+      };
+    } catch (error) {
+      console.error('Error fetching tag by ID:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
 };
