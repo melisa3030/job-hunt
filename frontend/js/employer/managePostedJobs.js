@@ -4,6 +4,10 @@ import { JobsApi } from '../api/jobsApi.js';
 import { JobCategoriesApi } from '../api/jobCategoriesApi.js';
 import { JobTitlesApi } from '../api/jobTitlesApi.js';
 import { CompaniesApi } from '../api/companiesApi.js';
+import { PerksApi } from '../api/perksApi.js';
+import { TagsApi } from '../api/tagsApi.js';
+import { JobPerksApi } from '../api/jobPerksApi.js';
+import { JobTagsApi } from '../api/jobTagsApi.js';
 
 // TODO: Add perks and tags to the job creation and editing process
 export const initManageEmployerJobs = async () => {
@@ -39,10 +43,16 @@ export const initManageEmployerJobs = async () => {
   const jobExpiresInput = document.getElementById('job-expires');
   const jobDescriptionInput = document.getElementById('job-description');
 
-  jobExpiresInput.setAttribute('min', new Date().toISOString().split('T')[0]);
+  const perksContainer = document.getElementById('perks-container');
+  const tagsContainer = document.getElementById('tags-container');
 
   let currentJobs = [];
   let jobToDelete = null;
+
+  let currentPerks = [];
+  let currentTags = [];
+  let selectedPerks = new Set();
+  let selectedTags = new Set();
 
   // ===========================
   // === Utility Functions
@@ -349,6 +359,9 @@ export const initManageEmployerJobs = async () => {
     jobDescriptionInput.value = job.description;
     formError.style.display = 'none';
     jobModal.show();
+
+    // Load and display perks and tags for the job
+    loadJobPerksAndTags(job.id);
   }
 
   async function deleteJob() {
@@ -433,6 +446,226 @@ export const initManageEmployerJobs = async () => {
   }
 
   // ===========================
+  // === Perks and Tags Management
+  // ===========================
+  async function loadPerksAndTags() {
+    try {
+      const [perksResponse, tagsResponse] = await Promise.all([
+        PerksApi.getAllPerks(),
+        TagsApi.getAllTags(),
+      ]);
+
+      if (perksResponse.success) {
+        currentPerks = perksResponse.data || [];
+        renderPerksSelection();
+      }
+
+      if (tagsResponse.success) {
+        currentTags = tagsResponse.data || [];
+        renderTagsSelection();
+      }
+    } catch (error) {
+      console.error('Error loading perks and tags:', error);
+    }
+  }
+
+  function renderPerksSelection() {
+    if (!perksContainer) return;
+
+    if (currentPerks.length === 0) {
+      perksContainer.innerHTML =
+        '<div class="text-muted">No perks available</div>';
+      return;
+    }
+
+    const perksHTML = currentPerks
+      .map(
+        (perk) => `
+        <div class="form-check form-check-inline">
+          <input 
+            class="form-check-input perk-checkbox" 
+            type="checkbox" 
+            id="perk-${perk.id}" 
+            value="${perk.id}"
+            ${selectedPerks.has(perk.id) ? 'checked' : ''}
+          >
+          <label class="form-check-label" for="perk-${perk.id}">
+            ${perk.name}
+          </label>
+        </div>
+      `
+      )
+      .join('');
+
+    perksContainer.innerHTML = perksHTML;
+
+    // Add event listeners
+    document.querySelectorAll('.perk-checkbox').forEach((checkbox) => {
+      checkbox.addEventListener('change', (e) => {
+        const perkId = parseInt(e.target.value);
+        if (e.target.checked) {
+          selectedPerks.add(perkId);
+        } else {
+          selectedPerks.delete(perkId);
+        }
+      });
+    });
+  }
+
+  function renderTagsSelection() {
+    if (!tagsContainer) return;
+
+    if (currentTags.length === 0) {
+      tagsContainer.innerHTML =
+        '<div class="text-muted">No tags available</div>';
+      return;
+    }
+
+    const tagsHTML = currentTags
+      .map(
+        (tag) => `
+        <div class="form-check form-check-inline">
+          <input 
+            class="form-check-input tag-checkbox" 
+            type="checkbox" 
+            id="tag-${tag.id}" 
+            value="${tag.id}"
+            ${selectedTags.has(tag.id) ? 'checked' : ''}
+          >
+          <label class="form-check-label" for="tag-${tag.id}">
+            ${tag.name}
+          </label>
+        </div>
+      `
+      )
+      .join('');
+
+    tagsContainer.innerHTML = tagsHTML;
+
+    // Add event listeners
+    document.querySelectorAll('.tag-checkbox').forEach((checkbox) => {
+      checkbox.addEventListener('change', (e) => {
+        const tagId = parseInt(e.target.value);
+        if (e.target.checked) {
+          selectedTags.add(tagId);
+        } else {
+          selectedTags.delete(tagId);
+        }
+      });
+    });
+  }
+
+  async function loadJobPerksAndTags(jobId) {
+    if (!jobId) {
+      selectedPerks.clear();
+      selectedTags.clear();
+      renderPerksSelection();
+      renderTagsSelection();
+      return;
+    }
+
+    try {
+      const [jobPerksResponse, jobTagsResponse] = await Promise.all([
+        JobPerksApi.getJobPerksByJobId(jobId),
+        JobTagsApi.getJobTagsByJobId(jobId),
+      ]);
+
+      selectedPerks.clear();
+      selectedTags.clear();
+
+      if (jobPerksResponse.success && jobPerksResponse.data) {
+        jobPerksResponse.data.forEach((jobPerk) => {
+          selectedPerks.add(jobPerk.perk_id);
+        });
+      }
+
+      if (jobTagsResponse.success && jobTagsResponse.data) {
+        jobTagsResponse.data.forEach((jobTag) => {
+          selectedTags.add(jobTag.tag_id);
+        });
+      }
+
+      renderPerksSelection();
+      renderTagsSelection();
+    } catch (error) {
+      console.error('Error loading job perks and tags:', error);
+    }
+  }
+
+  async function saveJobPerksAndTags(jobId) {
+    try {
+      // Get current job perks and tags
+      const [currentJobPerksResponse, currentJobTagsResponse] =
+        await Promise.all([
+          JobPerksApi.getJobPerksByJobId(jobId),
+          JobTagsApi.getJobTagsByJobId(jobId),
+        ]);
+
+      const currentJobPerks = new Set();
+      const currentJobTags = new Set();
+
+      if (currentJobPerksResponse.success && currentJobPerksResponse.data) {
+        currentJobPerksResponse.data.forEach((jobPerk) => {
+          currentJobPerks.add(jobPerk.perk_id);
+        });
+      }
+
+      if (currentJobTagsResponse.success && currentJobTagsResponse.data) {
+        currentJobTagsResponse.data.forEach((jobTag) => {
+          currentJobTags.add(jobTag.tag_id);
+        });
+      }
+
+      // Handle perks
+      const perksToAdd = [...selectedPerks].filter(
+        (perkId) => !currentJobPerks.has(perkId)
+      );
+      const perksToRemove = [...currentJobPerks].filter(
+        (perkId) => !selectedPerks.has(perkId)
+      );
+
+      // Handle tags
+      const tagsToAdd = [...selectedTags].filter(
+        (tagId) => !currentJobTags.has(tagId)
+      );
+      const tagsToRemove = [...currentJobTags].filter(
+        (tagId) => !selectedTags.has(tagId)
+      );
+
+      const promises = [];
+
+      // Add new perks
+      perksToAdd.forEach((perkId) => {
+        promises.push(
+          JobPerksApi.createJobPerk({ job_id: jobId, perk_id: perkId })
+        );
+      });
+
+      // Remove perks
+      perksToRemove.forEach((perkId) => {
+        promises.push(JobPerksApi.deleteJobPerk(jobId, perkId));
+      });
+
+      // Add new tags
+      tagsToAdd.forEach((tagId) => {
+        promises.push(
+          JobTagsApi.createJobTag({ job_id: jobId, tag_id: tagId })
+        );
+      });
+
+      // Remove tags
+      tagsToRemove.forEach((tagId) => {
+        promises.push(JobTagsApi.deleteJobTag(jobId, tagId));
+      });
+
+      await Promise.all(promises);
+    } catch (error) {
+      console.error('Error saving job perks and tags:', error);
+      throw error;
+    }
+  }
+
+  // ===========================
   // === Event Listeners
   // ===========================
 
@@ -454,6 +687,30 @@ export const initManageEmployerJobs = async () => {
     statusFilter.addEventListener('change', () => {
       loadJobs(searchInput.value, statusFilter.value);
     });
+
+    // Initialize perks and tags when modal opens
+    addJobBtn?.addEventListener('click', () => {
+      selectedPerks.clear();
+      selectedTags.clear();
+      renderPerksSelection();
+      renderTagsSelection();
+    });
+
+    // Enhanced save job function
+    saveJobBtn?.addEventListener('click', async () => {
+      // ... existing job save logic ...
+
+      // After job is created/updated, save perks and tags
+      const jobId = jobIdInput?.value;
+      if (jobId) {
+        try {
+          await saveJobPerksAndTags(parseInt(jobId));
+        } catch (error) {
+          console.error('Error saving perks and tags:', error);
+          // Show error but don't fail the entire operation
+        }
+      }
+    });
   }
 
   // ===========================
@@ -462,5 +719,6 @@ export const initManageEmployerJobs = async () => {
 
   await loadFormOptions();
   await loadJobs();
+  await loadPerksAndTags();
   setupEventListeners();
 };
