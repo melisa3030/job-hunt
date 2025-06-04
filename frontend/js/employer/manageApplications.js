@@ -1,5 +1,8 @@
 import { ApplicationsApi } from '../api/applicationsApi.js';
 import { AuthApi } from '../api/authApi.js';
+import { JobsApi } from '../api/jobsApi.js';
+import { JobTitlesApi } from '../api/jobTitlesApi.js';
+import { UsersApi } from '../api/usersApi.js';
 import { extractValidatedData } from '../utils/apiResponseUtils.js';
 
 export async function initManageEmployerApplications() {
@@ -30,13 +33,123 @@ export async function initManageEmployerApplications() {
         throw new Error('User not authenticated');
       }
 
+      // Fetch applications
       const applicationsResponse =
         await ApplicationsApi.getApplicationsForCompanyByCurrentEmployer();
 
-      currentApplications = extractValidatedData(
+      let applications = extractValidatedData(
         applicationsResponse,
         'applications'
       );
+
+      // If we have applications, enhance them with additional data
+      if (applications && applications.length > 0) {
+        console.log('Raw applications from API:', applications);
+        
+        // Fetch all necessary data in parallel
+        const [jobsResponse, usersResponse] = await Promise.all([
+          JobsApi.getAllJobs(),
+          UsersApi.getAllUsers()
+        ]);
+
+        console.log('Jobs API Response:', jobsResponse);
+        console.log('Users API Response:', usersResponse);
+
+        const jobs = extractValidatedData(jobsResponse, 'jobs');
+        const users = extractValidatedData(usersResponse, 'users');
+
+        console.log('Extracted jobs:', jobs);
+        console.log('Extracted users:', users);
+
+        // Create lookup maps for better performance
+        const jobsMap = {};
+        const usersMap = {};
+
+        if (jobs) {
+          jobs.forEach(job => {
+            jobsMap[job.id] = job;
+          });
+        }
+
+        if (users) {
+          users.forEach(user => {
+            usersMap[user.id] = user;
+          });
+        }
+
+        console.log('Jobs Map:', jobsMap);
+        console.log('Users Map:', usersMap);
+
+        // Enhance applications with job title and applicant name
+        applications = await Promise.all(applications.map(async (application) => {
+          console.log('Processing application:', application);
+          
+          let job = jobsMap[application.job_id];
+          let applicant = usersMap[application.applicant_id]; // Changed from user_id to applicant_id
+
+          // If lookup failed, try individual API calls
+          if (!job && application.job_id) {
+            try {
+              const jobResponse = await JobsApi.getJobById(application.job_id);
+              if (jobResponse && jobResponse.success) {
+                job = jobResponse.data;
+                console.log('Fetched job individually:', job);
+              }
+            } catch (error) {
+              console.warn('Failed to fetch job individually:', error);
+            }
+          }
+
+          if (!applicant && application.applicant_id) { // Changed from user_id to applicant_id
+            try {
+              console.log('Fetching applicant data for ID:', application.applicant_id);
+              const userResponse = await UsersApi.getApplicantById(application.applicant_id);
+              if (userResponse && userResponse.success) {
+                applicant = userResponse.data;
+                console.log('Fetched user individually:', applicant);
+              }
+            } catch (error) {
+              console.warn('Failed to fetch user individually:', error);
+            }
+          }
+
+          console.log(`For application ${application.id}:`);
+          console.log('  - job_id:', application.job_id, 'found job:', job);
+          console.log('  - applicant_id:', application.applicant_id, 'found user:', applicant);
+
+          // Get job title
+          let jobTitle = 'N/A';
+          if (job) {
+            // Try different possible field names for job title
+            jobTitle = job.title || job.job_title || job.name;
+            
+            // If job doesn't have title directly, might need to fetch job title from job_title_id
+            if (!jobTitle && job.job_title_id) {
+              try {
+                console.log('Fetching job title for job_title_id:', job.job_title_id);
+                const jobTitleResponse = await JobTitlesApi.getJobTitleById(job.job_title_id);
+                if (jobTitleResponse && jobTitleResponse.success && jobTitleResponse.data) {
+                  jobTitle = jobTitleResponse.data.name || jobTitleResponse.data.title || 'N/A';
+                  console.log('Fetched job title:', jobTitle);
+                }
+              } catch (error) {
+                console.error(`Failed to fetch job title ${job.job_title_id}:`, error);
+              }
+            }
+          }
+
+          return {
+            ...application,
+            job_title: jobTitle,
+            applicant_name: applicant ? (applicant.name || applicant.username) : 'N/A',
+            applied_at: application.applied_at || application.created_at
+          };
+        }));
+
+        console.log('Enhanced applications:', applications);
+      }
+
+      currentApplications = applications || [];
       filteredApplications = [...currentApplications];
 
       displayApplications();
@@ -62,14 +175,21 @@ export async function initManageEmployerApplications() {
 
     filteredApplications
       .filter((application) => application && application.id)
-      .forEach((application, index) => {
+      .forEach((application) => {
         const row = document.createElement('tr');
-        const appliedDate = new Date(
-          application.applied_at
-        ).toLocaleDateString();
+        
+        // Handle date formatting more gracefully
+        let appliedDate = 'N/A';
+        if (application.applied_at) {
+          try {
+            appliedDate = new Date(application.applied_at).toLocaleDateString();
+          } catch {
+            console.warn('Invalid date format:', application.applied_at);
+            appliedDate = 'N/A';
+          }
+        }
 
         row.innerHTML = `
-          <td>${index + 1}</td>
           <td>${application.applicant_name || 'N/A'}</td>
           <td>${application.job_title || 'N/A'}</td>
           <td>${appliedDate}</td>
@@ -94,7 +214,7 @@ export async function initManageEmployerApplications() {
     // Add event listeners to action buttons
     document.querySelectorAll('.approve-btn').forEach((btn) => {
       btn.addEventListener('click', () =>
-        updateApplicationStatus(btn.dataset.id, 'APPROVED')
+        updateApplicationStatus(btn.dataset.id, 'ACCEPTED')
       );
     });
 
@@ -220,7 +340,7 @@ export async function initManageEmployerApplications() {
 
   function getStatusBadgeClass(status) {
     switch (status) {
-      case 'APPROVED':
+      case 'ACCEPTED':
         return 'bg-success';
       case 'REJECTED':
         return 'bg-danger';
