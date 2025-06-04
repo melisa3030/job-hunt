@@ -119,6 +119,36 @@ export const UsersApi = {
     }
   },
 
+  async getCurrentUserData() {
+    try {
+      const response = await fetch(`${BASE_URL}/users/current_user_data`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${AuthApi.getToken()}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      logServerResponse(response, data);
+
+      return {
+        success: response.ok,
+        data: response.ok ? data : null,
+        error: !response.ok ? data.message || 'Failed to fetch current user' : null,
+      };
+
+    } catch (error) {
+      console.error('Error fetching current user data:', error);
+      return {
+        success: false,
+        data: null,
+        error: error.message || 'Network error occurred',
+      };
+    }
+  },
+
   async createUser(userData, isEmployer = false) {
     try {
       userData.role = isEmployer ? 'EMPLOYER' : 'APPLICANT';
