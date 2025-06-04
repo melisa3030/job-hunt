@@ -54,6 +54,14 @@ Flight::register('authMiddleware', 'AuthMiddleware');
 
 // Global middleware for all routes
 Flight::route('/*', function () {
+    $current_path = Flight::request()->url;
+    $current_method = Flight::request()->method;
+
+    // Allow all /docs routes to be public
+    if (strpos($current_path, '/docs') === 0) {
+        return true;
+    }
+
     // Array of [METHOD, PATH] pairs
     $public_routes = [
         // Auth
@@ -95,9 +103,6 @@ Flight::route('/*', function () {
         ['GET', '/companies/@id'],
     ];
 
-    $current_path = Flight::request()->url;
-    $current_method = Flight::request()->method;
-
     foreach ($public_routes as [$method, $route]) {
         if ($current_method === $method && strpos($current_path, $route) === 0) {
             return true;
@@ -133,6 +138,12 @@ require_once __DIR__ . '/rest/routes/JobCategoryRoutes.php';
 require_once __DIR__ . '/rest/routes/BookmarkedJobRoutes.php';
 require_once __DIR__ . '/rest/routes/ApplicationRoutes.php';
 require_once __DIR__ . '/rest/routes/AuthRoutes.php';
+require_once __DIR__ . '/rest/routes/SwaggerRoutes.php';
+
+// Test route to debug
+Flight::route('GET /test', function() {
+    Flight::json(['message' => 'Flight is working!']);
+});
 
 // Start Flight PHP
 Flight::start();

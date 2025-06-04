@@ -1,0 +1,2084 @@
+openapi: 3.0.3
+info:
+  title: Job Hunt Application API
+  description: |
+    A comprehensive job hunting platform API that allows employers to post jobs 
+    and applicants to search and apply for positions. The platform includes 
+    features for company management, job bookmarking, reviews, and applications.
+  version: 1.0.0
+  contact:
+    name: Job Hunt API Support
+    email: support@jobhunt.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000/backend
+    description: Development server
+  - url: https://api.jobhunt.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management operations
+  - name: Companies
+    description: Company profile management
+  - name: Jobs
+    description: Job posting and management
+  - name: Applications
+    description: Job application management
+  - name: Bookmarks
+    description: Job bookmarking system
+  - name: Reviews
+    description: Company reviews and ratings
+  - name: Tags
+    description: Tag management for jobs and reviews
+  - name: Categories
+    description: Job categories management
+  - name: Perks
+    description: Job perks and benefits
+
+paths:
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "user@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "password123"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT authentication token
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Get current user data
+      description: Returns the current authenticated user's information
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh user data
+      description: Refresh and return updated user data
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  description: Refresh token
+      responses:
+        '200':
+          description: Refreshed user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # User Endpoints
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get users with optional filters
+      description: Retrieve users by ID, email, name, or get all users (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: query
+          description: Filter by user ID
+          schema:
+            type: integer
+        - name: email
+          in: query
+          description: Filter by email address
+          schema:
+            type: string
+        - name: name
+          in: query
+          description: Filter by user name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of users or specific user
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  - $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      tags:
+        - Users
+      summary: Create new user
+      description: Register a new user account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /users/employers:
+    get:
+      tags:
+        - Users
+      summary: Get all employers
+      description: Retrieve all users with employer role (Admin only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of employers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /users/employer:
+    post:
+      tags:
+        - Users
+      summary: Create new employer
+      description: Create a new user with employer role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: Employer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /users/company/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get user by company ID
+      description: Retrieve user associated with a specific company
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /users/applicant/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get limited applicant data
+      description: Retrieve limited information about an applicant (for employers/admins)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Applicant ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Limited applicant data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LimitedUserData'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /users/current_user_data:
+    get:
+      tags:
+        - Users
+      summary: Get current user's data
+      description: Retrieve the current authenticated user's complete data
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /users/{id}:
+    put:
+      tags:
+        - Users
+      summary: Update user
+      description: Update user information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      description: Delete a user account
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: User ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  # Company Endpoints
+  /companies:
+    get:
+      tags:
+        - Companies
+      summary: Get companies
+      description: Retrieve all companies or filter by name
+      parameters:
+        - name: name
+          in: query
+          description: Filter companies by name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of companies or specific company
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/Company'
+                  - $ref: '#/components/schemas/Company'
+
+    post:
+      tags:
+        - Companies
+      summary: Create company
+      description: Create a new company profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyCreateRequest'
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /companies/{id}:
+    get:
+      tags:
+        - Companies
+      summary: Get company by ID
+      description: Retrieve specific company information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Company data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Companies
+      summary: Update company
+      description: Update company information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdateRequest'
+      responses:
+        '200':
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Companies
+      summary: Delete company
+      description: Delete a company profile
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Company deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /companies/employer/{id}:
+    get:
+      tags:
+        - Companies
+      summary: Get company by employer ID
+      description: Retrieve company associated with a specific employer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employer ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Company data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /companies/me:
+    get:
+      tags:
+        - Companies
+      summary: Get current user's company
+      description: Retrieve company associated with the current authenticated employer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Company data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /company_for_employer:
+    post:
+      tags:
+        - Companies
+      summary: Create company for employer
+      description: Create a company profile for a specific employer (Admin only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/CompanyCreateRequest'
+                - type: object
+                  properties:
+                    employer_id:
+                      type: integer
+                      description: ID of the employer
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  # Perks Endpoints
+  /perks:
+    get:
+      tags:
+        - Perks
+      summary: Get all perks
+      description: Retrieve all available perks
+      responses:
+        '200':
+          description: List of perks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Perk'
+    post:
+      tags:
+        - Perks
+      summary: Create a new perk
+      description: Add a new perk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerkCreateRequest'
+      responses:
+        '201':
+          description: Perk created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perk'
+
+  /perks/{id}:
+    get:
+      tags:
+        - Perks
+      summary: Get perk by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Perk details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perk'
+    put:
+      tags:
+        - Perks
+      summary: Update a perk
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PerkUpdateRequest'
+      responses:
+        '200':
+          description: Perk updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Perk'
+    delete:
+      tags:
+        - Perks
+      summary: Delete a perk
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Perk deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Job Categories Endpoints
+  /job_categories:
+    get:
+      tags:
+        - Categories
+      summary: Get all job categories
+      description: Retrieve all job categories
+      responses:
+        '200':
+          description: List of job categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      tags:
+        - Categories
+      summary: Create a new job category
+      description: Add a new job category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+      responses:
+        '201':
+          description: Job category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+
+  /job_categories/{id}:
+    get:
+      tags:
+        - Categories
+      summary: Get job category by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job category details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    put:
+      tags:
+        - Categories
+      summary: Update a job category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryUpdateRequest'
+      responses:
+        '200':
+          description: Job category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    delete:
+      tags:
+        - Categories
+      summary: Delete a job category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job category deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Bookmarks Endpoints
+  /bookmarked_jobs:
+    get:
+      tags:
+        - Bookmarks
+      summary: Get all bookmarked jobs
+      description: Retrieve all bookmarked jobs
+      responses:
+        '200':
+          description: List of bookmarked jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BookmarkedJob'
+    post:
+      tags:
+        - Bookmarks
+      summary: Bookmark a job
+      description: Add a job to bookmarks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookmarkCreateRequest'
+      responses:
+        '201':
+          description: Job bookmarked successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkedJob'
+
+  /bookmarked_jobs/{id}:
+    get:
+      tags:
+        - Bookmarks
+      summary: Get bookmarked job by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Bookmarked job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookmarkedJob'
+    delete:
+      tags:
+        - Bookmarks
+      summary: Remove bookmark
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Bookmark removed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Applications Endpoints
+  /applications:
+    get:
+      tags:
+        - Applications
+      summary: Get all applications
+      description: Retrieve all job applications
+      responses:
+        '200':
+          description: List of applications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+    post:
+      tags:
+        - Applications
+      summary: Create application
+      description: Submit a job application
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreateRequest'
+      responses:
+        '201':
+          description: Application submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+
+  /applications/{id}:
+    get:
+      tags:
+        - Applications
+      summary: Get application by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+    put:
+      tags:
+        - Applications
+      summary: Update application
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationUpdateRequest'
+      responses:
+        '200':
+          description: Application updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+    delete:
+      tags:
+        - Applications
+      summary: Delete application
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Jobs Endpoints
+  /jobs:
+    get:
+      tags:
+        - Jobs
+      summary: Get all jobs
+      description: Retrieve all available jobs
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+
+    post:
+      tags:
+        - Jobs
+      summary: Create job
+      description: Create a new job posting
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobCreateRequest'
+      responses:
+        '201':
+          description: Job created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+
+  /jobs/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get job by ID
+      description: Retrieve specific job information
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      tags:
+        - Jobs
+      summary: Update job
+      description: Update job information
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobUpdateRequest'
+      responses:
+        '200':
+          description: Job updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      tags:
+        - Jobs
+      summary: Delete job
+      description: Delete a job posting
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Job ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /jobs/employer/{id}:
+    get:
+      tags:
+        - Jobs
+      summary: Get jobs by employer ID
+      description: Retrieve jobs posted by a specific employer (Admin only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employer ID
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /jobs_for_auth_user:
+    get:
+      tags:
+        - Jobs
+      summary: Get jobs for authenticated user
+      description: Retrieve jobs posted by the current authenticated employer
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # Tags Endpoints
+  /tags:
+    get:
+      tags:
+        - Tags
+      summary: Get all tags
+      description: Retrieve all tags
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+    post:
+      tags:
+        - Tags
+      summary: Create a new tag
+      description: Add a new tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreateRequest'
+      responses:
+        '201':
+          description: Tag created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+
+  /tags/{id}:
+    get:
+      tags:
+        - Tags
+      summary: Get tag by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tag details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+    put:
+      tags:
+        - Tags
+      summary: Update a tag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdateRequest'
+      responses:
+        '200':
+          description: Tag updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tag'
+    delete:
+      tags:
+        - Tags
+      summary: Delete a tag
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Tag deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  # Job Perks Endpoints
+  /job_perks:
+    get:
+      tags: [JobPerks]
+      summary: Get all job perks
+      responses:
+        '200':
+          description: List of job perks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobPerk'
+    post:
+      tags: [JobPerks]
+      summary: Create a job perk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobPerk'
+      responses:
+        '201':
+          description: Job perk created
+    delete:
+      tags: [JobPerks]
+      summary: Delete a job perk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobPerk'
+      responses:
+        '200':
+          description: Job perk deleted
+  /job_perks/job/{job_id}:
+    get:
+      tags: [JobPerks]
+      summary: Get job perks by job ID
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of job perks for job
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobPerk'
+  /job_perks/perk/{perk_id}:
+    get:
+      tags: [JobPerks]
+      summary: Get job perks by perk ID
+      parameters:
+        - name: perk_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of job perks for perk
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobPerk'
+
+  # Job Tags Endpoints
+  /job_tags:
+    get:
+      tags: [JobTags]
+      summary: Get all job tags
+      responses:
+        '200':
+          description: List of job tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobTag'
+    post:
+      tags: [JobTags]
+      summary: Create a job tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobTag'
+      responses:
+        '201':
+          description: Job tag created
+    delete:
+      tags: [JobTags]
+      summary: Delete a job tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobTag'
+      responses:
+        '200':
+          description: Job tag deleted
+  /job_tags/job/{job_id}:
+    get:
+      tags: [JobTags]
+      summary: Get job tags by job ID
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of job tags for job
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobTag'
+  /job_tags/tag/{tag_id}:
+    get:
+      tags: [JobTags]
+      summary: Get job tags by tag ID
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of job tags for tag
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobTag'
+
+  # Job Titles Endpoints
+  /job_titles:
+    get:
+      tags: [JobTitles]
+      summary: Get all job titles
+      responses:
+        '200':
+          description: List of job titles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobTitle'
+    post:
+      tags: [JobTitles]
+      summary: Create a job title
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobTitle'
+      responses:
+        '201':
+          description: Job title created
+  /job_titles/{id}:
+    get:
+      tags: [JobTitles]
+      summary: Get job title by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job title details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobTitle'
+    put:
+      tags: [JobTitles]
+      summary: Update a job title
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobTitle'
+      responses:
+        '200':
+          description: Job title updated
+    delete:
+      tags: [JobTitles]
+      summary: Delete a job title
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Job title deleted
+
+  # Review Tags Endpoints
+  /review_tags:
+    get:
+      tags: [ReviewTags]
+      summary: Get all review tags
+      responses:
+        '200':
+          description: List of review tags
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewTag'
+    post:
+      tags: [ReviewTags]
+      summary: Create a review tag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewTag'
+      responses:
+        '201':
+          description: Review tag created
+  /review_tags/review/{review_id}:
+    get:
+      tags: [ReviewTags]
+      summary: Get review tags by review ID
+      parameters:
+        - name: review_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of review tags for review
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewTag'
+  /review_tags/tag/{tag_id}:
+    get:
+      tags: [ReviewTags]
+      summary: Get review tags by tag ID
+      parameters:
+        - name: tag_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of review tags for tag
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewTag'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [EMPLOYER, APPLICANT, ADMIN]
+        company_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    LimitedUserData:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        profile_picture:
+          type: string
+
+    UserCreateRequest:
+      type: object
+      required:
+        - name
+        - username
+        - email
+        - password
+        - role
+      properties:
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [EMPLOYER, APPLICANT, ADMIN]
+        company_id:
+          type: integer
+          nullable: true
+
+    UserUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        role:
+          type: string
+          enum: [EMPLOYER, APPLICANT, ADMIN]
+        company_id:
+          type: integer
+          nullable: true
+
+    Company:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        employer_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    CompanyCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        employer_id:
+          type: integer
+          nullable: true
+
+    CompanyUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        country:
+          type: string
+        city:
+          type: string
+        description:
+          type: string
+        employer_id:
+          type: integer
+          nullable: true
+
+    JobCategory:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    JobCategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    JobCategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    JobTitle:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    JobTitleCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    JobTitleUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_title_id:
+          type: integer
+        company_id:
+          type: integer
+        category_id:
+          type: integer
+        description:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        work_type:
+          type: string
+          enum: [REMOTE, HYBRID, ON-SITE]
+        experience_level:
+          type: string
+          enum: [JUNIOR, INTERMEDIATE, SENIOR]
+        salary:
+          type: number
+          format: float
+        posted_by:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    JobCreateRequest:
+      type: object
+      required:
+        - job_title_id
+        - company_id
+        - category_id
+        - description
+        - city
+        - country
+        - work_type
+        - experience_level
+        - posted_by
+        - expires_at
+      properties:
+        job_title_id:
+          type: integer
+        company_id:
+          type: integer
+        category_id:
+          type: integer
+        description:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        work_type:
+          type: string
+          enum: [REMOTE, HYBRID, ON-SITE]
+        experience_level:
+          type: string
+          enum: [JUNIOR, INTERMEDIATE, SENIOR]
+        salary:
+          type: number
+          format: float
+        posted_by:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+
+    JobUpdateRequest:
+      type: object
+      properties:
+        job_title_id:
+          type: integer
+        company_id:
+          type: integer
+        category_id:
+          type: integer
+        description:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        work_type:
+          type: string
+          enum: [REMOTE, HYBRID, ON-SITE]
+        experience_level:
+          type: string
+          enum: [JUNIOR, INTERMEDIATE, SENIOR]
+        salary:
+          type: number
+          format: float
+        posted_by:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+
+    Application:
+      type: object
+      properties:
+        id:
+          type: integer
+        job_id:
+          type: integer
+        applicant_id:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED]
+        applied_at:
+          type: string
+          format: date-time
+
+    ApplicationCreateRequest:
+      type: object
+      required:
+        - job_id
+        - applicant_id
+      properties:
+        job_id:
+          type: integer
+        applicant_id:
+          type: integer
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED]
+
+    ApplicationUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED]
+
+    BookmarkedJob:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        job_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    BookmarkCreateRequest:
+      type: object
+      required:
+        - user_id
+        - job_id
+      properties:
+        user_id:
+          type: integer
+        job_id:
+          type: integer
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        job_title_id:
+          type: integer
+        rating:
+          type: integer
+        positive_review:
+          type: string
+        negative_review:
+          type: string
+        currently_working:
+          type: string
+          enum: [YES, NO]
+        recommend:
+          type: string
+          enum: [YES, NO]
+        employment_type:
+          type: string
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP]
+        employment_duration:
+          type: string
+          enum: [LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, MORE_THAN_FIVE_YEARS]
+        created_at:
+          type: string
+          format: date-time
+        anonymous:
+          type: boolean
+        user_id:
+          type: integer
+
+    ReviewCreateRequest:
+      type: object
+      required:
+        - company_id
+        - job_title_id
+        - rating
+        - user_id
+      properties:
+        company_id:
+          type: integer
+        job_title_id:
+          type: integer
+        rating:
+          type: integer
+        positive_review:
+          type: string
+        negative_review:
+          type: string
+        currently_working:
+          type: string
+          enum: [YES, NO]
+        recommend:
+          type: string
+          enum: [YES, NO]
+        employment_type:
+          type: string
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP]
+        employment_duration:
+          type: string
+          enum: [LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, MORE_THAN_FIVE_YEARS]
+        anonymous:
+          type: boolean
+        user_id:
+          type: integer
+
+    ReviewTag:
+      type: object
+      properties:
+        review_id:
+          type: integer
+        tag_id:
+          type: integer
+
+    JobPerk:
+      type: object
+      properties:
+        job_id:
+          type: integer
+        perk_id:
+          type: integer
+
+    JobTag:
+      type: object
+      properties:
+        job_id:
+          type: integer
+        tag_id:
+          type: integer
+
+    Perk:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    PerkCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    TagCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+          description: Hex color code
+
+    TagUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+        code:
+          type: integer
+          description: Error code
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Authentication required"
+            code: 401
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Insufficient permissions"
+            code: 403
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Resource not found"
+            code: 404
+
+    BadRequestError:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: "Invalid request data"
+            code: 400
+
+security:
+  - bearerAuth: []
