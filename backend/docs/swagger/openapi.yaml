@@ -40,6 +40,14 @@ tags:
     description: Job categories management
   - name: Perks
     description: Job perks and benefits
+  - name: JobPerks
+    description: Job perks assignment and management
+  - name: JobTags
+    description: Job tags assignment and management
+  - name: JobTitles
+    description: Job title management
+  - name: ReviewTags
+    description: Review tags assignment and management
 
 paths:
   # Authentication Endpoints
@@ -1536,25 +1544,35 @@ components:
       properties:
         id:
           type: integer
+          description: User ID
         name:
           type: string
+          description: User full name
         username:
           type: string
+          description: User username
         email:
           type: string
           format: email
+          description: User email address
         password:
           type: string
-          format: password
+          description: User password (hashed, not exposed in API responses)
         role:
           type: string
-          enum: [EMPLOYER, APPLICANT, ADMIN]
+          enum: [ADMIN, EMPLOYER, APPLICANT]
+          description: User role
         company_id:
           type: integer
-          nullable: true
+          description: Associated company ID
         created_at:
           type: string
           format: date-time
+          description: Account creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
 
     LimitedUserData:
       type: object
@@ -1571,10 +1589,10 @@ components:
     UserCreateRequest:
       type: object
       required:
-        - name
-        - username
         - email
         - password
+        - name
+        - username
         - role
       properties:
         name:
@@ -1586,13 +1604,12 @@ components:
           format: email
         password:
           type: string
-          format: password
+          minLength: 6
         role:
           type: string
-          enum: [EMPLOYER, APPLICANT, ADMIN]
+          enum: [APPLICANT, EMPLOYER, ADMIN]
         company_id:
           type: integer
-          nullable: true
 
     UserUpdateRequest:
       type: object
@@ -1606,21 +1623,21 @@ components:
           format: email
         password:
           type: string
-          format: password
         role:
           type: string
-          enum: [EMPLOYER, APPLICANT, ADMIN]
+          enum: [APPLICANT, EMPLOYER, ADMIN]
         company_id:
           type: integer
-          nullable: true
 
     Company:
       type: object
       properties:
         id:
           type: integer
+          description: Company ID
         name:
           type: string
+          description: Company name
         country:
           type: string
         city:
@@ -1629,7 +1646,6 @@ components:
           type: string
         employer_id:
           type: integer
-          nullable: true
         created_at:
           type: string
           format: date-time
@@ -1649,7 +1665,6 @@ components:
           type: string
         employer_id:
           type: integer
-          nullable: true
 
     CompanyUpdateRequest:
       type: object
@@ -1664,51 +1679,6 @@ components:
           type: string
         employer_id:
           type: integer
-          nullable: true
-
-    JobCategory:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-
-    JobCategoryCreateRequest:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-
-    JobCategoryUpdateRequest:
-      type: object
-      properties:
-        name:
-          type: string
-
-    JobTitle:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
-          type: string
-
-    JobTitleCreateRequest:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-
-    JobTitleUpdateRequest:
-      type: object
-      properties:
-        name:
-          type: string
 
     Job:
       type: object
@@ -1875,6 +1845,30 @@ components:
         job_id:
           type: integer
 
+    JobPerk:
+      type: object
+      properties:
+        job_id:
+          type: integer
+        perk_id:
+          type: integer
+
+    JobTag:
+      type: object
+      properties:
+        job_id:
+          type: integer
+        tag_id:
+          type: integer
+
+    JobTitle:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
     Review:
       type: object
       properties:
@@ -1945,55 +1939,29 @@ components:
         user_id:
           type: integer
 
-    ReviewTag:
+    ReviewUpdateRequest:
       type: object
       properties:
-        review_id:
+        rating:
           type: integer
-        tag_id:
-          type: integer
-
-    JobPerk:
-      type: object
-      properties:
-        job_id:
-          type: integer
-        perk_id:
-          type: integer
-
-    JobTag:
-      type: object
-      properties:
-        job_id:
-          type: integer
-        tag_id:
-          type: integer
-
-    Perk:
-      type: object
-      properties:
-        id:
-          type: integer
-        name:
+        positive_review:
           type: string
-        description:
+        negative_review:
           type: string
-        created_at:
+        currently_working:
           type: string
-          format: date-time
-        updated_at:
+          enum: [YES, NO]
+        recommend:
           type: string
-          format: date-time
-
-    PerkCreateRequest:
-      type: object
-      required:
-        - name
-      properties:
-        name:
+          enum: [YES, NO]
+        employment_type:
           type: string
-        description:
+          enum: [FULL_TIME, PART_TIME, CONTRACT, INTERNSHIP]
+        employment_duration:
           type: string
+          enum: [LESS_THAN_A_YEAR, ONE_TO_TWO_YEARS, THREE_TO_FIVE_YEARS, MORE_THAN_FIVE_YEARS]
+        anonymous:
+          type: boolean
 
     Tag:
       type: object
@@ -2002,11 +1970,6 @@ components:
           type: integer
         name:
           type: string
-        color:
-          type: string
-        created_at:
-          type: string
-          format: date-time
 
     TagCreateRequest:
       type: object
@@ -2015,19 +1978,64 @@ components:
       properties:
         name:
           type: string
-        color:
-          type: string
-          pattern: '^#[0-9A-Fa-f]{6}$'
-          description: Hex color code
 
     TagUpdateRequest:
       type: object
       properties:
         name:
           type: string
-        color:
+
+    Perk:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
           type: string
-          pattern: '^#[0-9A-Fa-f]{6}$'
+
+    PerkCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    PerkUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    CategoryCreateRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    CategoryUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+
+    ReviewTag:
+      type: object
+      properties:
+        review_id:
+          type: integer
+        tag_id:
+          type: integer
 
     Error:
       type: object
