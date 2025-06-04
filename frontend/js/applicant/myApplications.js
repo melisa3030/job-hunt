@@ -209,7 +209,7 @@ export async function initMyApplications() {
 
   function getStatusBadgeClass(status) {
     switch (status) {
-      case 'APPROVED':
+      case 'ACCEPTED':
         return 'bg-success';
       case 'REJECTED':
         return 'bg-danger';
