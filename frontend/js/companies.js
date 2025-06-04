@@ -119,10 +119,6 @@ function filterAndDisplayCompanies(searchTerm) {
 }
 
 // ===========================
-// === Display Functions
-// ===========================
-
-// ===========================
 // === Data Loading
 // ===========================
 
@@ -150,7 +146,9 @@ export async function renderCompanies() {
         CompaniesApi.getAllCompanies(),
         JobsApi.getAllJobs(),
         ReviewsApi.getAllReviews(),
-      ]);    // Validate all API responses and extract data
+      ]);
+
+    // Validate all API responses and extract data
     allCompanies = extractValidatedData(companiesResponse, 'companies');
     allJobs = extractValidatedData(jobsResponse, 'jobs');
     allReviews = extractValidatedData(reviewsResponse, 'reviews');
