@@ -10,13 +10,22 @@
         placeholder="Search for a company"
         aria-label="Search for a company"
       />
-    </div>
-    <div class="companies__sort">
+    </div>    <div class="companies__sort">
       <label for="sort">Sort by:</label>
       <select id="sort" class="form-control companies__sort-select">
         <option value="reviews">Number of Reviews</option>
         <option value="jobs">Number of Jobs</option>
+        <option value="rating">Average Rating</option>
+        <option value="name">Company Name</option>
       </select>
+      <div class="companies__sort-direction">
+        <button id="sort-asc" class="companies__sort-btn" data-direction="asc">
+          ASC
+        </button>
+        <button id="sort-desc" class="companies__sort-btn active" data-direction="desc">
+          DESC
+        </button>
+      </div>
     </div>
     <div class="companies__list">
       <!-- Company items will be dynamically rendered here -->

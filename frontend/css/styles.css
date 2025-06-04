@@ -437,6 +437,7 @@ body {
     align-items: center;
     gap: 10px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 .companies__sort-select {
@@ -444,6 +445,38 @@ body {
     padding: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
+}
+
+.companies__sort-direction {
+    display: flex;
+    gap: 5px;
+}
+
+.companies__sort-btn {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.companies__sort-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.companies__sort-btn.active {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.companies__sort-btn.active:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
 }
 
 .companies__list {
