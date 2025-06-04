@@ -1583,8 +1583,6 @@ components:
           type: string
         email:
           type: string
-        profile_picture:
-          type: string
 
     UserCreateRequest:
       type: object
