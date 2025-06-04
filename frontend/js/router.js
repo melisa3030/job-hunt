@@ -20,6 +20,7 @@ import { initManageAdminCategories } from './admin/manageCategories.js';
 import { initMyApplications } from './applicant/myApplications.js';
 import { initMyBookmarks } from './applicant/myBookmarks.js';
 import { initMyReviews } from './applicant/myReviews.js';
+import { initProfile } from './profile.js';
 
 const urlPageTitle = 'Job Hunt App';
 
@@ -77,7 +78,7 @@ const urlRoutes = {
   '/profile': {
     template: '/views/profile.html',
     title: 'Profile | ' + urlPageTitle,
-    description: 'User profile',
+    description: 'User profile management',
   },
 
   // Admin routes
@@ -219,13 +220,14 @@ const urlLocationHandler = async () => {
   }
 
   // Render section-specific content
-  if (routeKey === '/jobs') {
-    renderJobsWithFilters();
-  }
+  if (routeKey === '/jobs')  renderJobsWithFilters();
   if (routeKey === '/reviews') renderReviews();
   if (routeKey === '/companies') renderCompanies();
   if (routeKey === '/signup') initSignupForm();
   if (routeKey === '/login') initLoginForm();
+
+  // Profile
+  if (routeKey === '/profile') initProfile();
 
   // Admin
   if (routeKey === '/admin/users') initManageAdminUsers();
