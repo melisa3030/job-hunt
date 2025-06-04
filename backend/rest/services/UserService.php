@@ -68,21 +68,34 @@ class UserService
         return $user;
     }
 
+    public function getCurrentUserData() 
+    {
+        $user = Flight::get('user');
+        if (!$user) {
+            throw new Exception("User not authenticated", 401);
+        }
+
+        // only current user can access their own data
+        if ($user->role !== Roles::ADMIN->value && $user->role !== Roles::EMPLOYER->value && $user->role !== Roles::APPLICANT->value) {
+            throw new Exception("Forbidden", 403);
+        }
+
+        $userData = $this->dao->getById($user->id);
+
+        if (!$userData) {
+            throw new Exception("User not found", 404);
+        }
+
+        unset($userData['password']);
+       
+        return $userData;
+
+    }
+
     public function createUser($data)
     {
         $requiredFields = ['name', 'username', 'email', 'password'];
-        $hasRequiredField = false;
-
-        foreach ($requiredFields as $field) {
-            if (isset($data[$field]) && !empty($data[$field])) {
-                $hasRequiredField = true;
-                break;
-            }
-        }
-
-        if (!$hasRequiredField) {
-            throw new Exception("Create requires at least one of these fields: " . implode(", ", $requiredFields), 400);
-        }
+        validateBody($data, $requiredFields);
 
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
@@ -118,7 +131,7 @@ class UserService
         $this->getUserById($id);
 
         // Check if at least one required field is present
-        $requiredFields = ['name', 'email', 'username', 'password', 'company_id'];
+        $requiredFields = ['name', 'email', 'username', 'password', 'company_id', 'old_password'];
         $hasRequiredField = false;
 
         foreach ($requiredFields as $field) {
@@ -132,10 +145,6 @@ class UserService
             throw new Exception("Update requires at least one of these fields: " . implode(", ", $requiredFields), 400);
         }
 
-        $company = Flight::companiesService()->getCompanyByEmployerId($id);
-        if ($company && isset($data['role']) && $data['role'] !== Roles::EMPLOYER->value) {
-            throw new Exception("Cannot change role to non-employer while associated with a company", 400);
-        }
 
         if (isset($data['username'])) {
             $this->validateUniqueUsername($data['username'], $id);
@@ -147,11 +156,37 @@ class UserService
 
         if (isset($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            // check if old password is provided and matches the current user's password
+            if (isset($data['old_password']) && !empty($data['old_password'])) {
+                $user = $this->dao->getById($id);
+                if (!$user || !password_verify($data['old_password'], $user['password'])) {
+                    throw new Exception("Old password is incorrect", 400);
+                }
+            } 
+
+            if (isset($data['confirm_password']) && !empty($data['confirm_password'])) {
+                if ($data['password'] !== password_hash($data['confirm_password'], PASSWORD_DEFAULT)) {
+                    throw new Exception("Confirm password does not match", 400);
+                }
+            } else {
+                throw new Exception("Confirm password is required", 400);
+            }
         }
 
-        // Validate company_id if it's being updated
-        if (isset($data['company_id']) && !empty($data['company_id'])) {
+        // Validate role and company_id changes
+        if (isset($data['role']) || isset($data['company_id'])) {
+            $company = Flight::companiesService()->getCompanyByEmployerId($id);
+            
+            // Check if user is trying to change role from employer while having a company
+            if ($company && isset($data['role']) && $data['role'] !== Roles::EMPLOYER->value) {
+            throw new Exception("Cannot change role to non-employer while associated with a company", 400);
+            }
+            
+            // Validate company_id if it's being updated
+            if (isset($data['company_id']) && !empty($data['company_id'])) {
             $this->validateCompany($data['company_id'], $id);
+            }
         }
 
         if (!$this->dao->update($id, $data)) {

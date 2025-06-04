@@ -56,10 +56,7 @@ Flight::route('GET /users/company/@id', function ($id) {
     }
 });
 
-/**
- * Get limited applicant information (for employers viewing job applications)
- * This endpoint provides restricted user information without sensitive data
- */
+// Returns a limited set of user data for applicants
 Flight::route('GET /users/applicant/@id', function ($id) {
     try {
         Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::EMPLOYER]);
@@ -118,6 +115,21 @@ Flight::route('GET /users/applicants', function () {
         }
 
         Flight::json($limitedUsersData);
+    } catch (Exception $e) {
+        $code = $e->getCode();
+        if ($code < 100 || $code > 599) {
+            $code = 500;
+        }
+        Flight::jsonHalt(["message" => $e->getMessage()], $code);
+    }
+});
+
+// Returns the current user's data, accessible by applicants and employers
+Flight::route('GET /users/current_user_data', function () {
+    try {
+        Flight::authMiddleware()->authorizeRoles([Roles::ADMIN, Roles::APPLICANT, Roles::EMPLOYER]);
+        $user = Flight::userService()->getCurrentUserData();
+        Flight::json($user);
     } catch (Exception $e) {
         $code = $e->getCode();
         if ($code < 100 || $code > 599) {
